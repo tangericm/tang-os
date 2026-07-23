@@ -31,14 +31,33 @@ body {
   position: relative;
   min-height: 100dvh;
   overflow: hidden;
-  /* macOS-style aurora wallpaper, painted with layered gradients
-     (no image file — costs 0 bytes of bandwidth) */
-  background:
-    radial-gradient(110% 90% at 12% 18%, rgba(64, 112, 214, 0.85) 0%, rgba(64, 112, 214, 0) 55%),
-    radial-gradient(95% 85% at 88% 12%, rgba(139, 92, 246, 0.75) 0%, rgba(139, 92, 246, 0) 55%),
-    radial-gradient(95% 80% at 72% 88%, rgba(232, 82, 152, 0.65) 0%, rgba(232, 82, 152, 0) 55%),
-    radial-gradient(80% 70% at 25% 90%, rgba(46, 168, 200, 0.5) 0%, rgba(46, 168, 200, 0) 60%),
-    linear-gradient(155deg, #101c3d 0%, #251a4a 55%, #3c1e4e 100%);
+
+  /* Paints instantly while the photo loads — this is the average
+     color of the wallpaper itself, so the handoff feels seamless */
+  background-color: #7c7671;
+
+  /* Two stacked layers (first = on top):
+     1. a "scrim" — a subtle dark fade at the top so the menu bar
+        stays legible over the bright sky
+     2. the wallpaper photo.
+     The first background-image declaration is the fallback; the
+     second overrides it in browsers that understand image-set(),
+     letting them pick AVIF (half the bytes of JPEG). Old browsers
+     ignore it and keep the JPEG. */
+  background-image:
+    linear-gradient(180deg, rgba(12, 13, 17, 0.38) 0%, rgba(12, 13, 17, 0) 140px),
+    url("/wallpaper.jpg");
+  background-image:
+    linear-gradient(180deg, rgba(12, 13, 17, 0.38) 0%, rgba(12, 13, 17, 0) 140px),
+    image-set(
+      url("/wallpaper.avif") type("image/avif"),
+      url("/wallpaper.jpg") type("image/jpeg")
+    );
+
+  /* cover = fill the screen, cropping as needed (like object-fit).
+     55% vertical keeps the subject nicely framed on wide screens. */
+  background-size: cover;
+  background-position: 50% 55%;
 }
 
 /* ============================================================
@@ -59,7 +78,7 @@ body {
 
   /* The macOS "frosted glass" recipe: a translucent tint +
      backdrop-filter, which blurs whatever is BEHIND the element */
-  background: rgba(18, 18, 26, 0.42);
+  background: rgba(16, 17, 22, 0.5); /* a touch darker over a busy photo */
   backdrop-filter: blur(24px) saturate(1.7);
   -webkit-backdrop-filter: blur(24px) saturate(1.7); /* Safari */
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
