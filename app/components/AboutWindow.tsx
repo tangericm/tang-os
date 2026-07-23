@@ -30,7 +30,7 @@ const EXPERIENCE: Array<{ role: string; org: string; when: string; line: string 
     role: "Senior Research Scientist",
     org: "Topcon Healthcare · San Jose, CA",
     when: "2023 – present",
-    line: "Real-time image acquisition software in C++, deep learning for image enhancement (super-resolution and denoising), and bringing those models into real-time use on device — plus collaborating across teams to carry new imaging hardware from prototype toward production.",
+    line: "Real-time 3D image acquisition software in C++, deep learning for image enhancement (super-resolution and denoising), software and model edge-deployment and optimization, vendor collaboration for software-hardware co-production.",
   },
   {
     role: "Postdoctoral Research Fellow",
@@ -42,7 +42,7 @@ const EXPERIENCE: Array<{ role: string; org: string; when: string; line: string 
     role: "Graduate Research Assistant",
     org: "Vanderbilt University · Nashville, TN",
     when: "2018 – 2022",
-    line: "Built and optimized a high-speed multimodal OCT system (C++, 4 GS/s) with GPU-accelerated CNNs and 120 fps YOLOv4 instrument detection.",
+    line: "Built and optimized a high-speed multimodal OCT system (C++, 4 GS/s) with GPU-accelerated CNNs and 120 fps YOLOv4 instrument detection for ophthalmic surgical guidance",
   },
 ];
 
