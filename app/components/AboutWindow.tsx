@@ -17,11 +17,11 @@ type Tab = (typeof TABS)[number];
 
 const SPECS: Array<[string, string]> = [
   ["Role", "Senior Research Scientist, Topcon Healthcare"],
-  ["Focus", "Computational imaging · Real-time systems · Deep learning"],
-  ["Stack", "C++ · Python · PyTorch · CUDA / TensorRT · OpenCV"],
+  ["Focus", "Image processing · Computer vision · Machine learning"],
+  ["Stack", "Python · PyTorch · C++ · OpenCV · MATLAB"],
   ["Location", "San Jose, California"],
-  ["Memory", "8 years of imaging R&D"],
-  ["Graphics", "OCT, photoacoustic & visible-light systems"],
+  ["Memory", "8 years of software & hardware development"],
+  ["Graphics", "Optical coherence tomography · Computational imaging · Photoacoustics"],
   ["Pets", "1 × Frankie (see wallpaper)"],
 ];
 
@@ -30,13 +30,13 @@ const EXPERIENCE: Array<{ role: string; org: string; when: string; line: string 
     role: "Senior Research Scientist",
     org: "Topcon Healthcare · San Jose, CA",
     when: "2023 – present",
-    line: "Real-time image acquisition software (C++, 2 GS/s), physics-informed deep learning for 2× super-resolution and denoising, and edge deployment via ONNX/TensorRT on Jetson — plus scaling a novel compact imaging sensor to production at half the size.",
+    line: "Real-time image acquisition software in C++, deep learning for image enhancement (super-resolution and denoising), and bringing those models into real-time use on device — plus collaborating across teams to carry new imaging hardware from prototype toward production.",
   },
   {
     role: "Postdoctoral Research Fellow",
     org: "Diagnostic Imaging & Image-Guided Interventions Lab · Nashville, TN",
     when: "2022 – 2023",
-    line: "4D surgical-instrument tracking at 99% sensitivity / 23 fps and a multi-scale U-Net denoising framework running at video rate.",
+    line: "4D surgical-instrument tracking at 99% sensitivity / 23 fps and a U-Net denoising framework running at video rate.",
   },
   {
     role: "Graduate Research Assistant",
@@ -58,22 +58,28 @@ const LINKS: Array<{ label: string; href: string }> = [
   { label: "Email", href: "mailto:eric.tang22@gmail.com" },
 ];
 
-export default function AboutWindow({ onClose }: { onClose: () => void }) {
+export default function AboutWindow({
+  onClose,
+  onMinimize,
+}: {
+  onClose: () => void;
+  onMinimize: () => void;
+}) {
   // A "controlled" tab bar: which tab is showing is just a piece of
   // state, and clicking a tab is just setState. No routing needed.
   const [tab, setTab] = useState<Tab>("Overview");
 
   return (
-    <Window title="About This Eric" onClose={onClose}>
+    <Window title="About Me" onClose={onClose} onMinimize={onMinimize}>
       <div className="about">
         <div className="about-avatar" aria-hidden="true">
           ET
         </div>
         <h1 className="about-name">Eric M. Tang, Ph.D.</h1>
         <p className="about-tagline">
-          I build imaging systems that see what people can&apos;t — from
-          real-time OCT for eye surgery to physics-informed neural networks
-          that sharpen what sensors capture.
+          I&apos;m a research scientist who likes building things end-to-end from hardware 
+          to real-time software development and machine learning deployment. Outside of work I like 
+          to cook, ski, swim, travel, and lift — all to enjoy my favorite hobby, which is eating.
         </p>
 
         <div className="tabs" role="tablist">

@@ -2,29 +2,42 @@
 
 import { useState } from "react";
 import AboutWindow from "./AboutWindow";
+import Dock from "./Dock";
 import DesktopIcon from "./DesktopIcon";
 
 /**
- * WindowLayer — the beginnings of a window manager.
+ * WindowLayer — the window manager (still small, but now it earns
+ * the name).
  *
- * The key idea is "lifting state up": the About window can't own its
- * own open/closed state, because when it's closed it doesn't exist —
- * something ABOVE it must remember and be able to reopen it. That
- * something is this component. When we add more apps and a dock, this
- * grows into a real window manager (open list, focus order, z-index).
+ * The About app is no longer just open/closed — it's a tiny state
+ * machine:
+ *
+ *   "open"      → window visible, dock shows its running dot
+ *   "minimized" → window unmounted, dot still on (it's "running"),
+ *                 clicking the dock icon restores it
+ *   "closed"    → gone entirely; dock or desktop icon relaunches it
+ *
+ * One string of state, three UI surfaces reading it. This is the
+ * pattern every additional app will follow.
  */
+
+type AppState = "open" | "minimized" | "closed";
+
 export default function WindowLayer() {
-  // Auto-open on arrival: the About window is sitting there when the
-  // boot overlay fades — a recruiter gets the pitch with zero clicks.
-  const [aboutOpen, setAboutOpen] = useState(true);
+  const [about, setAbout] = useState<AppState>("open"); // auto-open on arrival
 
   return (
     <>
-      <DesktopIcon label="About Eric" onOpen={() => setAboutOpen(true)} />
+      <DesktopIcon label="About Eric" onOpen={() => setAbout("open")} />
 
-      {/* Conditional rendering: when aboutOpen is false, the window
-          isn't hidden — it's not in the page at all. */}
-      {aboutOpen && <AboutWindow onClose={() => setAboutOpen(false)} />}
+      {about === "open" && (
+        <AboutWindow
+          onClose={() => setAbout("closed")}
+          onMinimize={() => setAbout("minimized")}
+        />
+      )}
+
+      <Dock onOpenAbout={() => setAbout("open")} aboutRunning={about !== "closed"} />
     </>
   );
 }
