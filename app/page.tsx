@@ -1,35 +1,22 @@
-export default function BootScreen() {
+import BootScreen from "./components/BootScreen";
+import MenuBar from "./components/MenuBar";
+
+/**
+ * The home route ("/") — the desktop itself.
+ *
+ * This file stays tiny on purpose: it just composes the scene. Each OS
+ * feature (menu bar, dock, windows...) lives in its own component under
+ * app/components/, and the desktop stacks them up.
+ */
+export default function Desktop() {
   return (
-    <main className="boot">
-      <div className="boot-center">
-        <svg
-          className="boot-logo"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          aria-hidden="true"
-        >
-          {/* power symbol */}
-          <path d="M12 3v8" />
-          <path d="M6.2 6.2a8.2 8.2 0 1 0 11.6 0" />
-        </svg>
+    <main className="desktop">
+      <MenuBar />
 
-        <div className="boot-progress" role="progressbar" aria-label="Booting">
-          <div className="boot-progress-fill" />
-        </div>
+      {/* Coming in later features: <Dock />, <Window />s, desktop icons */}
 
-        <p className="boot-caption">
-          <span className="boot-name">TangOS</span> v0.1 — first boot
-        </p>
-
-        <p className="boot-message">
-          Desktop under construction · Eric&nbsp;M.&nbsp;Tang
-        </p>
-      </div>
-
-      <footer className="boot-footer">ericmtang.com</footer>
+      {/* Rendered last so it sits on top, then fades out via CSS */}
+      <BootScreen />
     </main>
   );
 }
