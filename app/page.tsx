@@ -1,5 +1,6 @@
 import BootScreen from "./components/BootScreen";
 import MenuBar from "./components/MenuBar";
+import WindowLayer from "./components/WindowLayer";
 
 /**
  * The home route ("/") — the desktop itself.
@@ -13,7 +14,10 @@ export default function Desktop() {
     <main className="desktop">
       <MenuBar />
 
-      {/* Coming in later features: <Dock />, <Window />s, desktop icons */}
+      {/* Icons + windows (client-side, interactive) */}
+      <WindowLayer />
+
+      {/* Coming in later features: <Dock /> */}
 
       {/* Rendered last so it sits on top, then fades out via CSS */}
       <BootScreen />
