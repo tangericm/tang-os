@@ -102,17 +102,6 @@ body {
   padding: 2px 8px;
 }
 
-.menubar-item {
-  padding: 2px 8px;
-  border-radius: 4px;
-  color: rgba(245, 245, 247, 0.92);
-  cursor: default;
-}
-
-.menubar-item:hover {
-  background: rgba(255, 255, 255, 0.14);
-}
-
 .menubar-right {
   display: flex;
   align-items: center;
@@ -297,7 +286,9 @@ body {
 }
 
 .light {
-  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 12px;
   height: 12px;
   border-radius: 50%;
@@ -322,34 +313,21 @@ body {
   filter: brightness(1.12);
 }
 
-/* Hovering the traffic-light GROUP reveals the glyphs — drawn as CSS
-   ::after content, so the markup stays three empty buttons */
-.light::after {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 9.5px;
-  font-weight: 700;
-  line-height: 1;
-  color: rgba(0, 0, 0, 0.55);
+/* Hovering the traffic-light GROUP reveals the glyphs. Each button
+   holds a tiny SVG — vectors center perfectly where font characters
+   drift, because flex centers the SVG's box and the strokes are drawn
+   symmetrically inside its viewBox. */
+.light svg {
+  width: 8px;
+  height: 8px;
+  fill: none;
+  stroke: rgba(0, 0, 0, 0.55);
+  stroke-width: 1.4;
+  stroke-linecap: round;
   opacity: 0;
-  content: "";
 }
 
-.traffic:hover .light-red::after {
-  content: "×";
-  opacity: 1;
-}
-
-.traffic:hover .light-yellow::after {
-  content: "−";
-  opacity: 1;
-}
-
-.traffic:hover .light-green::after {
-  content: "+";
+.traffic:hover .light svg {
   opacity: 1;
 }
 
@@ -526,74 +504,16 @@ body {
   color: rgba(245, 245, 247, 0.5);
 }
 
-/* Link pills */
-.about-links {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
+/* Contact link inside the spec sheet */
+.spec-link {
+  color: rgba(245, 245, 247, 0.92);
+  text-decoration: underline;
+  text-decoration-color: rgba(245, 245, 247, 0.35);
+  text-underline-offset: 2px;
 }
 
-.pill {
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 12.5px;
-  text-decoration: none;
-  color: #f5f5f7;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-}
-
-.pill:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-/* ============================================================
-   Desktop icons
-   ============================================================ */
-.desktop-icon {
-  position: absolute;
-  top: 52px;
-  right: 26px;
-  z-index: 5; /* under windows (10) and the menu bar (100) */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  width: 84px;
-  padding: 8px 4px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  cursor: default;
-}
-
-.desktop-icon:hover,
-.desktop-icon:focus-visible {
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.desktop-icon-art {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  color: #f5f5f7;
-  background: linear-gradient(160deg, rgba(120, 130, 145, 0.9), rgba(80, 76, 70, 0.9));
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-}
-
-.desktop-icon-art svg {
-  width: 30px;
-  height: 30px;
-}
-
-.desktop-icon-label {
-  font-size: 11.5px;
-  color: #fff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+.spec-link:hover {
+  text-decoration-color: rgba(245, 245, 247, 0.8);
 }
 
 /* Green light: zoomed window */
@@ -616,12 +536,10 @@ body {
   z-index: 90; /* above windows (10), below the menu bar (100) */
 }
 
-.dock ul {
-  display: flex;
-  align-items: flex-end;
-  gap: 10px;
-  list-style: none;
-  padding: 8px 12px;
+/* the glass panel — a sibling BEHIND the icons, never their parent */
+.dock-glass {
+  position: absolute;
+  inset: 0;
   border-radius: 20px;
   background: rgba(20, 21, 26, 0.45);
   backdrop-filter: blur(30px) saturate(1.6);
@@ -630,17 +548,28 @@ body {
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.4);
 }
 
+.dock ul {
+  position: relative; /* paints above the glass layer */
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  list-style: none;
+  padding: 8px 12px;
+}
+
 .dock-item {
   position: relative;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  /* the transition is what makes JS-driven magnification feel liquid */
-  transition: transform 130ms ease-out;
-  transform-origin: bottom center;
+  justify-content: center;
+  align-items: flex-end;
+  /* the li animates its LAYOUT width (pushes neighbors), the button
+     inside animates its visual scale — both eased to feel liquid */
+  transition: width 130ms ease-out;
 }
 
 .dock-button {
+  transition: transform 130ms ease-out;
+  transform-origin: bottom center;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -703,11 +632,6 @@ body {
    Mobile — one column of care for phone-size screens
    ============================================================ */
 @media (max-width: 640px) {
-  /* menu bar: keep the identity + clock, drop the fake menus */
-  .menubar-item {
-    display: none;
-  }
-
   /* windows: nearly full width, clear of menu bar and dock */
   .window {
     top: 56px;
@@ -718,12 +642,6 @@ body {
     max-height: calc(100dvh - 56px - 42px - 118px);
     /* viewport − window top − title bar − dock clearance */
     padding: 20px 18px 18px;
-  }
-
-  .desktop-icon {
-    top: 44px;
-    right: 12px;
-    width: 76px;
   }
 
   .dock ul {
@@ -739,10 +657,5 @@ body {
   .spec-row {
     grid-template-columns: 92px 1fr;
     gap: 10px;
-  }
-
-  .about-links {
-    flex-wrap: wrap;
-    justify-content: center;
   }
 }

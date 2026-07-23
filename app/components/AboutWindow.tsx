@@ -36,7 +36,7 @@ const EXPERIENCE: Array<{ role: string; org: string; when: string; line: string 
     role: "Postdoctoral Research Fellow",
     org: "Diagnostic Imaging & Image-Guided Interventions Lab · Nashville, TN",
     when: "2022 – 2023",
-    line: "4D surgical-instrument tracking at 99% sensitivity / 23 fps and a U-Net denoising framework running at video rate.",
+    line: "4D surgical-instrument tracking at 99% sensitivity / 23 fps and a multi-scale U-Net denoising framework running at video rate.",
   },
   {
     role: "Graduate Research Assistant",
@@ -50,12 +50,6 @@ const EDUCATION: Array<{ degree: string; school: string; year: string }> = [
   { degree: "Ph.D., Biomedical Engineering", school: "Vanderbilt University", year: "2022" },
   { degree: "B.S., Biomedical Engineering", school: "Duke University", year: "2018" },
   { degree: "B.A., Computer Science", school: "Duke University", year: "2018" },
-];
-
-const LINKS: Array<{ label: string; href: string }> = [
-  { label: "LinkedIn", href: "https://www.linkedin.com/in/eric-tang-a09524ab/" },
-  { label: "Google Scholar", href: "https://scholar.google.com/citations?user=LV0RaF8AAAAJ" },
-  { label: "Email", href: "mailto:eric.tang22@gmail.com" },
 ];
 
 export default function AboutWindow({
@@ -77,9 +71,10 @@ export default function AboutWindow({
         </div>
         <h1 className="about-name">Eric M. Tang, Ph.D.</h1>
         <p className="about-tagline">
-          I&apos;m a research scientist who likes building things end-to-end from hardware 
-          to real-time software development and machine learning deployment. Outside of work I like 
-          to cook, ski, swim, travel, and lift — all to enjoy my favorite hobby, which is eating.
+          I&apos;m a research scientist who likes building things end to end —
+          the hardware, the real-time software, and the machine learning in
+          between. For the past eight years, that has mostly meant medical
+          imaging systems, from the optical bench to the clinic.
         </p>
 
         <div className="tabs" role="tablist">
@@ -104,6 +99,17 @@ export default function AboutWindow({
                 <dd>{value}</dd>
               </div>
             ))}
+            {/* Contact gets its own row (it's a link, not plain text) —
+                kept here so a recruiter who never explores the dock
+                still finds an email address in the first screen */}
+            <div className="spec-row">
+              <dt>Contact</dt>
+              <dd>
+                <a className="spec-link" href="mailto:eric.tang22@gmail.com">
+                  eric.tang22@gmail.com
+                </a>
+              </dd>
+            </div>
           </dl>
         )}
 
@@ -134,13 +140,6 @@ export default function AboutWindow({
           </ul>
         )}
 
-        <div className="about-links">
-          {LINKS.map((l) => (
-            <a className="pill" key={l.label} href={l.href} target="_blank" rel="noreferrer">
-              {l.label}
-            </a>
-          ))}
-        </div>
       </div>
     </Window>
   );

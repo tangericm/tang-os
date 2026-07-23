@@ -5,8 +5,6 @@
 
 import { useEffect, useState } from "react";
 
-const MENUS = ["File", "Edit", "View", "Go", "Window", "Help"];
-
 /** Format a Date like the macOS menu bar: "Wed Jul 23  4:32 PM" */
 function formatClock(d: Date): string {
   const date = d.toLocaleDateString("en-US", {
@@ -50,11 +48,8 @@ export default function MenuBar() {
           <path d="M6.2 6.2a8.2 8.2 0 1 0 11.6 0" />
         </svg>
         <span className="menubar-app">TangOS</span>
-        {MENUS.map((menu) => (
-          <span key={menu} className="menubar-item">
-            {menu}
-          </span>
-        ))}
+        {/* Real dropdown menus can land here when there's something
+            real to put in them (e.g. File → Download Resume) */}
       </div>
 
       <div className="menubar-right">

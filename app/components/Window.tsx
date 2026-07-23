@@ -63,27 +63,40 @@ export default function Window({ title, onClose, onMinimize, children }: WindowP
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
       >
-        {/* Hovering anywhere on the group reveals the ×  −  + glyphs
-            (drawn in CSS with ::after — no extra markup needed) */}
+        {/* Hovering anywhere on the group reveals the glyphs. They're
+            tiny inline SVGs, not text characters — font glyphs never
+            center reliably inside a 12px circle, vectors always do. */}
         <div className="traffic">
           <button
             className="light light-red"
             aria-label="Close window"
             onClick={onClose}
             onPointerDown={(e) => e.stopPropagation()}
-          />
+          >
+            <svg viewBox="0 0 8 8" aria-hidden="true">
+              <path d="M1.5 1.5l5 5M6.5 1.5l-5 5" />
+            </svg>
+          </button>
           <button
             className="light light-yellow"
             aria-label="Minimize to Dock"
             onClick={onMinimize}
             onPointerDown={(e) => e.stopPropagation()}
-          />
+          >
+            <svg viewBox="0 0 8 8" aria-hidden="true">
+              <path d="M1.25 4h5.5" />
+            </svg>
+          </button>
           <button
             className="light light-green"
             aria-label={zoomed ? "Zoom out" : "Zoom in"}
             onClick={() => setZoomed(!zoomed)}
             onPointerDown={(e) => e.stopPropagation()}
-          />
+          >
+            <svg viewBox="0 0 8 8" aria-hidden="true">
+              <path d="M4 1.25v5.5M1.25 4h5.5" />
+            </svg>
+          </button>
         </div>
         <span className="window-title">{title}</span>
       </header>

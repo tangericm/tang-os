@@ -71,7 +71,7 @@ const ITEMS: DockItem[] = [
   { kind: "app", id: "about", label: "About Me", icon: icons.person },
   { kind: "soon", id: "projects", label: "Projects — coming soon", icon: icons.folder },
   { kind: "soon", id: "resume", label: "Resume — coming soon", icon: icons.doc },
-  { kind: "link", id: "scholar", label: "Google Scholar", icon: icons.scholar, href: "https://scholar.google.com/citations?user=LV0RaF8AAAAJ" },
+  { kind: "link", id: "scholar", label: "Publications", icon: icons.scholar, href: "https://scholar.google.com/citations?user=LV0RaF8AAAAJ" },
   { kind: "link", id: "linkedin", label: "LinkedIn", icon: icons.linkedin, href: "https://www.linkedin.com/in/eric-tang-a09524ab/" },
   { kind: "link", id: "mail", label: "Email me", icon: icons.mail, href: "mailto:eric.tang22@gmail.com" },
 ];
@@ -112,16 +112,28 @@ export default function Dock({
 
   return (
     <nav className="dock" aria-label="Dock">
+      {/* The frosted glass lives on its own layer behind the icons.
+          If the blurred element contained the scaling buttons,
+          Chromium would paint ghost boxes during magnification — a
+          real rendering quirk of backdrop-filter + child transforms. */}
+      <div className="dock-glass" aria-hidden="true" />
       <ul ref={listRef} onMouseMove={onMouseMove} onMouseLeave={onMouseLeave}>
         {ITEMS.map((item, i) => {
-          const style = {
-            transform: `translateY(${-(scales[i] - 1) * 16}px) scale(${scales[i]})`,
+          const s = scales[i];
+          // Two jobs, two elements: the <li> grows in LAYOUT width so
+          // neighbors get pushed aside (transforms alone don't take up
+          // space — that was the "squished icons" bug), while the
+          // button inside scales visually.
+          const liStyle = { width: 48 * s };
+          const buttonStyle = {
+            transform: `translateY(${-(s - 1) * 14}px) scale(${s})`,
           };
           return (
-            <li key={item.id} className="dock-item" data-label={item.label} style={style}>
+            <li key={item.id} className="dock-item" data-label={item.label} style={liStyle}>
               {item.kind === "link" ? (
                 <a
                   className="dock-button"
+                  style={buttonStyle}
                   href={item.href}
                   target={item.href.startsWith("mailto") ? undefined : "_blank"}
                   rel="noreferrer"
@@ -132,6 +144,7 @@ export default function Dock({
               ) : (
                 <button
                   className="dock-button"
+                  style={buttonStyle}
                   disabled={item.kind === "soon"}
                   onClick={item.id === "about" ? onOpenAbout : undefined}
                   aria-label={item.label}
