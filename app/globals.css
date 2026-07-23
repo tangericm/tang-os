@@ -297,30 +297,60 @@ body {
 }
 
 .light {
+  position: relative;
   width: 12px;
   height: 12px;
   border-radius: 50%;
   border: 1px solid rgba(0, 0, 0, 0.25);
   padding: 0;
+  cursor: pointer;
 }
 
 .light-red {
   background: #ff5f57;
-  cursor: pointer;
-}
-
-.light-red:hover {
-  filter: brightness(1.15);
 }
 
 .light-yellow {
   background: #febc2e;
-  opacity: 0.55; /* decorative for now — minimize arrives later */
 }
 
 .light-green {
   background: #28c840;
-  opacity: 0.55;
+}
+
+.light:hover {
+  filter: brightness(1.12);
+}
+
+/* Hovering the traffic-light GROUP reveals the glyphs — drawn as CSS
+   ::after content, so the markup stays three empty buttons */
+.light::after {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  content: "";
+}
+
+.traffic:hover .light-red::after {
+  content: "×";
+  opacity: 1;
+}
+
+.traffic:hover .light-yellow::after {
+  content: "−";
+  opacity: 1;
+}
+
+.traffic:hover .light-green::after {
+  content: "+";
+  opacity: 1;
 }
 
 .window-body {
@@ -564,4 +594,155 @@ body {
   font-size: 11.5px;
   color: #fff;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* Green light: zoomed window */
+.window-zoomed {
+  width: min(780px, 96vw);
+}
+
+.window-zoomed .window-body {
+  max-height: min(680px, 78vh);
+}
+
+/* ============================================================
+   Dock
+   ============================================================ */
+.dock {
+  position: fixed;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 90; /* above windows (10), below the menu bar (100) */
+}
+
+.dock ul {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  list-style: none;
+  padding: 8px 12px;
+  border-radius: 20px;
+  background: rgba(20, 21, 26, 0.45);
+  backdrop-filter: blur(30px) saturate(1.6);
+  -webkit-backdrop-filter: blur(30px) saturate(1.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.4);
+}
+
+.dock-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* the transition is what makes JS-driven magnification feel liquid */
+  transition: transform 130ms ease-out;
+  transform-origin: bottom center;
+}
+
+.dock-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #f5f5f7;
+  background: linear-gradient(160deg, rgba(120, 130, 145, 0.9), rgba(80, 76, 70, 0.9));
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+
+.dock-button svg {
+  width: 26px;
+  height: 26px;
+}
+
+.dock-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Tooltip: the item's data-label, floated above the icon on hover.
+   Suppressed on touch devices (no hover to trigger it anyway). */
+.dock-item::after {
+  content: attr(data-label);
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(12, 12, 16, 0.85);
+  font-size: 11.5px;
+  white-space: nowrap;
+  color: #f5f5f7;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+@media (hover: hover) {
+  .dock-item:hover::after {
+    opacity: 1;
+  }
+}
+
+/* the "app is running" dot */
+.dock-dot {
+  position: absolute;
+  bottom: -6px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(245, 245, 247, 0.85);
+}
+
+/* ============================================================
+   Mobile — one column of care for phone-size screens
+   ============================================================ */
+@media (max-width: 640px) {
+  /* menu bar: keep the identity + clock, drop the fake menus */
+  .menubar-item {
+    display: none;
+  }
+
+  /* windows: nearly full width, clear of menu bar and dock */
+  .window {
+    top: 56px;
+    width: 94vw;
+  }
+
+  .window-body {
+    max-height: calc(100dvh - 56px - 42px - 118px);
+    /* viewport − window top − title bar − dock clearance */
+    padding: 20px 18px 18px;
+  }
+
+  .desktop-icon {
+    top: 44px;
+    right: 12px;
+    width: 76px;
+  }
+
+  .dock ul {
+    gap: 8px;
+    padding: 7px 10px;
+  }
+
+  .dock-button {
+    width: 44px;
+    height: 44px;
+  }
+
+  .spec-row {
+    grid-template-columns: 92px 1fr;
+    gap: 10px;
+  }
+
+  .about-links {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }

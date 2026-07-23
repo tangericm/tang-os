@@ -2,8 +2,9 @@
 
 /**
  * DesktopIcon — a clickable icon that lives on the desktop.
- * Double-click opens its app, exactly like the real thing.
- * (Also opens on Enter, for keyboard users.)
+ * Real macOS wants a double-click, but a single click opens here:
+ * double-click doesn't exist on touch screens, and recruiters on
+ * phones outrank strict skeuomorphism.
  */
 export default function DesktopIcon({
   label,
@@ -13,12 +14,7 @@ export default function DesktopIcon({
   onOpen: () => void;
 }) {
   return (
-    <button
-      className="desktop-icon"
-      onDoubleClick={onOpen}
-      onKeyDown={(e) => e.key === "Enter" && onOpen()}
-      title="Double-click to open"
-    >
+    <button className="desktop-icon" onClick={onOpen}>
       <span className="desktop-icon-art" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
           <circle cx="12" cy="8.2" r="3.4" />
