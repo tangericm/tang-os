@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 /**
  * Window — the generic, reusable macOS window frame.
@@ -22,6 +22,8 @@ type WindowProps = {
   onClose: () => void;
   onMinimize?: () => void;
   motion?: "minimizing" | "closing";
+  /** CSS selector of the dock icon this window minimizes INTO */
+  minimizeTarget?: string;
   zIndex?: number;
   onFocus?: () => void;
   frameClassName?: string;
@@ -33,6 +35,7 @@ export default function Window({
   onClose,
   onMinimize,
   motion,
+  minimizeTarget,
   zIndex,
   onFocus,
   frameClassName,
@@ -44,6 +47,34 @@ export default function Window({
   const grabOffset = useRef<{ dx: number; dy: number } | null>(null);
   const resizeStart = useRef<{ w: number; h: number; x: number; y: number } | null>(null);
   const frameRef = useRef<HTMLElement | null>(null);
+
+  /* Aim the minimize animation at THIS window's dock icon.
+     Runs before paint (useLayoutEffect): we pin the window to pixel
+     coordinates (so the CSS keyframe owns `transform` outright) and
+     write the window→icon vector into CSS custom properties that the
+     keyframe reads. Every window flies home to its own icon. */
+  useLayoutEffect(() => {
+    if (motion !== "minimizing") return;
+    const frame = frameRef.current;
+    if (!frame) return;
+    const rect = frame.getBoundingClientRect();
+    if (pos === null) setPos({ x: rect.left, y: rect.top });
+    const target = minimizeTarget
+      ? document.querySelector(minimizeTarget)
+      : null;
+    if (target) {
+      const t = target.getBoundingClientRect();
+      frame.style.setProperty(
+        "--min-dx",
+        `${t.left + t.width / 2 - (rect.left + rect.width / 2)}px`
+      );
+      frame.style.setProperty(
+        "--min-dy",
+        `${t.top + t.height / 2 - (rect.top + rect.height / 2)}px`
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [motion, minimizeTarget]);
 
   function onPointerDown(e: React.PointerEvent<HTMLElement>) {
     const frame = frameRef.current;
@@ -120,35 +151,45 @@ export default function Window({
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
       >
+        {/* Each light is ONE SVG holding both circle and glyph in the
+            same 12-unit coordinate system — centering is arithmetic
+            (everything drawn around 6,6), immune to borders, flexbox,
+            and fractional-DPI rounding. */}
         <div className="traffic">
           <button
-            className="light light-red"
+            className="light"
             aria-label="Close window"
             onClick={onClose}
             onPointerDown={(e) => e.stopPropagation()}
           >
-            <svg viewBox="0 0 8 8" aria-hidden="true">
-              <path d="M1.5 1.5l5 5M6.5 1.5l-5 5" />
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <circle cx="6" cy="6" r="6" fill="#ff5f57" />
+              <circle cx="6" cy="6" r="5.5" fill="none" stroke="rgba(0,0,0,0.22)" strokeWidth="1" />
+              <path className="light-glyph" d="M4.1 4.1l3.8 3.8M7.9 4.1l-3.8 3.8" />
             </svg>
           </button>
           <button
-            className="light light-yellow"
+            className="light"
             aria-label="Minimize to Dock"
             onClick={onMinimize}
             onPointerDown={(e) => e.stopPropagation()}
           >
-            <svg viewBox="0 0 8 8" aria-hidden="true">
-              <path d="M1.25 4h5.5" />
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <circle cx="6" cy="6" r="6" fill="#febc2e" />
+              <circle cx="6" cy="6" r="5.5" fill="none" stroke="rgba(0,0,0,0.22)" strokeWidth="1" />
+              <path className="light-glyph" d="M3.7 6h4.6" />
             </svg>
           </button>
           <button
-            className="light light-green"
+            className="light"
             aria-label={zoomed ? "Zoom out" : "Zoom in"}
             onClick={() => setZoomed(!zoomed)}
             onPointerDown={(e) => e.stopPropagation()}
           >
-            <svg viewBox="0 0 8 8" aria-hidden="true">
-              <path d="M4 1.25v5.5M1.25 4h5.5" />
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <circle cx="6" cy="6" r="6" fill="#28c840" />
+              <circle cx="6" cy="6" r="5.5" fill="none" stroke="rgba(0,0,0,0.22)" strokeWidth="1" />
+              <path className="light-glyph" d="M6 3.7v4.6M3.7 6h4.6" />
             </svg>
           </button>
         </div>

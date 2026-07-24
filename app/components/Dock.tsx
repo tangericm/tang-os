@@ -156,6 +156,7 @@ export default function Dock({
                 <button
                   className="dock-button"
                   style={buttonStyle}
+                  data-app={item.id}
                   disabled={item.kind === "soon"}
                   onClick={
                     item.id === "about"
