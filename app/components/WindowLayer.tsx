@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import AboutWindow from "./AboutWindow";
+import ProjectsWindow from "./ProjectsWindow";
 import ResumeWindow from "./ResumeWindow";
 import DesktopFile from "./DesktopFile";
 import Dock from "./Dock";
@@ -26,12 +27,13 @@ import Dock from "./Dock";
  */
 
 type Phase = "closed" | "open" | "minimizing" | "minimized" | "closing";
-type AppId = "about" | "resume";
+type AppId = "about" | "projects" | "resume";
 
 const EXIT_MS = 280; // keep in sync with the CSS exit animations
 
 export default function WindowLayer() {
   const [about, setAbout] = useState<Phase>("open"); // auto-open on arrival
+  const [projects, setProjects] = useState<Phase>("closed");
   const [resume, setResume] = useState<Phase>("closed");
   const [front, setFront] = useState<AppId>("about");
   const reducedMotion = useRef(false);
@@ -55,6 +57,7 @@ export default function WindowLayer() {
     { phase: Phase; set: typeof setAbout }
   > = {
     about: { phase: about, set: setAbout },
+    projects: { phase: projects, set: setProjects },
     resume: { phase: resume, set: setResume },
   };
 
@@ -84,12 +87,15 @@ export default function WindowLayer() {
       <DesktopFile label="Eric Tang Resume.pdf" onOpen={() => open("resume")} />
 
       {visible(about) && <AboutWindow {...windowProps("about")} />}
+      {visible(projects) && <ProjectsWindow {...windowProps("projects")} />}
       {visible(resume) && <ResumeWindow {...windowProps("resume")} />}
 
       <Dock
         onOpenAbout={() => open("about")}
+        onOpenProjects={() => open("projects")}
         onOpenResume={() => open("resume")}
         aboutRunning={about !== "closed"}
+        projectsRunning={projects !== "closed"}
         resumeRunning={resume !== "closed"}
       />
     </>

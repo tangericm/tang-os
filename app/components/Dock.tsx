@@ -75,7 +75,7 @@ const icons = {
 
 const ITEMS: DockItem[] = [
   { kind: "app", id: "about", label: "About Me", icon: icons.person },
-  { kind: "soon", id: "projects", label: "Projects — coming soon", icon: icons.folder },
+  { kind: "app", id: "projects", label: "Projects", icon: icons.folder },
   { kind: "app", id: "resume", label: "Resume", icon: icons.doc },
   { kind: "link", id: "github", label: "GitHub", icon: icons.github, href: "https://github.com/tangericm" },
   { kind: "link", id: "scholar", label: "Publications", icon: icons.scholar, href: "https://scholar.google.com/citations?user=LV0RaF8AAAAJ" },
@@ -85,13 +85,17 @@ const ITEMS: DockItem[] = [
 
 export default function Dock({
   onOpenAbout,
+  onOpenProjects,
   onOpenResume,
   aboutRunning,
+  projectsRunning,
   resumeRunning,
 }: {
   onOpenAbout: () => void;
+  onOpenProjects: () => void;
   onOpenResume: () => void;
   aboutRunning: boolean;
+  projectsRunning: boolean;
   resumeRunning: boolean;
 }) {
   const [scales, setScales] = useState<number[]>(() => ITEMS.map(() => 1));
@@ -161,9 +165,11 @@ export default function Dock({
                   onClick={
                     item.id === "about"
                       ? onOpenAbout
-                      : item.id === "resume"
-                        ? onOpenResume
-                        : undefined
+                      : item.id === "projects"
+                        ? onOpenProjects
+                        : item.id === "resume"
+                          ? onOpenResume
+                          : undefined
                   }
                   aria-label={item.label}
                 >
@@ -172,6 +178,7 @@ export default function Dock({
               )}
               {/* the little "this app is running" dot */}
               {((item.id === "about" && aboutRunning) ||
+                (item.id === "projects" && projectsRunning) ||
                 (item.id === "resume" && resumeRunning)) && (
                 <span className="dock-dot" />
               )}

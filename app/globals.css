@@ -1045,3 +1045,311 @@ body {
   font-size: 12px;
   color: var(--ink-faint);
 }
+
+/* ============================================================
+   Projects app — master/detail showcase with live visuals
+   ============================================================ */
+.window-projects {
+  width: min(820px, 96vw);
+}
+
+.window-projects .window-body {
+  padding: 0;
+  max-height: min(660px, 76vh);
+  overflow: hidden;
+}
+
+.projects {
+  display: flex;
+  min-height: 0;
+  height: 100%;
+}
+
+/* sidebar */
+.proj-sidebar {
+  flex: 0 0 210px;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  gap: 3px;
+  border-right: 1px solid var(--hairline);
+  overflow-y: auto;
+}
+
+.proj-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 11px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.proj-item:hover {
+  background: rgba(255, 244, 230, 0.06);
+}
+
+.proj-item-active {
+  background: rgba(255, 244, 230, 0.1);
+}
+
+.proj-item-name {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.25;
+}
+
+.proj-item-kind {
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.proj-item-active .proj-item-kind {
+  color: var(--accent);
+}
+
+.proj-item-dot {
+  position: absolute;
+  top: 12px;
+  right: 11px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* detail — fades/rises in when the selection changes (keyed remount) */
+.proj-detail {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 22px 24px 26px;
+  overflow-y: auto;
+  animation: proj-in 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes proj-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.proj-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.proj-title {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.proj-blurb {
+  margin-top: 8px;
+  max-width: 62ch;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.proj-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.proj-tag {
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--ink-soft);
+  background: rgba(255, 244, 230, 0.07);
+  border: 1px solid var(--hairline);
+}
+
+.proj-links {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.pill-link {
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  color: #241a10;
+  background: var(--accent);
+}
+
+.pill-link:hover {
+  background: #ecb676;
+}
+
+/* --- the raw → denoised reveal --- */
+.denoise {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 900 / 400;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.3);
+}
+
+.denoise-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* raw sits under the whole frame; the denoised scan wipes in from the
+   right (under the DENOISED label) and recedes, on a loop */
+.denoise-clean {
+  clip-path: inset(0 0 0 100%);
+  animation: denoise-reveal 3.4s ease-in-out infinite alternate;
+}
+
+@keyframes denoise-reveal {
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* the amber scan line rides the reveal boundary */
+.denoise-scan {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 100%;
+  width: 2px;
+  transform: translateX(-1px);
+  background: linear-gradient(180deg, transparent, var(--accent) 20% 80%, transparent);
+  box-shadow: 0 0 12px 2px rgba(226, 170, 99, 0.55);
+  animation: denoise-scanline 3.4s ease-in-out infinite alternate;
+}
+
+@keyframes denoise-scanline {
+  to {
+    left: 0%;
+  }
+}
+
+.denoise-tags {
+  position: absolute;
+  inset: 8px 10px auto 10px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.denoise-tags span {
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: rgba(12, 10, 8, 0.6);
+  color: rgba(244, 241, 236, 0.7);
+}
+
+.denoise-tag-clean {
+  color: var(--accent) !important;
+}
+
+/* --- the U-Net data-flow diagram --- */
+.unet {
+  width: 100%;
+  height: auto;
+  max-height: 200px;
+}
+
+.unet-block {
+  fill: url(#ublk);
+  stroke: rgba(255, 244, 230, 0.16);
+  stroke-width: 1;
+}
+
+.unet-bottleneck {
+  stroke: rgba(226, 170, 99, 0.5);
+}
+
+.unet-route {
+  fill: none;
+  stroke: rgba(244, 241, 236, 0.12);
+  stroke-width: 1.5;
+}
+
+.unet-skip {
+  stroke: rgba(226, 170, 99, 0.4);
+  stroke-width: 1.2;
+  stroke-dasharray: 3 6;
+  animation: skip-flow 0.9s linear infinite;
+}
+
+@keyframes skip-flow {
+  to {
+    stroke-dashoffset: -9;
+  }
+}
+
+.unet-packet {
+  fill: #f4d29a;
+}
+
+.unet-label {
+  fill: rgba(244, 241, 236, 0.5);
+  font-size: 9px;
+  font-family: -apple-system, "Segoe UI", sans-serif;
+}
+
+/* mobile: sidebar becomes a horizontal scroll strip on top */
+@media (max-width: 640px) {
+  .window-projects {
+    width: 96vw;
+  }
+  .projects {
+    flex-direction: column;
+  }
+  .proj-sidebar {
+    flex: 0 0 auto;
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .proj-item {
+    flex: 0 0 auto;
+  }
+  .proj-item-dot {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .denoise-clean {
+    clip-path: inset(0 0 0 0);
+    animation: none;
+  }
+  .denoise-scan,
+  .unet-skip,
+  .proj-detail {
+    animation: none;
+  }
+  .denoise-scan {
+    display: none;
+  }
+}
