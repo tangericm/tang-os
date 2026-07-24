@@ -48,8 +48,7 @@ const Education = () => (
   <>
     <h2>Education</h2>
     <p className="doc-edu"><span><strong>Vanderbilt University</strong>, <em>Ph.D. in Biomedical Engineering</em></span><span className="doc-edu-year">2022</span></p>
-    <p className="doc-edu"><span><strong>Duke University</strong>, <em>B.S. in Biomedical Engineering</em></span><span className="doc-edu-year">2018</span></p>
-    <p className="doc-edu"><span><strong>Duke University</strong>, <em>B.A. in Computer Science</em></span><span className="doc-edu-year">2018</span></p>
+    <p className="doc-edu"><span><strong>Duke University</strong>, <em>B.S. in Biomedical Engineering &amp; B.A. in Computer Science</em></span><span className="doc-edu-year">2018</span></p>
   </>
 );
 
@@ -99,16 +98,6 @@ const Experience = () => (
   </>
 );
 
-const Honors = () => (
-  <>
-    <h2>Honors &amp; Awards</h2>
-    <p className="doc-edu">
-      <span><strong>Pratt Research Fellow</strong>, Duke University Pratt School of Engineering</span>
-      <span className="doc-edu-year">2017 – 2018</span>
-    </p>
-  </>
-);
-
 const Publications = () => (
   <>
     <h2>Selected Publications</h2>
@@ -116,7 +105,6 @@ const Publications = () => (
       <li><strong>Tang, E. M.</strong>, El-Haddad, M. T., Patel, S. N., and Tao, Y. K., &ldquo;Automated instrument-tracking for 4D video-rate imaging of ophthalmic surgical maneuvers,&rdquo; Biomedical Optics Express 13(3), 1471–1484 (2022).</li>
       <li>Rico-Jimenez, J. J., Hu, D., <strong>Tang, E. M.</strong>, Oguz, I., and Tao, Y. K., &ldquo;Real-Time OCT Image Denoising Using Self-Fusion Neural Network,&rdquo; Biomedical Optics Express 13(3), 1398–1409 (2022).</li>
       <li><strong>Tang, E. M.</strong> and Tao, Y. K., &ldquo;Modeling and optimization of galvanometric point-scanning temporal dynamics,&rdquo; Biomedical Optics Express 12(11), 6701–6716 (2021).</li>
-      <li>Ringel, M. J., <strong>Tang, E. M.</strong>, and Tao, Y. K., &ldquo;Advances in multimodal imaging in ophthalmology,&rdquo; Therapeutic Advances in Ophthalmology 13 (2021).</li>
     </ol>
     <p>
       Full list at{" "}
@@ -133,13 +121,12 @@ const ResumePage = () => (
     <Contact />
     <h2>Technical Skills</h2>
     <p><strong>Programming Languages (8 years):</strong> Python, C/C++ (multithreaded, real-time), MATLAB, Java</p>
-    <p><strong>Machine Learning &amp; AI (6 years):</strong> Deep learning (PyTorch/LibTorch, TensorFlow), CNNs (U-Net, YOLOv4), GANs, object detection and tracking, clustering and dimensionality reduction (Scikit-learn)</p>
-    <p><strong>Edge Deployment:</strong> PyTorch model export via ONNX, TensorRT optimization, real-time GPU-accelerated inference on NVIDIA Jetson Orin Nano</p>
-    <p><strong>Computer Vision (8 years):</strong> Signal and image processing (filtering, Fourier-domain reconstruction, correlation), denoising, super-resolution, image fusion, stereo vision, camera calibration, 3D reconstruction</p>
+    <p><strong>Machine Learning &amp; AI (6 years):</strong> Deep learning (PyTorch/LibTorch, TensorFlow); CNNs (U-Net, YOLOv4, Noise2Noise), GANs; real-time object detection, segmentation, and tracking; ML automation for image-quality testing and calibration; model training, evaluation, and optimization</p>
+    <p><strong>Edge Deployment:</strong> PyTorch model export via ONNX, TensorRT optimization for real-time GPU-accelerated inference on embedded hardware (NVIDIA Jetson Orin Nano); low-latency C++ runtimes (LibTorch)</p>
+    <p><strong>Computer Vision (8 years):</strong> Signal and image processing (filtering, Fourier-domain reconstruction, correlation), denoising, super-resolution, multimodal image fusion, optical flow, stereo vision, camera calibration, 3D reconstruction; image-quality (IQ) tuning and benchmarking</p>
+    <p><strong>Hardware &amp; Imaging Systems (8 years):</strong> Multimodal imaging (OCT, photoacoustic, visible-light, microscopy); camera sensor characterization and ISP-pipeline evaluation; optical system design and alignment (ZEMAX); DAQ/FPGA programming, control systems</p>
     <p><strong>Software Tools (8 years):</strong> Microsoft Visual Studio, VS Code, Qt Creator, LabView, OpenCV, Scikit-learn</p>
-    <p><strong>Hardware (8 years):</strong> Control systems, DAQ/FPGA programming, camera sensor characterization, optical system design and optimization</p>
     <Education />
-    <Honors />
     <Experience />
     <Publications />
   </>
