@@ -191,10 +191,21 @@ body {
   transform: translateY(-4vh);
 }
 
-.boot-logo {
-  width: 72px;
-  height: 72px;
-  color: var(--boot-fg);
+/* The monogram — same mark as the About avatar and the favicon,
+   so tab, boot, and window all carry one identity */
+.boot-monogram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #fff;
+  background: linear-gradient(145deg, var(--tan-hi) 0%, var(--tan-mid) 60%, var(--tan-lo) 100%);
+  border: 1px solid var(--edge-light);
   animation: logo-in 0.9s ease-out both;
 }
 
@@ -223,7 +234,7 @@ body {
   height: 100%;
   width: 100%;
   border-radius: inherit;
-  background: var(--boot-fg);
+  background: linear-gradient(90deg, var(--tan-mid), var(--accent));
   transform-origin: left center;
   animation: boot-fill 1.6s cubic-bezier(0.3, 0.1, 0.3, 1) 0.4s both;
 }
@@ -263,10 +274,13 @@ body {
   .boot-overlay {
     display: none;
   }
-  .boot-logo,
+  .boot-monogram,
   .boot-progress,
   .boot-progress-fill,
-  .boot-caption {
+  .boot-caption,
+  .window-opening,
+  .window-minimizing,
+  .window-closing {
     animation: none;
   }
 }
@@ -367,6 +381,12 @@ body {
 }
 
 .light svg {
+  /* absolutely centered in the circle: immune to borders, baselines,
+     and sub-pixel rounding — the fix for glyphs drifting off-center */
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  display: block;
   width: 8px;
   height: 8px;
   fill: none;
@@ -694,5 +714,297 @@ body {
   .spec-row {
     grid-template-columns: 92px 1fr;
     gap: 10px;
+  }
+}
+
+/* ============================================================
+   Window life-cycle animations
+   (exit classes are set by the window manager, which keeps the
+   window mounted until the animation has played)
+   ============================================================ */
+.window-opening {
+  animation: win-open 200ms ease-out;
+}
+
+@keyframes win-open {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(14px) scale(0.97);
+  }
+}
+
+.window-minimizing {
+  animation: win-minimize 280ms cubic-bezier(0.5, 0, 0.9, 0.4) forwards;
+  transform-origin: bottom center;
+  pointer-events: none;
+}
+
+@keyframes win-minimize {
+  to {
+    opacity: 0;
+    transform: translateY(52vh) scale(0.22);
+  }
+}
+
+.window-closing {
+  animation: win-close 170ms ease-in forwards;
+  pointer-events: none;
+}
+
+@keyframes win-close {
+  to {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+
+/* ============================================================
+   Desktop file (the resume on the desktop)
+   ============================================================ */
+.desktop-file {
+  position: absolute;
+  top: 52px;
+  right: 26px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  width: 104px;
+  padding: 10px 6px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: default;
+}
+
+.desktop-file:hover,
+.desktop-file:focus-visible {
+  background: rgba(255, 244, 230, 0.1);
+}
+
+.desktop-file-art svg {
+  width: 44px;
+  height: 53px;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
+}
+
+.desktop-file-label {
+  font-size: 11.5px;
+  line-height: 1.3;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  word-break: break-all;
+}
+
+/* ============================================================
+   Document viewer (pseudo-word-processor)
+   ============================================================ */
+.window-doc {
+  width: min(760px, 96vw);
+}
+
+.window-doc .window-body {
+  padding: 0;
+  max-height: min(640px, 74vh);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.doc {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.doc-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.doc-zoom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+
+.doc-zoom button {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid var(--hairline);
+  background: rgba(255, 244, 230, 0.08);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.doc-zoom button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.doc-downloads {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--ink);
+  background: rgba(255, 244, 230, 0.1);
+  border: 1px solid var(--hairline);
+}
+
+.btn:hover {
+  background: rgba(255, 244, 230, 0.16);
+}
+
+.btn-primary {
+  background: var(--accent);
+  border-color: transparent;
+  color: #241a10;
+}
+
+.btn-primary:hover {
+  background: #ecb676;
+}
+
+.btn-sub {
+  font-size: 10.5px;
+  font-weight: 400;
+  opacity: 0.75;
+}
+
+.doc-scroll {
+  overflow-y: auto;
+  padding: 18px;
+  background: rgba(0, 0, 0, 0.25); /* the grey "desk" behind the page */
+  min-height: 0;
+}
+
+/* The page itself: a white sheet, like a real document */
+.doc-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 34px 38px;
+  border-radius: 4px;
+  background: #fbfaf8;
+  color: #26221d;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.45);
+  font-size: 12.5px;
+  line-height: 1.5;
+  text-align: left;
+  user-select: text; /* a document should feel like a document */
+}
+
+.doc-page h1 {
+  font-size: 20px;
+  text-align: center;
+  letter-spacing: 0.01em;
+}
+
+.doc-contact {
+  text-align: center;
+  font-size: 11px;
+  color: #5c554b;
+  margin-top: 4px;
+}
+
+.doc-page h2 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid #d9d3c8;
+  padding-bottom: 3px;
+  margin: 16px 0 7px;
+}
+
+.doc-page p {
+  margin: 3px 0;
+}
+
+.doc-page a {
+  color: #a05436;
+  text-decoration: underline;
+  text-decoration-color: rgba(160, 84, 54, 0.35);
+  text-underline-offset: 2px;
+}
+
+.doc-job {
+  margin-bottom: 10px;
+}
+
+.doc-job-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.doc-job-head span {
+  font-size: 11px;
+  color: #5c554b;
+  white-space: nowrap;
+}
+
+.doc-job em {
+  font-size: 11.5px;
+  color: #5c554b;
+}
+
+.doc-job ul {
+  margin: 4px 0 0 16px;
+}
+
+.doc-job li {
+  margin: 3px 0;
+}
+
+.doc-edu {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.doc-edu span {
+  color: #5c554b;
+}
+
+/* Mobile: the document window goes near-fullscreen */
+@media (max-width: 640px) {
+  .window-doc {
+    width: 96vw;
+  }
+
+  .doc-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .doc-page {
+    padding: 22px 18px;
+  }
+
+  .desktop-file {
+    top: 44px;
+    right: 10px;
+    width: 92px;
   }
 }
