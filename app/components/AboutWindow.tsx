@@ -59,6 +59,7 @@ type Passthrough = {
   onClose: () => void;
   onMinimize: () => void;
   motion?: "minimizing" | "closing";
+  minimizeTarget?: string;
   zIndex?: number;
   onFocus?: () => void;
 };

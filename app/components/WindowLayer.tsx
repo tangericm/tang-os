@@ -68,6 +68,7 @@ export default function WindowLayer() {
     return {
       motion:
         phase === "minimizing" || phase === "closing" ? phase : undefined,
+      minimizeTarget: `.dock-button[data-app="${id}"]`,
       zIndex: front === id ? 12 : 10,
       onFocus: () => setFront(id),
       onMinimize: () => exit(set, "minimizing", "minimized"),
