@@ -17,3 +17,6 @@ _to_delete/
 
 # vercel
 .vercel
+
+# tool caches
+.impeccable/
