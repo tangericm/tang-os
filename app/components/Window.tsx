@@ -39,8 +39,10 @@ export default function Window({
   children,
 }: WindowProps) {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const [zoomed, setZoomed] = useState(false);
   const grabOffset = useRef<{ dx: number; dy: number } | null>(null);
+  const resizeStart = useRef<{ w: number; h: number; x: number; y: number } | null>(null);
   const frameRef = useRef<HTMLElement | null>(null);
 
   function onPointerDown(e: React.PointerEvent<HTMLElement>) {
@@ -64,6 +66,32 @@ export default function Window({
     grabOffset.current = null;
   }
 
+  /* Resizing (the bottom-right grip): record the size and cursor at
+     grab time; every move applies the delta, clamped to sane bounds. */
+  function onResizeDown(e: React.PointerEvent<HTMLElement>) {
+    const frame = frameRef.current;
+    if (!frame) return;
+    const rect = frame.getBoundingClientRect();
+    if (pos === null) setPos({ x: rect.left, y: rect.top }); // pin position
+    resizeStart.current = { w: rect.width, h: rect.height, x: e.clientX, y: e.clientY };
+    setZoomed(false); // manual sizing takes over from zoom
+    e.currentTarget.setPointerCapture(e.pointerId);
+    e.stopPropagation();
+  }
+
+  function onResizeMove(e: React.PointerEvent<HTMLElement>) {
+    const s = resizeStart.current;
+    if (!s) return;
+    setSize({
+      w: Math.min(Math.max(s.w + e.clientX - s.x, 340), window.innerWidth * 0.96),
+      h: Math.min(Math.max(s.h + e.clientY - s.y, 240), window.innerHeight * 0.88),
+    });
+  }
+
+  function onResizeUp() {
+    resizeStart.current = null;
+  }
+
   const classes = [
     "window",
     "window-opening", // entrance animation on mount
@@ -80,6 +108,7 @@ export default function Window({
       className={classes}
       style={{
         ...(pos ? { left: pos.x, top: pos.y, transform: "none" } : null),
+        ...(size ? { width: size.w, height: size.h } : null),
         ...(zIndex !== undefined ? { zIndex } : null),
       }}
       onPointerDownCapture={onFocus}
@@ -127,6 +156,16 @@ export default function Window({
       </header>
 
       <div className="window-body">{children}</div>
+
+      {/* resize grip — bottom-right, like every window since 1984 */}
+      <div
+        className="window-resize"
+        aria-hidden="true"
+        onPointerDown={onResizeDown}
+        onPointerMove={onResizeMove}
+        onPointerUp={onResizeUp}
+        onPointerCancel={onResizeUp}
+      />
     </section>
   );
 }
