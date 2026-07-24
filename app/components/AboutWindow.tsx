@@ -4,12 +4,12 @@ import { useState } from "react";
 import Window from "./Window";
 
 /**
- * AboutWindow — a loving parody of macOS's "About This Mac",
+ * AboutWindow: a loving parody of macOS's "About This Mac",
  * except the hardware being described is Eric.
  *
  * All the CONTENT lives in plain data constants below; the JSX just
  * renders whichever tab is active. Changing your bio never means
- * touching component logic — edit the data, done.
+ * touching component logic, edit the data, done.
  */
 
 const TABS = ["Overview", "Experience", "Education"] as const;
@@ -29,7 +29,7 @@ const EXPERIENCE: Array<{ role: string; org: string; when: string; line: string 
     role: "Senior Research Scientist",
     org: "Topcon Healthcare · San Jose, CA",
     when: "2023 – present",
-    line: "Real-time image acquisition software in C++, deep learning for image enhancement (super-resolution and denoising), and bringing those models into real-time use on device — plus collaborating across teams to carry new imaging hardware from prototype toward production.",
+    line: "Real-time image acquisition software in C++, deep learning for image enhancement (super-resolution and denoising), and bringing those models into real-time use on device, plus collaborating across teams to carry new imaging hardware from prototype toward production.",
   },
   {
     role: "Postdoctoral Research Fellow",
@@ -51,7 +51,7 @@ const EDUCATION: Array<{ degree: string; school: string; year: string }> = [
   { degree: "B.A., Computer Science", school: "Duke University", year: "2018" },
 ];
 
-/** Same pass-through contract as ResumeWindow — the window manager
+/** Same pass-through contract as ResumeWindow: the window manager
  *  drives animation phase, stacking, and focus for every app alike.
  *  (An earlier version omitted `motion` here, which is why About
  *  vanished without animating while Resume shrank gracefully.) */
@@ -104,7 +104,7 @@ export default function AboutWindow({ onClose, onMinimize, ...rest }: Passthroug
                 <dd>{value}</dd>
               </div>
             ))}
-            {/* Contact gets its own row (it's a link, not plain text) —
+            {/* Contact gets its own row (it's a link, not plain text),
                 kept here so a recruiter who never explores the dock
                 still finds an email address in the first screen */}
             <div className="spec-row">

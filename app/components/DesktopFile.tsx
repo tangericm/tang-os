@@ -3,13 +3,13 @@
 import { useRef, useState } from "react";
 
 /**
- * DesktopFile — a document on the desktop that you can DRAG around,
+ * DesktopFile, a document on the desktop that you can DRAG around,
  * like the real thing.
  *
  * The subtle problem this solves: the same pointer gestures must mean
  * two different things. Press-move = drag; press-release without
  * moving = (part of) a click. We disambiguate with a distance
- * threshold — under 5px of travel it's a click, over it's a drag —
+ * threshold, under 5px of travel it's a click, over it's a drag , 
  * so double-click still opens and drags never accidentally open.
  */
 export default function DesktopFile({

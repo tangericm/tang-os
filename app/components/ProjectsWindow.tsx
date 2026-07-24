@@ -5,7 +5,7 @@ import Window from "./Window";
 import UNetFlow from "./UNetFlow";
 
 /**
- * ProjectsWindow — a master/detail showcase (not a card grid). The
+ * ProjectsWindow: a master/detail showcase (not a card grid). The
  * sidebar lists the work; the detail pane lets the selected project
  * lead. The featured project (real-time OCT denoising) opens with two
  * live visuals: a raw B-scan resolving into a denoised one, and the
@@ -27,6 +27,7 @@ type Project = {
   kind: string;
   featured?: boolean;
   blurb: string;
+  why: string;
   tags: string[];
   links: { label: string; href: string }[];
 };
@@ -38,10 +39,12 @@ const PROJECTS: Project[] = [
     kind: "Research",
     featured: true,
     blurb:
-      "A self-fusion / multi-scale U-Net that strips speckle from optical coherence tomography B-scans in real time — recovering clean retinal layers at video rate for use during surgery. Published in Biomedical Optics Express.",
-    tags: ["PyTorch", "U-Net", "OCT", "Real-time", "C++"],
+      "Self-fusion denoises an OCT B-scan by deformably registering its neighboring frames and fusing them by structural similarity. It is motion-robust and edge-preserving, but at ~0.4 fps it is far too slow for live imaging. This work distills it into a multi-scale U-Net: three adjacent B-scans go in, and the network learns to reproduce a high-quality 7-frame self-fusion result, denoising at video rate for use during surgery.",
+    why:
+      "Denoising in real time lets a surgeon see thin retinal layers clearly during an operation, where raw speckle would hide them.",
+    tags: ["PyTorch", "Multi-scale U-Net", "Self-fusion", "OCT", "Real-time"],
     links: [
-      { label: "Paper (BOE 2022)", href: "https://scholar.google.com/citations?user=LV0RaF8AAAAJ" },
+      { label: "Paper · Biomed. Opt. Express 2022", href: "https://pmc.ncbi.nlm.nih.gov/articles/PMC8973187" },
     ],
   },
   {
@@ -50,6 +53,8 @@ const PROJECTS: Project[] = [
     kind: "Research",
     blurb:
       "A lightweight YOLOv4 detector tracking surgical instruments across multi-view inputs at 120 fps, integrated with a high-speed OCT system for 4D video-rate imaging of ophthalmic maneuvers.",
+    why:
+      "Following the instrument against the tissue in real time helps a surgeon avoid contact with the fragile retina beneath it.",
     tags: ["YOLOv4", "Real-time", "C++", "Multi-view"],
     links: [
       { label: "Paper (BOE 2022)", href: "https://scholar.google.com/citations?user=LV0RaF8AAAAJ" },
@@ -60,7 +65,9 @@ const PROJECTS: Project[] = [
     name: "Camera Calibration & Stereo Vision",
     kind: "Software",
     blurb:
-      "Single- and stereo-camera calibration with 3D reconstruction — intrinsics, distortion, and rectification from checkerboard captures, built on OpenCV.",
+      "Single- and stereo-camera calibration with 3D reconstruction: intrinsics, distortion, and rectification from checkerboard captures, built on OpenCV.",
+    why:
+      "Good calibration is what lets a camera measure real distances, so any 3D reconstruction built on it can be trusted.",
     tags: ["OpenCV", "Stereo vision", "Python"],
     links: [{ label: "GitHub", href: "https://github.com/tangericm" }],
   },
@@ -69,31 +76,36 @@ const PROJECTS: Project[] = [
     name: "Image Classification Pipeline",
     kind: "Software",
     blurb:
-      "An end-to-end CNN image-classification pipeline — dataset handling, model definitions, and training — with a small app to run inference.",
+      "An end-to-end CNN image-classification pipeline covering dataset handling, model definitions, and training, with a small app to run inference.",
+    why:
+      "A clean, reusable pipeline like this is the starting point for jobs like flagging abnormal scans or sorting images by quality.",
     tags: ["PyTorch", "CNN", "Python"],
     links: [{ label: "GitHub", href: "https://github.com/tangericm" }],
   },
   {
     id: "tangos",
-    name: "TangOS — this website",
+    name: "TangOS",
     kind: "This site",
     blurb:
-      "The desktop you're using right now: draggable, resizable windows, a magnifying dock, and a document-style resume viewer — built from scratch with Next.js, React, and TypeScript. No UI framework.",
+      "The desktop you're using right now: draggable, resizable windows, a magnifying dock, and a document-style resume viewer, built from scratch with Next.js, React, and TypeScript. No UI framework.",
+    why:
+      "It shows I can build a polished interface end to end, not just wire up a framework.",
     tags: ["Next.js", "React", "TypeScript", "CSS"],
     links: [{ label: "Source", href: "https://github.com/tangericm/tang-os" }],
   },
 ];
 
-/* The hero: a raw B-scan resolving into its denoised version. A clean
-   image sits above the raw one, revealed left-to-right by an animated
-   clip, with an amber scan line riding the boundary. */
+/* The hero: a raw B-scan resolving into its denoised version. These are
+   REAL images from my own OCT data: a single raw frame underneath, and a
+   registered average of the 50-frame repeat stack revealed left-to-right
+   by an animated clip, with an amber scan line riding the boundary. */
 function DenoiseHero() {
   return (
-    <div className="denoise" aria-label="A noisy OCT scan resolving into a denoised one">
+    <div className="denoise" aria-label="A real noisy OCT scan resolving into a denoised one">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="denoise-img" src="/oct-raw.png" alt="" width={900} height={560} />
+      <img className="denoise-img" src="/oct-raw.jpg" alt="Raw single-frame OCT B-scan of a fovea, heavy speckle" width={1500} height={620} />
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="denoise-img denoise-clean" src="/oct-clean.png" alt="" width={900} height={560} />
+      <img className="denoise-img denoise-clean" src="/oct-clean.jpg" alt="Denoised OCT B-scan, retinal layers and choroid clearly resolved" width={1500} height={620} />
       <span className="denoise-scan" aria-hidden="true" />
       <div className="denoise-tags" aria-hidden="true">
         <span>raw</span>
@@ -128,13 +140,28 @@ export default function ProjectsWindow(props: Passthrough) {
         <div className="proj-detail" key={project.id}>
           {project.featured && (
             <div className="proj-hero">
-              <DenoiseHero />
-              <UNetFlow />
+              <figure className="denoise-figure">
+                <DenoiseHero />
+                <figcaption>
+                  My own foveal OCT: one <strong>raw</strong> B-scan versus a
+                  registered average of the same 50-frame stack. Fusing redundant
+                  frames recovers the retinal layers; the network learns to match a
+                  motion-robust version (self-fusion) from just three frames.
+                </figcaption>
+              </figure>
+              <figure className="unet-figure">
+                <UNetFlow />
+                <figcaption>
+                  Multi-scale U-Net: <strong>3 adjacent frames in</strong>, trained on a
+                  7-frame self-fusion target (not an averaged &ldquo;clean&rdquo; image).
+                </figcaption>
+              </figure>
             </div>
           )}
 
           <h2 className="proj-title">{project.name}</h2>
           <p className="proj-blurb">{project.blurb}</p>
+          <p className="proj-why">{project.why}</p>
 
           <div className="proj-tags">
             {project.tags.map((t) => (

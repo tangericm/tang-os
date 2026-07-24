@@ -1,10 +1,10 @@
 /* ============================================================
-   Design tokens — the single source of truth for TangOS's look.
+   Design tokens, the single source of truth for TangOS's look.
 
-   Theme: "Warm Graphite" — dark, warmed browns instead of blue-
+   Theme: "Warm Graphite", dark, warmed browns instead of blue-
    blacks, with an amber accent. Every color, material, and shadow
    is defined once here; components only ever reference var().
-   (The previous "Daylight" palette lives in git history — swapping
+   (The previous "Daylight" palette lives in git history, swapping
    themes is a :root edit, which is the whole point of tokens.)
    ============================================================ */
 :root {
@@ -28,7 +28,7 @@
   --shadow-window: 0 22px 70px rgba(0, 0, 0, 0.55), 0 0 0 0.5px rgba(0, 0, 0, 0.4);
   --shadow-dock: 0 14px 40px rgba(0, 0, 0, 0.4);
 
-  /* accent — warm amber; use sparingly */
+  /* accent, warm amber; use sparingly */
   --accent: #e2aa63;
   --accent-soft: rgba(226, 170, 99, 0.4);
 
@@ -58,7 +58,7 @@
   /* paints before the wallpaper loads */
   --wallpaper-mean: #2e2317;
 
-  /* boot screen — same warm-dark family as the theme */
+  /* boot screen, same warm-dark family as the theme */
   --boot-bg: #16120e;
   --boot-fg: #f4f1ec;
 }
@@ -90,7 +90,7 @@ body {
 }
 
 /* ============================================================
-   Desktop — the scene everything else lives on
+   Desktop, the scene everything else lives on
    ============================================================ */
 .desktop {
   position: relative;
@@ -191,7 +191,7 @@ body {
   transform: translateY(-4vh);
 }
 
-/* The monogram — same mark as the About avatar and the favicon,
+/* The monogram, same mark as the About avatar and the favicon,
    so tab, boot, and window all carry one identity */
 .boot-monogram {
   display: flex;
@@ -1001,7 +1001,7 @@ body {
   }
 }
 
-/* Resize grip — bottom-right corner of every window */
+/* Resize grip, bottom-right corner of every window */
 .window-resize {
   position: absolute;
   right: 0;
@@ -1047,7 +1047,7 @@ body {
 }
 
 /* ============================================================
-   Projects app — master/detail showcase with live visuals
+   Projects app, master/detail showcase with live visuals
    ============================================================ */
 .window-projects {
   width: min(820px, 96vw);
@@ -1124,7 +1124,7 @@ body {
   background: var(--accent);
 }
 
-/* detail — fades/rises in when the selection changes (keyed remount) */
+/* detail, fades/rises in when the selection changes (keyed remount) */
 .proj-detail {
   flex: 1 1 auto;
   min-width: 0;
@@ -1158,6 +1158,18 @@ body {
   max-width: 62ch;
   font-size: 13.5px;
   line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+/* the "why it's useful" line: a short takeaway, set off with a quiet
+   amber rule so the eye lands on it after the description */
+.proj-why {
+  margin-top: 12px;
+  padding-left: 12px;
+  max-width: 60ch;
+  border-left: 2px solid rgba(226, 170, 99, 0.55);
+  font-size: 12.5px;
+  line-height: 1.55;
   color: var(--ink-soft);
 }
 
@@ -1201,7 +1213,7 @@ body {
 .denoise {
   position: relative;
   width: 100%;
-  aspect-ratio: 900 / 400;
+  aspect-ratio: 1500 / 620;
   border-radius: 10px;
   overflow: hidden;
   border: 1px solid var(--hairline);
@@ -1274,7 +1286,7 @@ body {
 .unet {
   width: 100%;
   height: auto;
-  max-height: 200px;
+  max-height: 186px;
 }
 
 .unet-block {
@@ -1352,4 +1364,41 @@ body {
   .denoise-scan {
     display: none;
   }
+}
+
+/* U-Net figure: input frame stack, output frame, caption */
+.denoise-figure,
+.unet-figure {
+  margin: 0;
+}
+.denoise-figure figcaption {
+  margin-top: 7px;
+  text-align: center;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--ink-faint);
+}
+.denoise-figure figcaption strong {
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+.unet-frames rect,
+.unet-frame-front {
+  fill: rgba(40, 34, 28, 0.9);
+  stroke: rgba(226, 170, 99, 0.45);
+  stroke-width: 1;
+}
+.unet-frame-front {
+  fill: rgba(58, 50, 40, 0.95);
+}
+.unet-figure figcaption {
+  margin-top: 4px;
+  text-align: center;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--ink-faint);
+}
+.unet-figure figcaption strong {
+  color: var(--accent);
+  font-weight: 600;
 }

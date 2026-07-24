@@ -3,7 +3,7 @@ import MenuBar from "./components/MenuBar";
 import WindowLayer from "./components/WindowLayer";
 
 /**
- * The home route ("/") — the desktop itself.
+ * The home route ("/"), the desktop itself.
  *
  * This file stays tiny on purpose: it just composes the scene. Each OS
  * feature (menu bar, dock, windows...) lives in its own component under
