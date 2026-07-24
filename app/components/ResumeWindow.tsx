@@ -5,7 +5,7 @@ import { track } from "@vercel/analytics";
 import Window from "./Window";
 
 /**
- * ResumeWindow — a pseudo-document viewer for THE resume (one
+ * ResumeWindow, a pseudo-document viewer for THE resume (one
  * document, one unmistakable download; simplicity won). The page is
  * selectable HTML mirroring the PDF; each download fires an
  * Analytics event and the email ping.

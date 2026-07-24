@@ -1,7 +1,7 @@
 "use client";
 // ^ This directive makes MenuBar a CLIENT component: its JavaScript is sent
 // to the browser so it can hold state and run effects. We need that here
-// because the clock ticks — everything else on the page stays server-only.
+// because the clock ticks, everything else on the page stays server-only.
 
 import { useEffect, useState } from "react";
 
@@ -22,7 +22,7 @@ function formatClock(d: Date): string {
 export default function MenuBar() {
   // `now` starts as null on purpose. The server renders this component once
   // (with no clock), and the browser's FIRST render must produce identical
-  // HTML — if the server baked in its own time, the two would differ and
+  // HTML, if the server baked in its own time, the two would differ and
   // React would warn about a "hydration mismatch". Effects only run in the
   // browser, so the real time appears right after mount.
   const [now, setNow] = useState<Date | null>(null);

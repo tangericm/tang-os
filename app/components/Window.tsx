@@ -3,7 +3,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 
 /**
- * Window — the generic, reusable macOS window frame.
+ * Window, the generic, reusable macOS window frame.
  *
  * New in this round:
  *  - `motion`: the window manager can put the frame into a transient
@@ -152,7 +152,7 @@ export default function Window({
         onPointerCancel={onPointerUp}
       >
         {/* Each light is ONE SVG holding both circle and glyph in the
-            same 12-unit coordinate system — centering is arithmetic
+            same 12-unit coordinate system, centering is arithmetic
             (everything drawn around 6,6), immune to borders, flexbox,
             and fractional-DPI rounding. */}
         <div className="traffic">
@@ -198,7 +198,7 @@ export default function Window({
 
       <div className="window-body">{children}</div>
 
-      {/* resize grip — bottom-right, like every window since 1984 */}
+      {/* resize grip, bottom-right, like every window since 1984 */}
       <div
         className="window-resize"
         aria-hidden="true"

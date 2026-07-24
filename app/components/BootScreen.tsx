@@ -1,7 +1,7 @@
 /**
- * BootScreen — full-screen overlay shown on load, then fades out.
+ * BootScreen, full-screen overlay shown on load, then fades out.
  *
- * Server component: no state, no handlers — the entire sequence is
+ * Server component: no state, no handlers, the entire sequence is
  * CSS animation. The monogram matches the About avatar and the
  * favicon, so the brand is one mark everywhere: tab, boot, window.
  */
@@ -16,7 +16,7 @@ export default function BootScreen() {
         </div>
 
         <p className="boot-caption">
-          <span className="boot-name">TangOS</span> — starting up
+          <span className="boot-name">TangOS</span> · starting up
         </p>
       </div>
     </div>

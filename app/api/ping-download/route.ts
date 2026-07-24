@@ -1,5 +1,5 @@
 /**
- * POST /api/ping-download — emails Eric when someone downloads a
+ * POST /api/ping-download, emails Eric when someone downloads a
  * resume. Fired by the client alongside the download; never blocks or
  * gates it. Requires the RESEND_API_KEY environment variable (set in
  * Vercel → Project → Settings → Environment Variables); without it

@@ -8,7 +8,7 @@ import DesktopFile from "./DesktopFile";
 import Dock from "./Dock";
 
 /**
- * WindowLayer — the window manager, now managing two apps.
+ * WindowLayer, the window manager, now managing two apps.
  *
  * Each app is a little state machine:
  *
@@ -18,11 +18,11 @@ import Dock from "./Dock";
  * "minimizing"/"closing" are TRANSIENT states: the window stays
  * mounted with an exit animation class, and a timer completes the
  * transition once the animation has played. (If the visitor prefers
- * reduced motion, the timer is 0 and windows just disappear — the
+ * reduced motion, the timer is 0 and windows just disappear, the
  * animation is a courtesy, never a delay.)
  *
  * Focus: `front` records which app was last touched; it renders at a
- * higher z-index. This is the entire focus model — and it's the same
+ * higher z-index. This is the entire focus model, and it's the same
  * one real window managers use, just with more apps.
  */
 
