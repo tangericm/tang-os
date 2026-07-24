@@ -5,25 +5,39 @@ import { useRef, useState } from "react";
 /**
  * Window — the generic, reusable macOS window frame.
  *
- * All three traffic lights now work:
- *   red    → close    (handled by the parent via onClose)
- *   yellow → minimize (handled by the parent via onMinimize — the parent
- *            owns open/minimized state because the dock restores it)
- *   green  → zoom     (handled HERE with local state — how big the window
- *            is concerns nobody but the window itself)
- *
- * That split is deliberate and worth noticing: state lives at the lowest
- * level that still lets everyone who needs it reach it.
+ * New in this round:
+ *  - `motion`: the window manager can put the frame into a transient
+ *    animation state ("minimizing" | "closing"). The trick to animating
+ *    an unmount in React: the parent KEEPS the component mounted while
+ *    the exit animation plays, then removes it when the timer ends.
+ *  - `zIndex` + `onFocus`: with two windows alive, clicking one must
+ *    bring it to the front. Focus order lives in the window manager;
+ *    the frame just reports pointer-downs.
+ *  - `frameClassName`: lets an app nudge its default position so two
+ *    freshly opened windows don't stack exactly on top of each other.
  */
 
 type WindowProps = {
   title: string;
   onClose: () => void;
   onMinimize?: () => void;
+  motion?: "minimizing" | "closing";
+  zIndex?: number;
+  onFocus?: () => void;
+  frameClassName?: string;
   children: React.ReactNode;
 };
 
-export default function Window({ title, onClose, onMinimize, children }: WindowProps) {
+export default function Window({
+  title,
+  onClose,
+  onMinimize,
+  motion,
+  zIndex,
+  onFocus,
+  frameClassName,
+  children,
+}: WindowProps) {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [zoomed, setZoomed] = useState(false);
   const grabOffset = useRef<{ dx: number; dy: number } | null>(null);
@@ -50,11 +64,25 @@ export default function Window({ title, onClose, onMinimize, children }: WindowP
     grabOffset.current = null;
   }
 
+  const classes = [
+    "window",
+    "window-opening", // entrance animation on mount
+    zoomed ? "window-zoomed" : "",
+    motion ? `window-${motion}` : "", // exit animations override entrance
+    frameClassName ?? "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <section
       ref={frameRef}
-      className={zoomed ? "window window-zoomed" : "window"}
-      style={pos ? { left: pos.x, top: pos.y, transform: "none" } : undefined}
+      className={classes}
+      style={{
+        ...(pos ? { left: pos.x, top: pos.y, transform: "none" } : null),
+        ...(zIndex !== undefined ? { zIndex } : null),
+      }}
+      onPointerDownCapture={onFocus}
     >
       <header
         className="window-titlebar"
@@ -63,9 +91,6 @@ export default function Window({ title, onClose, onMinimize, children }: WindowP
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
       >
-        {/* Hovering anywhere on the group reveals the glyphs. They're
-            tiny inline SVGs, not text characters — font glyphs never
-            center reliably inside a 12px circle, vectors always do. */}
         <div className="traffic">
           <button
             className="light light-red"

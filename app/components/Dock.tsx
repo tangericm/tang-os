@@ -65,12 +65,19 @@ const icons = {
       <path d="m4.5 7.5 7.5 6 7.5-6" strokeLinejoin="round" />
     </svg>
   ),
+  github: (
+    // GitHub's mark (Octicons, MIT) — a fill icon, unlike our stroke set
+    <svg viewBox="0 0 16 16" fill="currentColor" stroke="none">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+    </svg>
+  ),
 };
 
 const ITEMS: DockItem[] = [
   { kind: "app", id: "about", label: "About Me", icon: icons.person },
   { kind: "soon", id: "projects", label: "Projects — coming soon", icon: icons.folder },
-  { kind: "soon", id: "resume", label: "Resume — coming soon", icon: icons.doc },
+  { kind: "app", id: "resume", label: "Resume", icon: icons.doc },
+  { kind: "link", id: "github", label: "GitHub", icon: icons.github, href: "https://github.com/tangericm" },
   { kind: "link", id: "scholar", label: "Publications", icon: icons.scholar, href: "https://scholar.google.com/citations?user=LV0RaF8AAAAJ" },
   { kind: "link", id: "linkedin", label: "LinkedIn", icon: icons.linkedin, href: "https://www.linkedin.com/in/eric-tang-a09524ab/" },
   { kind: "link", id: "mail", label: "Email me", icon: icons.mail, href: "mailto:eric.tang22@gmail.com" },
@@ -78,10 +85,14 @@ const ITEMS: DockItem[] = [
 
 export default function Dock({
   onOpenAbout,
+  onOpenResume,
   aboutRunning,
+  resumeRunning,
 }: {
   onOpenAbout: () => void;
+  onOpenResume: () => void;
   aboutRunning: boolean;
+  resumeRunning: boolean;
 }) {
   const [scales, setScales] = useState<number[]>(() => ITEMS.map(() => 1));
   const [canMagnify, setCanMagnify] = useState(false);
@@ -146,14 +157,23 @@ export default function Dock({
                   className="dock-button"
                   style={buttonStyle}
                   disabled={item.kind === "soon"}
-                  onClick={item.id === "about" ? onOpenAbout : undefined}
+                  onClick={
+                    item.id === "about"
+                      ? onOpenAbout
+                      : item.id === "resume"
+                        ? onOpenResume
+                        : undefined
+                  }
                   aria-label={item.label}
                 >
                   {item.icon}
                 </button>
               )}
               {/* the little "this app is running" dot */}
-              {item.id === "about" && aboutRunning && <span className="dock-dot" />}
+              {((item.id === "about" && aboutRunning) ||
+                (item.id === "resume" && resumeRunning)) && (
+                <span className="dock-dot" />
+              )}
             </li>
           );
         })}
