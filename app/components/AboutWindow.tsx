@@ -51,19 +51,25 @@ const EDUCATION: Array<{ degree: string; school: string; year: string }> = [
   { degree: "B.A., Computer Science", school: "Duke University", year: "2018" },
 ];
 
-export default function AboutWindow({
-  onClose,
-  onMinimize,
-}: {
+/** Same pass-through contract as ResumeWindow — the window manager
+ *  drives animation phase, stacking, and focus for every app alike.
+ *  (An earlier version omitted `motion` here, which is why About
+ *  vanished without animating while Resume shrank gracefully.) */
+type Passthrough = {
   onClose: () => void;
   onMinimize: () => void;
-}) {
+  motion?: "minimizing" | "closing";
+  zIndex?: number;
+  onFocus?: () => void;
+};
+
+export default function AboutWindow({ onClose, onMinimize, ...rest }: Passthrough) {
   // A "controlled" tab bar: which tab is showing is just a piece of
   // state, and clicking a tab is just setState. No routing needed.
   const [tab, setTab] = useState<Tab>("Overview");
 
   return (
-    <Window title="About Me" onClose={onClose} onMinimize={onMinimize}>
+    <Window title="About Me" onClose={onClose} onMinimize={onMinimize} {...rest}>
       <div className="about">
         <div className="about-avatar" aria-hidden="true">
           ET
