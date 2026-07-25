@@ -35,7 +35,7 @@ const EXPERIENCE: Array<{ role: string; org: string; when: string; line: string 
     role: "Postdoctoral Research Fellow",
     org: "Diagnostic Imaging & Image-Guided Interventions Lab · Nashville, TN",
     when: "2022 – 2023",
-    line: "4D surgical-instrument tracking at 99% sensitivity / 23 fps and a U-Net denoising framework running at video rate.",
+    line: "4D surgical-instrument tracking at 99% sensitivity / 23 fps and a self-fusion denoising network running at video rate.",
   },
   {
     role: "Graduate Research Assistant",

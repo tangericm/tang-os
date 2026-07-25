@@ -14,13 +14,27 @@
   --ink-soft: rgba(244, 241, 236, 0.75);
   --ink-faint: rgba(244, 241, 236, 0.52);
 
-  /* materials (frosted glass) */
-  --glass-window: rgba(28, 24, 20, 0.87);
-  --glass-bar: rgba(26, 22, 18, 0.55);
-  --glass-dock: rgba(26, 22, 18, 0.5);
-  --blur-window: blur(40px) saturate(1.6);
-  --blur-bar: blur(24px) saturate(1.7);
-  --blur-dock: blur(30px) saturate(1.6);
+  /* materials
+
+     Windows used to be translucent, with a heavy saturate() that pulled
+     the wallpaper straight through the glass. It photographed beautifully
+     on an empty desktop and fought every piece of content: text sat on
+     moving aurora bands, amber accents clashed with whatever happened to
+     be behind them, and with two windows open you read the back one
+     through the front one. Window bodies are opaque now, which is also
+     what real windows do; the frosted material is kept for the menu bar
+     and the dock, where nothing detailed is ever read through it. */
+  --surface-window: #221d18;
+  --surface-sidebar: rgba(0, 0, 0, 0.19);
+  --glass-bar: rgba(24, 20, 16, 0.82);
+  --glass-dock: rgba(24, 20, 16, 0.72);
+  --blur-bar: blur(24px) saturate(1.2);
+  --blur-dock: blur(30px) saturate(1.2);
+
+  /* inset surface for figures and diagrams, a shade below the window so
+     they read as recessed panels */
+  --panel: #191510;
+  --panel-edge: rgba(255, 244, 230, 0.08);
 
   /* lines & shadows */
   --hairline: rgba(255, 244, 230, 0.1);
@@ -298,19 +312,21 @@ body {
   border-radius: 12px;
   overflow: hidden;
 
-  background: var(--glass-window);
-  backdrop-filter: var(--blur-window);
-  -webkit-backdrop-filter: var(--blur-window);
+  background: var(--surface-window);
   border: 1px solid var(--edge-light);
   box-shadow: var(--shadow-window);
 }
 
-.window-zoomed {
-  width: min(780px, 96vw);
-}
-
-.window-zoomed .window-body {
-  max-height: min(680px, 78vh);
+/* Zoom is sized in JS now (see Window.tsx). A CSS-only `.window-zoomed
+   { width }` rule loses to any `.window-<app>` width rule further down
+   this file, same specificity, later wins, which is exactly how the green
+   light quietly stopped working on the Projects window. All CSS still owes
+   zoom is releasing the per-app height cap so the body fills the maximized
+   frame. The extra `.window` on the selector keeps this above those app
+   rules regardless of source order. */
+.window.window-zoomed .window-body {
+  height: auto;
+  max-height: none;
 }
 
 .window-titlebar {
@@ -390,6 +406,27 @@ body {
   max-height: min(560px, 70vh);
   overflow-y: auto;
   padding: 26px 28px 24px;
+}
+
+/* Scrollbars.
+   Two problems here, both of which read to the user as "I cannot scroll".
+   The first is this: the platform scrollbar is a pale slab that all but
+   disappears against a dark pane, so a scrollable area gives no hint that
+   it is scrollable. Thin, warm, and always visible fixes that.
+   `scrollbar-gutter: stable` reserves the track up front so content does
+   not jump sideways the moment a scrollbar appears.
+
+   These are the standard properties, not ::-webkit-scrollbar. Setting
+   either of them makes Chrome ignore the whole legacy pseudo-element
+   block anyway, so keeping both would have been a trap for whoever
+   edited this next, and these work in Chrome, Firefox and Safari alike. */
+.window-body,
+.proj-detail,
+.proj-sidebar,
+.doc-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(226, 170, 99, 0.62) rgba(0, 0, 0, 0.3);
+  scrollbar-gutter: stable;
 }
 
 /* ============================================================
@@ -805,6 +842,7 @@ body {
 
 .doc {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
 }
@@ -885,6 +923,7 @@ body {
 }
 
 .doc-scroll {
+  flex: 1 1 auto;
   overflow-y: auto;
   padding: 18px;
   background: rgba(0, 0, 0, 0.25); /* the grey "desk" behind the page */
@@ -1053,14 +1092,27 @@ body {
   width: min(820px, 96vw);
 }
 
+/* The second, and real, reason the Projects pane would not scroll until it
+   was resized. This body used to be `max-height` only. A max-height is not
+   a definite height, so `.projects { height: 100% }` below resolved to
+   auto, the detail pane grew to its full content height, and this body
+   simply clipped the overflow: nothing to scroll, nothing to grab. Dragging
+   the resize grip wrote an explicit pixel height onto the frame, the
+   percentage finally had something to resolve against, and scrolling
+   sprang to life, which is the "resize first, then scroll" behaviour.
+   A definite height fixes it from the start. It also stops the frame
+   jumping between a tall featured project and a short one. */
 .window-projects .window-body {
   padding: 0;
-  max-height: min(660px, 76vh);
+  height: min(660px, 76vh);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .projects {
   display: flex;
+  flex: 1 1 auto;
   min-height: 0;
   height: 100%;
 }
@@ -1073,6 +1125,7 @@ body {
   padding: 10px;
   gap: 3px;
   border-right: 1px solid var(--hairline);
+  background: var(--surface-sidebar);
   overflow-y: auto;
 }
 
@@ -1158,18 +1211,6 @@ body {
   max-width: 62ch;
   font-size: 13.5px;
   line-height: 1.6;
-  color: var(--ink-soft);
-}
-
-/* the "why it's useful" line: a short takeaway, set off with a quiet
-   amber rule so the eye lands on it after the description */
-.proj-why {
-  margin-top: 12px;
-  padding-left: 12px;
-  max-width: 60ch;
-  border-left: 2px solid rgba(226, 170, 99, 0.55);
-  font-size: 12.5px;
-  line-height: 1.55;
   color: var(--ink-soft);
 }
 
@@ -1282,56 +1323,329 @@ body {
   color: var(--accent) !important;
 }
 
-/* --- the U-Net data-flow diagram --- */
-.unet {
+/* ============================================================
+   The self-fusion schematic (SelfFusionSchematic.tsx)
+
+   Two panels: where the training target comes from, and the network
+   that reproduces it live. Each sits on an opaque surface, deliberately,
+   a diagram is the last thing that should have wallpaper behind it.
+   ============================================================ */
+.sfs-panel {
+  padding: 12px 14px 13px;
+  border-radius: 10px;
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+}
+
+.sfs-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.sfs-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #241a10;
+  background: var(--accent);
+}
+
+.sfs-badge {
+  margin-left: auto;
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  background: rgba(255, 244, 230, 0.07);
+  border: 1px solid var(--hairline);
+}
+
+.sfs-badge-live {
+  color: var(--accent);
+  border-color: var(--accent-soft);
+}
+
+.sfs-svg {
+  display: block;
   width: 100%;
   height: auto;
-  max-height: 186px;
+  margin-top: 4px;
 }
 
-.unet-block {
-  fill: url(#ublk);
-  stroke: rgba(255, 244, 230, 0.16);
+.sfs-note {
+  margin-top: 6px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+}
+
+/* the relationship between the two panels, stated rather than implied */
+.sfs-bridge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 2px;
+}
+
+.sfs-bridge-line {
+  flex: 1 1 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-soft), transparent);
+}
+
+.sfs-bridge-text {
+  flex: 0 0 auto;
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* ---- panel 1: neighbors, registration, weights, target ---- */
+.sfs-slab {
+  fill: rgba(150, 133, 112, 0.5);
+  stroke: rgba(255, 244, 230, 0.12);
   stroke-width: 1;
+  animation: sfs-read 2.8s ease-in-out infinite;
 }
 
-.unet-bottleneck {
-  stroke: rgba(226, 170, 99, 0.5);
-}
-
-.unet-route {
-  fill: none;
-  stroke: rgba(244, 241, 236, 0.12);
-  stroke-width: 1.5;
-}
-
-.unet-skip {
-  stroke: rgba(226, 170, 99, 0.4);
-  stroke-width: 1.2;
-  stroke-dasharray: 3 6;
-  animation: skip-flow 0.9s linear infinite;
-}
-
-@keyframes skip-flow {
-  to {
-    stroke-dashoffset: -9;
+@keyframes sfs-read {
+  0%,
+  70%,
+  100% {
+    fill: rgba(150, 133, 112, 0.5);
+  }
+  22% {
+    fill: rgba(196, 174, 143, 0.8);
   }
 }
 
-.unet-packet {
+.sfs-slab-center {
+  fill: rgba(226, 170, 99, 0.55);
+  stroke: rgba(226, 170, 99, 0.7);
+  animation: none;
+}
+
+.sfs-frame {
+  fill: rgba(12, 10, 8, 0.5);
+  stroke: var(--hairline);
+  stroke-width: 1;
+}
+
+.sfs-layers path {
+  fill: none;
+  stroke: rgba(244, 241, 236, 0.26);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-dasharray: 2 3; /* broken strokes read as speckled */
+}
+
+.sfs-layers-clean path {
+  stroke: rgba(244, 241, 236, 0.75);
+  stroke-dasharray: none;
+}
+
+/* Two mis-registered neighbors sliding into alignment with frame n, which
+   is drawn in amber underneath them so you can see three distinct traces
+   even at the moment they agree. The keyframes hold at both ends rather
+   than converging once and sitting still: misaligned is half the story,
+   and a schematic caught mid-animation should still be readable. */
+.sfs-warp .sfs-layers path {
+  stroke: rgba(244, 241, 236, 0.42);
+}
+
+.sfs-ref .sfs-layers path {
+  stroke: rgba(226, 170, 99, 0.8);
+  stroke-width: 1.5;
+  stroke-dasharray: none;
+}
+
+.sfs-warp-a {
+  animation: sfs-reg-a 4.4s ease-in-out infinite;
+}
+
+@keyframes sfs-reg-a {
+  0%,
+  16% {
+    transform: translate(-7px, -5px);
+  }
+  46%,
+  76% {
+    /* not quite zero: a hair of residual offset keeps all three traces
+       distinguishable at the moment they agree, so a screenshot caught
+       mid-cycle still shows three frames rather than one */
+    transform: translate(0.5px, -1.5px);
+  }
+  100% {
+    transform: translate(-7px, -5px);
+  }
+}
+
+.sfs-warp-b {
+  animation: sfs-reg-b 4.4s ease-in-out infinite;
+}
+
+@keyframes sfs-reg-b {
+  0%,
+  16% {
+    transform: translate(6px, 6px);
+  }
+  46%,
+  76% {
+    transform: translate(-0.5px, 1.5px);
+  }
+  100% {
+    transform: translate(6px, 6px);
+  }
+}
+
+.sfs-weight {
+  fill: rgba(150, 133, 112, 0.55);
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: sfs-weigh 2.8s ease-in-out infinite;
+}
+
+@keyframes sfs-weigh {
+  0%,
+  100% {
+    transform: scaleY(0.5);
+  }
+  40% {
+    transform: scaleY(1);
+  }
+}
+
+.sfs-weight-peak {
+  fill: rgba(226, 170, 99, 0.78);
+}
+
+.sfs-target {
+  fill: rgba(18, 15, 11, 0.8);
+  stroke-width: 1.3;
+  animation: sfs-target-glow 3.8s ease-in-out infinite;
+}
+
+@keyframes sfs-target-glow {
+  0%,
+  30% {
+    stroke: rgba(226, 170, 99, 0.32);
+  }
+  58% {
+    stroke: rgba(226, 170, 99, 0.9);
+  }
+  100% {
+    stroke: rgba(226, 170, 99, 0.32);
+  }
+}
+
+/* ---- panel 2: the network ---- */
+.sfs-tower {
+  fill: var(--ink-faint);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sfs-block {
+  fill: url(#sfs-blk);
+  stroke: rgba(255, 244, 230, 0.2);
+  stroke-width: 1;
+}
+
+.sfs-latent {
+  stroke: rgba(226, 170, 99, 0.55);
+}
+
+.sfs-route {
+  fill: none;
+  stroke: rgba(244, 241, 236, 0.14);
+  stroke-width: 1.5;
+}
+
+.sfs-skip {
+  fill: none;
+  stroke: rgba(226, 170, 99, 0.55);
+  stroke-width: 1.3;
+  stroke-dasharray: 3 5;
+  animation: sfs-flow 0.9s linear infinite;
+}
+
+@keyframes sfs-flow {
+  to {
+    stroke-dashoffset: -8;
+  }
+}
+
+.sfs-in rect,
+.sfs-in-front {
+  fill: rgba(40, 34, 28, 0.95);
+  stroke: rgba(226, 170, 99, 0.45);
+  stroke-width: 1;
+}
+
+.sfs-in-front {
+  fill: rgba(58, 50, 40, 0.98);
+}
+
+.sfs-out {
+  fill: rgba(22, 18, 14, 0.95);
+  stroke: rgba(226, 170, 99, 0.6);
+  stroke-width: 1.2;
+}
+
+.sfs-packet {
   fill: #f4d29a;
 }
 
-.unet-label {
-  fill: rgba(244, 241, 236, 0.5);
-  font-size: 9px;
-  font-family: -apple-system, "Segoe UI", sans-serif;
+/* shared SVG type */
+.sfs-cap {
+  fill: var(--ink-soft);
+  font-size: 10.5px;
+}
+
+.sfs-cap-accent {
+  fill: var(--accent);
+}
+
+.sfs-sub {
+  fill: var(--ink-faint);
+  font-size: 9.5px;
+}
+
+.sfs-sub-accent {
+  fill: rgba(226, 170, 99, 0.8);
+}
+
+.sfs-arrow {
+  fill: none;
+  stroke: rgba(244, 241, 236, 0.42);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* mobile: sidebar becomes a horizontal scroll strip on top */
 @media (max-width: 640px) {
   .window-projects {
     width: 96vw;
+  }
+  .window-projects .window-body {
+    height: calc(100dvh - 56px - 42px - 118px);
   }
   .projects {
     flex-direction: column;
@@ -1349,6 +1663,15 @@ body {
   .proj-item-dot {
     display: none;
   }
+  /* The schematic has a legibility floor: scaled to a phone's width its
+     labels would be about 6px. Let the drawing scroll sideways instead,
+     while the heading and the note below it stay full width and readable. */
+  .sfs-canvas {
+    overflow-x: auto;
+  }
+  .sfs-svg {
+    min-width: 470px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1357,18 +1680,28 @@ body {
     animation: none;
   }
   .denoise-scan,
-  .unet-skip,
-  .proj-detail {
+  .proj-detail,
+  .sfs-slab,
+  .sfs-warp-a,
+  .sfs-warp-b,
+  .sfs-weight,
+  .sfs-target,
+  .sfs-skip {
     animation: none;
   }
-  .denoise-scan {
+  .denoise-scan,
+  .sfs-packet {
     display: none;
+  }
+  /* the weight bars are drawn at full height and scaled down by the
+     animation, so without it they need no transform at all */
+  .sfs-weight {
+    transform: none;
   }
 }
 
-/* U-Net figure: input frame stack, output frame, caption */
-.denoise-figure,
-.unet-figure {
+/* The raw → denoised figure and its caption */
+.denoise-figure {
   margin: 0;
 }
 .denoise-figure figcaption {
@@ -1380,25 +1713,5 @@ body {
 }
 .denoise-figure figcaption strong {
   color: var(--ink-soft);
-  font-weight: 600;
-}
-.unet-frames rect,
-.unet-frame-front {
-  fill: rgba(40, 34, 28, 0.9);
-  stroke: rgba(226, 170, 99, 0.45);
-  stroke-width: 1;
-}
-.unet-frame-front {
-  fill: rgba(58, 50, 40, 0.95);
-}
-.unet-figure figcaption {
-  margin-top: 4px;
-  text-align: center;
-  font-size: 11.5px;
-  line-height: 1.4;
-  color: var(--ink-faint);
-}
-.unet-figure figcaption strong {
-  color: var(--accent);
   font-weight: 600;
 }

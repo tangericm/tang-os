@@ -84,7 +84,7 @@ const Experience = () => (
       <ul>
         <li>Extended and adapted a deep-learning-based pipeline for 4D surgical instrument tracking by implementing multi-channel inputs and data augmentation, achieving 99% sensitivity at 23 fps</li>
         <li>Investigated advanced machine learning models (MATLAB/Python: multiscale context aggregation networks, pix2pix, cGANs) to improve neural network input quality by up to 4× under challenging surgical conditions</li>
-        <li>Supported development, training, and real-time deployment of a multi-scale U-Net denoising framework, improving image quality by 90% at video rate (22 fps)</li>
+        <li>Supported development, training, and real-time deployment of a self-fusion denoising network, improving image quality by 90% at video rate (22 fps)</li>
       </ul>
       <div className="doc-job-head">
         <em>Graduate Research Assistant</em>
