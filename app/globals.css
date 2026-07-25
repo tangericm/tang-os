@@ -2734,32 +2734,35 @@ html.booted .boot-overlay {
   background: #080706;
 }
 
-/* Thirty frames side by side, so the strip is 3000% of the container and one
-   translateX(-100%) walks the loop. Stepping a transform rather than using an
-   animated image format is what lets prefers-reduced-motion stop it.
+/* Sprite playback via BACKGROUND-POSITION, not a translated <img>.
 
-   Timing is deliberate: 30 frames sampled from a 2.5s window and played back
-   over 2.5s, so the motion runs at real speed at 12fps. The previous pass
-   sampled 8s into a 4s loop, which is why it read as sped up. Frame COUNT
-   buys smoothness; matching the loop to the sampled window is what keeps the
-   speed honest. */
+   The <img> version made the strip element 30x the container wide, which on a
+   desktop-sized window came to ~16140px: right up against the ~16384px GPU
+   texture limit. Past that the compositor cannot rasterise the layer in one
+   piece and the stepped transform degrades into a smooth horizontal slide,
+   which is exactly what it looked like. Mobile was fine only because its strip
+   was 9672px and stayed under the ceiling.
+
+   A background never builds an oversized layer: the browser samples the source
+   image for the visible region only. `steps(30, jump-none)` is the exact match
+   here, because background-position 0%..100% with a 30x-wide image maps k/29
+   onto frame k, giving thirty discrete positions including both ends. */
 .seq-strip {
   position: absolute;
-  inset: 0 auto auto 0;
-  width: 3000%;
-  max-width: none;
-  height: 100%;
-  object-fit: fill;
-  image-rendering: auto;
-  animation: seq-play 2.5s steps(30) infinite;
+  inset: 0;
+  background-image: url("/track-seq.webp");
+  background-size: 3000% 100%;
+  background-repeat: no-repeat;
+  background-position: 0% 0;
+  animation: seq-play 2.5s steps(30, jump-none) infinite;
 }
 
 @keyframes seq-play {
   from {
-    transform: translateX(0);
+    background-position-x: 0%;
   }
   to {
-    transform: translateX(-100%);
+    background-position-x: 100%;
   }
 }
 
@@ -3012,10 +3015,12 @@ html.booted .boot-overlay {
   letter-spacing: 0.03em;
 }
 
-.sim-layers rect:nth-child(1) { fill: rgba(226, 170, 99, 0.55); }
-.sim-layers rect:nth-child(2) { fill: rgba(126, 160, 222, 0.5); }
-.sim-layers rect:nth-child(3) { fill: rgba(228, 136, 124, 0.45); }
-.sim-layers rect:nth-child(4) { fill: rgba(104, 168, 112, 0.45); }
+/* Label-map bands. Retinal contour, not bars: see LAYER_BANDS. */
+.sim-layers path { stroke: none; }
+.sim-layers path:nth-child(1) { fill: rgba(226, 170, 99, 0.62); }
+.sim-layers path:nth-child(2) { fill: rgba(126, 160, 222, 0.55); }
+.sim-layers path:nth-child(3) { fill: rgba(228, 136, 124, 0.5); }
+.sim-layers path:nth-child(4) { fill: rgba(104, 168, 112, 0.5); }
 
 /* Filled brand marks (GitHub, LinkedIn) read heavier than stroke icons at the
    same size, because a silhouette covers more area than an outline. Trimming

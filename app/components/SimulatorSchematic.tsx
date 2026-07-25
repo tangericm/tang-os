@@ -161,6 +161,42 @@ const EFFECTS = [
   { k: "noise", v: "shot, RIN, read floor" },
 ];
 
+/* The label map, drawn with retinal geometry rather than as flat bars.
+   Bands follow one shared contour with a foveal depression at the centre, so
+   the thing that reads as "free ground truth" actually looks like the tissue
+   it labels. Each band is a closed ribbon between the contour offset by its
+   own top and bottom depth, which is also how the simulator's own layer model
+   is parameterised: one surface, per-layer thickness. */
+const LX0 = 314;
+const LX1 = 406;
+const LAYER_BANDS = (() => {
+  const N = 46;
+  // depth of the shared surface at each x: a gentle arc with a foveal dip
+  const surface = (t: number) => {
+    const arc = 3.2 * Math.sin(Math.PI * t); // overall curvature
+    const dip = 5.0 * Math.exp(-Math.pow((t - 0.5) / 0.11, 2)); // fovea
+    return 122 - arc + dip;
+  };
+  const thick = [0, 6.5, 11, 20, 30]; // cumulative depth of each boundary
+  const bands: string[] = [];
+  for (let b = 0; b < thick.length - 1; b++) {
+    const top: string[] = [];
+    const bot: string[] = [];
+    for (let i = 0; i <= N; i++) {
+      const t = i / N;
+      const x = LX0 + t * (LX1 - LX0);
+      // the fovea is a surface feature: deeper layers flatten out under it
+      const damp = 1 - 0.72 * (thick[b] / 30);
+      const s = surface(t);
+      const base = 122 - (122 - s) * damp;
+      top.push(`${i === 0 ? "M" : "L"}${x.toFixed(1)} ${(base + thick[b]).toFixed(1)}`);
+      bot.push(`L${x.toFixed(1)} ${(base + thick[b + 1]).toFixed(1)}`);
+    }
+    bands.push([...top, ...bot.reverse(), "Z"].join(" "));
+  }
+  return bands;
+})();
+
 function EffectsPanel() {
   return (
     <svg
@@ -202,10 +238,9 @@ function EffectsPanel() {
       {/* the payoff */}
       <rect className="trk-frame" x={308} y={112} width={104} height={52} rx={3} />
       <g className="sim-layers">
-        <rect x={314} y={122} width={92} height={7} />
-        <rect x={314} y={131} width={92} height={5} />
-        <rect x={314} y={138} width={92} height={9} />
-        <rect x={314} y={149} width={92} height={9} />
+        {LAYER_BANDS.map((d, i) => (
+          <path key={i} d={d} />
+        ))}
       </g>
       <text className="sfs-sub sfs-sub-accent" x={360} y={106} textAnchor="middle">
         per-pixel layer map

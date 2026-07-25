@@ -71,20 +71,25 @@ function DenoiseHero() {
    is kept: the second was another angle on the same instant, and dropping it
    gives the microscope and en face panels the width they need.
 
-   Stepped with a transform on a 3000%-wide strip rather than an animated
-   image format, so prefers-reduced-motion can actually stop it. */
+   Played by stepping BACKGROUND-POSITION rather than translating an <img>:
+   the translated version built a ~16140px-wide layer on desktop, which is at
+   the GPU texture ceiling, and the stepping degraded into a smooth slide. See
+   the .seq-strip comment in globals.css. Still a CSS animation, so
+   prefers-reduced-motion stops it.
+
+   The magenta box on the en face panel is derived from the frames, not drawn
+   by hand: the tissue is static and the instrument is not, so differencing
+   each frame against the temporal median localises it. Smoothed over a
+   five-frame window so it does not jitter. Located in 30 of 30 frames. */
 function TrackingHero() {
   return (
     <figure className="denoise-figure">
-      <div className="seq" aria-label="Thirty consecutive frames showing the microscope view, the en face frame and the tracked OCT volume at the same instants">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          className="seq-strip"
-          src="/track-seq.webp"
-          alt="Thirty consecutive time points of an instrument at the eye surface, each showing the surgical microscope view, the en face reflectometry frame, and the tracked OCT volume"
-          width={15810}
-          height={300}
-        />
+      <div
+        className="seq"
+        role="img"
+        aria-label="Thirty consecutive frames showing the microscope view, the en face frame with the instrument boxed, and the tracked OCT volume at the same instants"
+      >
+        <div className="seq-strip" />
       </div>
       <div className="seq-labels" aria-hidden="true">
         <span style={{ flex: "300 1 0" }}>microscope</span>
@@ -95,8 +100,8 @@ function TrackingHero() {
         Thirty consecutive time points from one acquisition, each frame the same
         instant three ways, so the panels are correlated rather than merely adjacent.
         The microscope view is top-down and 2D and cannot show what the instrument is
-        doing below the surface, which is what the <strong>tracked volume</strong>
-        resolves.
+        doing below the surface, which is what the{" "}
+        <strong>tracked volume</strong> resolves.
       </figcaption>
     </figure>
   );
