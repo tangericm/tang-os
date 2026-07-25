@@ -1,6 +1,23 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+
+/* Desktop chrome a maximized window must not cover. Kept here next to the
+   geometry that uses them; they mirror .menubar height and the dock's
+   tile + padding + bottom offset in globals.css. */
+const MENUBAR_H = 30;
+const DOCK_RESERVE = 84;
+const EDGE_GAP = 8;
+
+function maximizedGeometry() {
+  return {
+    pos: { x: EDGE_GAP, y: MENUBAR_H + EDGE_GAP },
+    size: {
+      w: window.innerWidth - EDGE_GAP * 2,
+      h: window.innerHeight - MENUBAR_H - EDGE_GAP - DOCK_RESERVE,
+    },
+  };
+}
 
 /**
  * Window, the generic, reusable macOS window frame.
@@ -47,6 +64,13 @@ export default function Window({
   const grabOffset = useRef<{ dx: number; dy: number } | null>(null);
   const resizeStart = useRef<{ w: number; h: number; x: number; y: number } | null>(null);
   const frameRef = useRef<HTMLElement | null>(null);
+  /* geometry to restore when the window is un-zoomed; null means "go back
+     to whatever the stylesheet says", which is the state a freshly opened
+     window is in */
+  const preZoom = useRef<{
+    pos: { x: number; y: number } | null;
+    size: { w: number; h: number } | null;
+  } | null>(null);
 
   /* Aim the minimize animation at THIS window's dock icon.
      Runs before paint (useLayoutEffect): we pin the window to pixel
@@ -75,6 +99,15 @@ export default function Window({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [motion, minimizeTarget]);
+
+  /* A maximized window should stay maximized when the viewport changes,
+     otherwise rotating a tablet leaves it the wrong size. */
+  useEffect(() => {
+    if (!zoomed) return;
+    const fit = () => setSize(maximizedGeometry().size);
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, [zoomed]);
 
   function onPointerDown(e: React.PointerEvent<HTMLElement>) {
     const frame = frameRef.current;
@@ -105,7 +138,9 @@ export default function Window({
     const rect = frame.getBoundingClientRect();
     if (pos === null) setPos({ x: rect.left, y: rect.top }); // pin position
     resizeStart.current = { w: rect.width, h: rect.height, x: e.clientX, y: e.clientY };
+    if (size === null) setSize({ w: rect.width, h: rect.height }); // pin size
     setZoomed(false); // manual sizing takes over from zoom
+    preZoom.current = null; // ...and discards the geometry zoom would restore
     e.currentTarget.setPointerCapture(e.pointerId);
     e.stopPropagation();
   }
@@ -121,6 +156,30 @@ export default function Window({
 
   function onResizeUp() {
     resizeStart.current = null;
+  }
+
+  /* Zoom (the green light), a real maximize.
+     This used to be CSS-only: `.window-zoomed { width: ... }`. That broke
+     silently the moment an app shipped its own `.window-<app>` width rule,
+     because both selectors have the same specificity and the app rule is
+     further down the stylesheet, so it won. Owning the geometry in JS makes
+     zoom app-agnostic, and lets it set HEIGHT too, which CSS alone could not
+     do without hard-coding the chrome. We fill the desktop, leaving the menu
+     bar and dock uncovered, and stash the old geometry to restore. */
+  function toggleZoom() {
+    if (zoomed) {
+      const prev = preZoom.current;
+      setPos(prev?.pos ?? null);
+      setSize(prev?.size ?? null);
+      preZoom.current = null;
+      setZoomed(false);
+      return;
+    }
+    preZoom.current = { pos, size };
+    const g = maximizedGeometry();
+    setPos(g.pos);
+    setSize(g.size);
+    setZoomed(true);
   }
 
   const classes = [
@@ -183,7 +242,7 @@ export default function Window({
           <button
             className="light"
             aria-label={zoomed ? "Zoom out" : "Zoom in"}
-            onClick={() => setZoomed(!zoomed)}
+            onClick={toggleZoom}
             onPointerDown={(e) => e.stopPropagation()}
           >
             <svg viewBox="0 0 12 12" aria-hidden="true">

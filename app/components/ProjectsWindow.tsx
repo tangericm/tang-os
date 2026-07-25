@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import Window from "./Window";
-import UNetFlow from "./UNetFlow";
+import SelfFusionSchematic from "./SelfFusionSchematic";
 
 /**
  * ProjectsWindow: a master/detail showcase (not a card grid). The
  * sidebar lists the work; the detail pane lets the selected project
- * lead. The featured project (real-time OCT denoising) opens with two
- * live visuals: a raw B-scan resolving into a denoised one, and the
- * denoising network with data flowing through it.
+ * lead. The featured project (real-time OCT denoising) opens with a raw
+ * B-scan resolving into a denoised one, then a schematic of how the
+ * method actually works.
  */
 
 type Passthrough = {
@@ -27,6 +27,9 @@ type Project = {
   kind: string;
   featured?: boolean;
   blurb: string;
+  /** A one-line "why this is useful" note. Written, then pulled from the
+      layout to be reworked; the copy is kept here rather than in git
+      history so the next pass starts from something. Not rendered. */
   why: string;
   tags: string[];
   links: { label: string; href: string }[];
@@ -39,10 +42,10 @@ const PROJECTS: Project[] = [
     kind: "Research",
     featured: true,
     blurb:
-      "Self-fusion denoises an OCT B-scan by deformably registering its neighboring frames and fusing them by structural similarity. It is motion-robust and edge-preserving, but at ~0.4 fps it is far too slow for live imaging. This work distills it into a multi-scale U-Net: three adjacent B-scans go in, and the network learns to reproduce a high-quality 7-frame self-fusion result, denoising at video rate for use during surgery.",
+      "Self-fusion cleans up an OCT B-scan using the frames on either side of it. Each neighbor is deformably registered onto the target frame and fused by local similarity, so speckle averages away while the edges the neighbors agree on stay sharp. It tolerates motion, and at roughly 0.42 fps it is far too slow to watch. This work trains a network to reproduce that fused result from three raw frames instead, hitting about 22 fps in C++, fast enough to run during surgery.",
     why:
       "Denoising in real time lets a surgeon see thin retinal layers clearly during an operation, where raw speckle would hide them.",
-    tags: ["PyTorch", "Multi-scale U-Net", "Self-fusion", "OCT", "Real-time"],
+    tags: ["PyTorch", "Self-fusion network", "OCT", "C++ / LibTorch", "Real-time"],
     links: [
       { label: "Paper · Biomed. Opt. Express 2022", href: "https://pmc.ncbi.nlm.nih.gov/articles/PMC8973187" },
     ],
@@ -145,23 +148,17 @@ export default function ProjectsWindow(props: Passthrough) {
                 <figcaption>
                   My own foveal OCT: one <strong>raw</strong> B-scan versus a
                   registered average of the same 50-frame stack. Fusing redundant
-                  frames recovers the retinal layers; the network learns to match a
-                  motion-robust version (self-fusion) from just three frames.
+                  frames recovers the retinal layers; self-fusion gets there
+                  without the repeat acquisition, and the network gets there from
+                  three frames.
                 </figcaption>
               </figure>
-              <figure className="unet-figure">
-                <UNetFlow />
-                <figcaption>
-                  Multi-scale U-Net: <strong>3 adjacent frames in</strong>, trained on a
-                  7-frame self-fusion target (not an averaged &ldquo;clean&rdquo; image).
-                </figcaption>
-              </figure>
+              <SelfFusionSchematic />
             </div>
           )}
 
           <h2 className="proj-title">{project.name}</h2>
           <p className="proj-blurb">{project.blurb}</p>
-          <p className="proj-why">{project.why}</p>
 
           <div className="proj-tags">
             {project.tags.map((t) => (
