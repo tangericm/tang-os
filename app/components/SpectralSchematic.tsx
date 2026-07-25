@@ -258,14 +258,7 @@ export default function SpectralSchematic() {
           <SplitPanel />
         </div>
         <p className="sfs-note">
-          Speckle is coherent interference rather than additive noise, so its
-          realization is determined by the spectral support retained during
-          reconstruction. Decomposing the k-linearized interferogram into two
-          Gaussian sub-windows and reconstructing each independently therefore
-          produces two images of the same sample with identical structure and
-          statistically independent speckle. Window width and inter-window gap are
-          the controlling parameters and are optimized with Optuna rather than set by
-          inspection.
+          Speckle is coherent interference, not additive noise, so its realization follows the spectral support used to reconstruct. Two Gaussian sub-windows separated by a gap give two images of identical structure whose speckle is decorrelated. Wider gap, less correlation, lower axial resolution: the gap is the knob.
         </p>
       </section>
 
@@ -284,17 +277,7 @@ export default function SpectralSchematic() {
           <NetPanel />
         </div>
         <p className="sfs-note">
-          The two sub-bands are stacked and mixed by a 3D convolution spanning the
-          sub-band axis before collapsing to 2D features, which lets the stem model
-          the relationship between the two reconstructions directly rather than
-          treating them as unrelated channels. The contracting path runs 64 to 512
-          channels over four scales with paired residual blocks, SiLU activations and
-          batch normalization; downsampling is strided convolution and upsampling is
-          transposed convolution with concatenated skips fused by a 3x3 convolution.
-          Supervision is the full-bandwidth reconstruction, so no clean reference is
-          ever acquired. The Charbonnier term is robust to outliers and the gradient
-          term penalizes edge loss, since minimizing a pixel-wise objective alone is
-          most easily achieved by blurring.
+          The sub-bands are stacked and mixed by a 3D convolution spanning the sub-band axis before any 2D processing, so the network sees them as one volume rather than as stacked channels. A residual encoder-decoder then runs 64 to 512 channels over four scales with concatenated skips. Training targets the full-bandwidth reconstruction under Charbonnier plus a gradient term, the gradient term being what stops the result going smooth.
         </p>
       </section>
     </div>

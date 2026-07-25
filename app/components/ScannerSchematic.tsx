@@ -198,62 +198,45 @@ export default function ScannerSchematic() {
           <TunePanel />
         </div>
         <p className="sfs-note">
-          Settling time is modeled as a function of the closed-loop PID parameters.
-          Gaussian process regression fits a response surface from a modest set of
-          measured step responses and returns posterior mean and variance, so
-          candidate tunings can be selected where the model is both promising and
-          uncertain rather than by exhaustive sweep. Optimized tunings reduce
-          settling time by over 50%, and the recovered budget is reinvested in scan
-          waveforms that extend the linear portion of the sweep, increasing field of
-          view, SNR and CNR (p &lt; 0.001) at fixed rate. Applied entirely through
-          stock controller firmware.
+          Settling time is modeled against the closed-loop PID parameters by Gaussian process regression. The posterior gives both a prediction and its uncertainty, so the next measurement goes where the model is least certain rather than onto a grid, which is what makes the search affordable on hardware that must be measured rather than simulated.
         </p>
       </section>
 
-      {/* The imaging consequence, which is the part that actually matters:
-          the same vasculature scanned under four tunings. Pink marks where the
-          scan was still nonlinear, so pink is field you cannot use. */}
-      <figure className="paper-figure">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/galvo-octa.jpg"
-          alt="Scan waveform and corresponding en face OCTA projections for four controller tunings; the optimized tuning shows the least nonlinear region and the widest usable field."
-          width={1100}
-          height={375}
-          loading="lazy"
-          decoding="async"
-        />
+      {/* The imaging consequence, which is the part that actually matters.
+          These are the image strips lifted out of the published figure, not the
+          figure itself: no axes, no panel letters, no plots. Same cannula, same
+          elapsed time, two return waveforms. Pink marks scan regions still
+          nonlinear, so pink is field you cannot use. */}
+      <figure className="cann">
+        <div className="cann-row">
+          <span className="cann-tag">sinusoidal return</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/galvo-sine.jpg"
+            alt="Three volume frames of a cannula acquired with a sinusoidal return waveform; the cannula shaft is broken across the frame and long dead intervals separate the volumes."
+            width={1080}
+            height={210}
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+        <div className="cann-row cann-row-good">
+          <span className="cann-tag">optimized return</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/galvo-opt.jpg"
+            alt="Five volume frames of the same cannula over the same interval with the optimized return waveform; the shaft is continuous and the dead intervals are much shorter."
+            width={1080}
+            height={192}
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
         <figcaption>
-          What the tuning buys, measured on tissue: identical vasculature scanned
-          under three factory tunings (blue, green, grey) and the optimized tuning
-          (red). Pink marks regions where the scan was still nonlinear, so pink is
-          field of view that cannot be used. The optimized tuning reaches the widest
-          linear projection. Reproduced from Tang &amp; Tao, Biomed. Opt. Express
-          12(11), 2021.
-        </figcaption>
-      </figure>
-
-      {/* The mechanism behind it, reproduced from the paper. Left on a light card
-          rather than inverted: inverting a published plot would shift the
-          series colours and misrepresent the figure. The resume viewer already
-          establishes a white page in this interface, so a light figure card is
-          consistent rather than jarring. */}
-      <figure className="paper-figure">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/galvo-settling.jpg"
-          alt="Measured step responses under optimized tuning with settling times marked, and settling time versus scan angle for four tunings, the optimized tuning lowest throughout."
-          width={1100}
-          height={508}
-          loading="lazy"
-          decoding="async"
-        />
-        <figcaption>
-          Measured result: step responses under the optimized tuning with settling
-          times marked (left), and settling time against scan angle for each
-          candidate tuning (right). The optimized tuning is lowest across the full
-          range of scan amplitudes. Reproduced from Tang &amp; Tao, Biomed. Opt.
-          Express 12(11), 2021.
+          Same cannula, same elapsed time, two return waveforms. The optimized
+          return fits <strong>five volumes where the sinusoid fits three</strong>,
+          and the shaft stays continuous instead of breaking up (red marks). Image
+          strips from Tang &amp; Tao, Biomed. Opt. Express 12(11), 2021.
         </figcaption>
       </figure>
     </div>

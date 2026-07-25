@@ -123,15 +123,32 @@ export function CalibSchematic() {
           </svg>
         </div>
         <p className="sfs-note">
-          Intrinsics and radial-tangential distortion coefficients are estimated from
-          planar checkerboard correspondences across many poses, then stereo
-          extrinsics rectify the pair so that corresponding points lie on the same
-          image row. Disparity between rectified views triangulates to metric depth
-          against the calibrated baseline. RMS reprojection error is reported at each
-          stage, because a calibration whose error is never measured cannot be
-          trusted downstream.
+          Intrinsics and radial-tangential distortion come from planar checkerboard correspondences across many poses; stereo extrinsics then rectify the pair so corresponding points share an image row, and disparity triangulates to metric depth against the calibrated baseline. RMS reprojection error is reported at every stage, because a calibration whose error is never measured cannot be trusted downstream.
         </p>
       </section>
+
+      {/* A real run of the pipeline, not a drawing of it. The rig is synthetic
+          so ground truth is known and the recovered parameters can be checked
+          against it, which is the useful thing about a synthetic rig. */}
+      <figure className="run-figure">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/calib.jpg"
+          alt="Detected checkerboard corners, the same view undistorted, and the rectified stereo pair with horizontal epipolar lines showing the board at matching heights in both eyes."
+          width={1290}
+          height={1017}
+          loading="lazy"
+          decoding="async"
+        />
+        <figcaption>
+          Output of an actual run over 18 views on a synthetic rig, so the recovered
+          parameters can be checked against known truth. Focal length came back{" "}
+          <strong>720.2 px against a true 720.0</strong>, baseline{" "}
+          <strong>60.3 mm against 60.0</strong>, stereo RMS reprojection error{" "}
+          <strong>0.41 px</strong>, and rectification aligned corresponding corners
+          to <strong>0.35 px</strong> vertically.
+        </figcaption>
+      </figure>
     </div>
   );
 }
@@ -197,15 +214,30 @@ export function ClassifySchematic() {
           </svg>
         </div>
         <p className="sfs-note">
-          The scaffolding is the deliverable rather than any single trained model.
-          Datasets are abstracted behind stratified splits, augmentation is
-          configuration rather than code, and backbones are swapped through a
-          registry, so a new problem changes a config file and not the training loop.
-          Seeds, checkpoints, early stopping and per-epoch metric logging make runs
-          comparable to each other, which is the property that actually determines
-          whether an experiment result means anything.
+          The scaffolding is the deliverable, not any one trained model. Splits are stratified, augmentation is configuration rather than code, and backbones swap through a registry, so a new problem changes a config file and not the training loop. Seeds, checkpoints and per-epoch logging are what make two runs comparable, which is what decides whether a result means anything.
         </p>
       </section>
+
+      {/* What the pipeline emits at the end of a run, from an actual run on a
+          public dataset so the numbers can be spoken to. */}
+      <figure className="run-figure">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/classify.jpg"
+          alt="Training loss curve falling to convergence, a ten-class confusion matrix with off-diagonal counts marked, and a grid of test digits labelled with predictions, mistakes highlighted."
+          width={1100}
+          height={420}
+          loading="lazy"
+          decoding="async"
+        />
+        <figcaption>
+          The evaluation the pipeline emits, from a run on the UCI handwritten digit
+          set: loss to convergence with early stopping at 24 epochs,{" "}
+          <strong>95.3% accuracy</strong> and <strong>macro F1 0.953</strong> over a
+          450-sample held-out split, and predictions with the misses called out
+          rather than averaged away.
+        </figcaption>
+      </figure>
     </div>
   );
 }
@@ -291,13 +323,7 @@ export function TangosSchematic() {
           </svg>
         </div>
         <p className="sfs-note">
-          Animating an unmount in React requires the parent to keep the child mounted
-          while the exit animation plays, so each application carries an explicit
-          phase rather than a boolean. The two transient phases exist purely to hold
-          a window alive for the duration of its exit, and the timer that retires
-          them collapses to zero under prefers-reduced-motion, which makes the
-          animation a courtesy and never a delay. Focus order is a single value in the
-          same reducer, which is all a z-index stack actually requires.
+          Animating an unmount means the parent must keep the child mounted while the exit animation plays, so every window carries an explicit phase rather than a boolean. Minimize and close animate to different places and must stay distinguishable, focus reorders z-index, and maximize has to remember the geometry it replaced.
         </p>
       </section>
     </div>

@@ -238,14 +238,7 @@ export default function TrackingSchematic() {
           <DetectPanel />
         </div>
         <p className="sfs-note">
-          Source frames are single-channel, leaving the three input channels of a
-          standard detector unused. Encoding the current frame, a 5-frame running
-          mean and a 5-frame variance into those channels supplies temporal context
-          at the cost of one forward pass: the mean suppresses speckle, while the
-          variance channel responds only to inter-frame motion, separating the
-          instrument from static tissue. Trained across three instrument classes
-          (N = 4031), the detector achieves 99.98% mAP, 97% precision, 99% recall
-          and an F1 of 0.98.
+          Source frames are single-channel, so the detector&rsquo;s other two input channels are free. Filling them with a 5-frame running mean and variance hands the network motion evidence directly: the variance channel lights up exactly where something moved. Same architecture, same cost, better separation of instrument from tissue.
         </p>
       </section>
 
@@ -264,14 +257,7 @@ export default function TrackingSchematic() {
           <SteerPanel />
         </div>
         <p className="sfs-note">
-          Bounding-box coordinates are mapped to galvanometer drive voltages, the
-          fast axis requiring a higher-order fit because adaptive sampling makes the
-          offset-to-position relation nonlinear. Waveforms are written through a
-          non-regenerative DAQ buffer, which permits modification mid-scan, and the
-          adaptive protocol samples the field centre approximately 4x denser than
-          the periphery so sampling density tracks the instrument. Detection runs at
-          23 Hz but the loop is closed once per volume at 16 Hz; intra-volume
-          updates would introduce reconstruction discontinuities.
+          Box coordinates map to galvanometer drive voltages, the fast axis needing a calibrated offset rather than a raw pixel shift. A non-regenerative DAQ lets the waveform be rewritten mid-scan, so a correction lands on the next volume instead of the next buffer. Sampling densifies toward the centre, where the instrument is.
         </p>
       </section>
     </div>
