@@ -13,7 +13,7 @@ import { ImageResponse } from "next/og";
  */
 
 export const alt =
-  "Eric M. Tang, computational imaging and computer vision. Real-time denoising, closed-loop tracking, scanner control.";
+  "Eric M. Tang, high-speed imaging, machine learning and computer vision.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -95,7 +95,7 @@ export default async function OpengraphImage() {
               lineHeight: 1.3,
             }}
           >
-            Computational imaging &amp; computer vision
+            High-speed imaging &amp; machine learning
           </div>
           <div style={{ display: "flex", marginTop: 34, alignItems: "center" }}>
             <div style={{ display: "flex", width: 56, height: 3, background: AMBER, borderRadius: 2 }} />
@@ -107,7 +107,7 @@ export default async function OpengraphImage() {
                 color: "rgba(244,241,236,0.56)",
               }}
             >
-              real-time denoising · closed-loop tracking · scanner control
+              computer vision · deep learning · GPU pipelines · real-time systems
             </div>
           </div>
         </div>

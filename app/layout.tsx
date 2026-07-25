@@ -9,26 +9,28 @@ export const metadata: Metadata = {
      require; without it they silently resolve against localhost. */
   metadataBase: new URL("https://ericmtang.com"),
   title: {
-    default: "Eric M. Tang · Computational Imaging & Computer Vision",
+    default: "Eric M. Tang · High-Speed Imaging, Machine Learning & Computer Vision",
     template: "%s · Eric M. Tang",
   },
-  /* The old description still said "Booting soon", months after launch,
-     and that string was what Google and every pasted link were showing. */
+  /* This string is what Google and every pasted link render, so it leads on
+     the capabilities rather than on the individual projects. Ordering is
+     deliberate: high-speed imaging, machine learning, computer vision.
+     Computational imaging is the field, not the pitch. */
   description:
-    "Computational imaging and computer vision: real-time denoising, closed-loop instrument tracking, and scanner control. An interactive desktop portfolio by Eric M. Tang.",
+    "High-speed imaging systems, machine learning and computer vision. PhD in biomedical engineering building real-time GPU vision pipelines, deep learning for image restoration, and the hardware control that feeds them.",
   openGraph: {
     type: "website",
     url: "https://ericmtang.com",
     siteName: "Eric M. Tang",
-    title: "Eric M. Tang · Computational Imaging & Computer Vision",
+    title: "Eric M. Tang · High-Speed Imaging, Machine Learning & Computer Vision",
     description:
-      "Real-time denoising, closed-loop instrument tracking, and scanner control, presented as a desktop you can click around.",
+      "High-speed imaging, machine learning and computer vision, presented as a desktop you can click around.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Eric M. Tang · Computational Imaging & Computer Vision",
+    title: "Eric M. Tang · High-Speed Imaging, Machine Learning & Computer Vision",
     description:
-      "Real-time denoising, closed-loop instrument tracking, and scanner control, presented as a desktop you can click around.",
+      "High-speed imaging, machine learning and computer vision, presented as a desktop you can click around.",
   },
   alternates: { canonical: "/" },
 };
