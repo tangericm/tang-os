@@ -4,9 +4,33 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Eric M. Tang",
+  /* metadataBase is what lets Next turn the generated card and any other
+     relative asset into the absolute URLs that crawlers and chat apps
+     require; without it they silently resolve against localhost. */
+  metadataBase: new URL("https://ericmtang.com"),
+  title: {
+    default: "Eric M. Tang · Computational Imaging & Computer Vision",
+    template: "%s · Eric M. Tang",
+  },
+  /* The old description still said "Booting soon", months after launch,
+     and that string was what Google and every pasted link were showing. */
   description:
-    "TangOS, the OS-style personal site of Eric M. Tang. Booting soon at ericmtang.com.",
+    "Computational imaging and computer vision: real-time denoising, closed-loop instrument tracking, and scanner control. An interactive desktop portfolio by Eric M. Tang.",
+  openGraph: {
+    type: "website",
+    url: "https://ericmtang.com",
+    siteName: "Eric M. Tang",
+    title: "Eric M. Tang · Computational Imaging & Computer Vision",
+    description:
+      "Real-time denoising, closed-loop instrument tracking, and scanner control, presented as a desktop you can click around.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Eric M. Tang · Computational Imaging & Computer Vision",
+    description:
+      "Real-time denoising, closed-loop instrument tracking, and scanner control, presented as a desktop you can click around.",
+  },
+  alternates: { canonical: "/" },
 };
 
 export const viewport: Viewport = {

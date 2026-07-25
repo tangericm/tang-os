@@ -4,11 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import AboutWindow from "./AboutWindow";
 import ProjectsWindow from "./ProjectsWindow";
 import ResumeWindow from "./ResumeWindow";
+import TerminalWindow from "./TerminalWindow";
 import DesktopFile from "./DesktopFile";
 import Dock from "./Dock";
 
 /**
- * WindowLayer, the window manager, now managing two apps.
+ * WindowLayer, the window manager, now managing four apps.
  *
  * Each app is a little state machine:
  *
@@ -27,7 +28,7 @@ import Dock from "./Dock";
  */
 
 type Phase = "closed" | "open" | "minimizing" | "minimized" | "closing";
-type AppId = "about" | "projects" | "resume";
+type AppId = "about" | "projects" | "resume" | "terminal";
 
 const EXIT_MS = 280; // keep in sync with the CSS exit animations
 
@@ -35,6 +36,7 @@ export default function WindowLayer() {
   const [about, setAbout] = useState<Phase>("open"); // auto-open on arrival
   const [projects, setProjects] = useState<Phase>("closed");
   const [resume, setResume] = useState<Phase>("closed");
+  const [terminal, setTerminal] = useState<Phase>("closed");
   const [front, setFront] = useState<AppId>("about");
   const reducedMotion = useRef(false);
 
@@ -59,6 +61,7 @@ export default function WindowLayer() {
     about: { phase: about, set: setAbout },
     projects: { phase: projects, set: setProjects },
     resume: { phase: resume, set: setResume },
+    terminal: { phase: terminal, set: setTerminal },
   };
 
   function open(id: AppId) {
@@ -89,14 +92,18 @@ export default function WindowLayer() {
       {visible(about) && <AboutWindow {...windowProps("about")} />}
       {visible(projects) && <ProjectsWindow {...windowProps("projects")} />}
       {visible(resume) && <ResumeWindow {...windowProps("resume")} />}
+      {visible(terminal) && (
+        <TerminalWindow {...windowProps("terminal")} onOpenApp={open} />
+      )}
 
       <Dock
-        onOpenAbout={() => open("about")}
-        onOpenProjects={() => open("projects")}
-        onOpenResume={() => open("resume")}
-        aboutRunning={about !== "closed"}
-        projectsRunning={projects !== "closed"}
-        resumeRunning={resume !== "closed"}
+        onOpenApp={(id) => open(id as AppId)}
+        running={{
+          about: about !== "closed",
+          projects: projects !== "closed",
+          resume: resume !== "closed",
+          terminal: terminal !== "closed",
+        }}
       />
     </>
   );
