@@ -429,7 +429,8 @@ html.booted .boot-overlay {
 .window-body,
 .proj-detail,
 .proj-sidebar,
-.doc-scroll {
+.doc-scroll,
+.term-scroll {
   scrollbar-width: thin;
   scrollbar-color: rgba(226, 170, 99, 0.62) rgba(0, 0, 0, 0.3);
   scrollbar-gutter: stable;
@@ -789,6 +790,88 @@ html.booted .boot-overlay {
     opacity: 0;
     scale: 0.96;
   }
+}
+
+/* ============================================================
+   Terminal
+   ============================================================ */
+.window-term {
+  width: min(660px, 94vw);
+}
+
+.window-term .window-body {
+  padding: 0;
+  height: min(430px, 62vh);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.term {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  /* a shade below the window, the way a terminal always is */
+  background: #14100c;
+  cursor: text;
+}
+
+.term-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 16px 16px;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+  font-size: 12.5px;
+  line-height: 1.55;
+  /* the body sets user-select: none to feel like an OS; a terminal you
+     cannot copy out of is a picture of a terminal */
+  user-select: text;
+}
+
+.term-line {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.term-in {
+  color: var(--ink);
+}
+
+.term-out {
+  color: var(--ink-soft);
+}
+
+.term-err {
+  color: rgba(228, 136, 124, 0.92);
+}
+
+.term-note {
+  color: var(--accent);
+}
+
+.term-prompt {
+  margin-right: 8px;
+  color: rgba(226, 170, 99, 0.8);
+  user-select: none;
+}
+
+.term-entry {
+  display: flex;
+  align-items: baseline;
+}
+
+.term-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  outline: none;
+  caret-color: var(--accent);
 }
 
 /* ============================================================
@@ -1341,6 +1424,85 @@ html.booted .boot-overlay {
   background: #ecb676;
 }
 
+/* --- the tracking trio: microscope, en face, volume ---
+   Each cell grows in proportion to its own natural width and carries its
+   own aspect ratio, so all three end up exactly the same height without
+   any of it being hard-coded, and they shrink together on a narrow pane. */
+.trio {
+  display: flex;
+  gap: 6px;
+}
+
+.trio-cell {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  background: #000;
+}
+
+.trio-cell img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.trio-wl {
+  flex: 356 1 0;
+  aspect-ratio: 356 / 400;
+}
+
+.trio-ser {
+  flex: 231 1 0;
+  aspect-ratio: 231 / 400;
+}
+
+.trio-oct {
+  flex: 400 1 0;
+  aspect-ratio: 1;
+  border-color: rgba(226, 170, 99, 0.35);
+}
+
+/* the second time point, cross-faded over the first */
+.trio-oct-b {
+  animation: oct-swap 5.4s ease-in-out infinite;
+}
+
+@keyframes oct-swap {
+  0%,
+  36% {
+    opacity: 0;
+  }
+  52%,
+  86% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.trio-label {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  z-index: 1;
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(244, 241, 236, 0.72);
+  background: rgba(12, 10, 8, 0.66);
+  pointer-events: none;
+}
+
+.trio-label-accent {
+  color: var(--accent);
+}
+
 /* --- the raw → denoised reveal --- */
 .denoise {
   position: relative;
@@ -1857,6 +2019,164 @@ html.booted .boot-overlay {
   }
 }
 
+/* ---- the scanner schematic (ScannerSchematic.tsx) ---- */
+.scn-cmd {
+  fill: none;
+  stroke: rgba(244, 241, 236, 0.32);
+  stroke-width: 1.3;
+  stroke-dasharray: 4 3;
+}
+
+.scn-resp {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.scn-target-line {
+  stroke: rgba(244, 241, 236, 0.18);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+}
+
+/* the window where the mirror has not settled, so the position is a lie */
+.scn-dead {
+  fill: rgba(228, 136, 124, 0.1);
+  stroke: rgba(228, 136, 124, 0.3);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.scn-dead-small {
+  fill: rgba(228, 136, 124, 0.13);
+}
+
+.scn-band {
+  fill: rgba(226, 170, 99, 0.13);
+  stroke: none;
+}
+
+.scn-gp {
+  fill: none;
+  stroke: rgba(226, 170, 99, 0.8);
+  stroke-width: 1.6;
+}
+
+.scn-min {
+  fill: var(--accent);
+}
+
+.scn-min-tick {
+  stroke: var(--accent);
+  stroke-width: 1.2;
+  stroke-dasharray: 2 2;
+}
+
+.scn-linear {
+  fill: rgba(226, 170, 99, 0.12);
+  stroke: rgba(226, 170, 99, 0.5);
+  stroke-width: 1;
+}
+
+.scn-linear-old {
+  fill: none;
+  stroke: rgba(244, 241, 236, 0.22);
+  stroke-dasharray: 3 3;
+}
+
+.scn-sweep {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---- the spectral-split schematic (SpectralSchematic.tsx) ---- */
+.spc-envelope {
+  fill: none;
+  stroke: rgba(244, 241, 236, 0.3);
+  stroke-width: 1.4;
+  stroke-dasharray: 3 3;
+}
+
+.spc-win {
+  stroke-width: 1.2;
+}
+
+.spc-win-1 {
+  fill: rgba(126, 160, 222, 0.16);
+  stroke: rgba(126, 160, 222, 0.6);
+}
+
+.spc-win-2 {
+  fill: rgba(228, 136, 124, 0.16);
+  stroke: rgba(228, 136, 124, 0.6);
+}
+
+.spc-axis {
+  stroke: rgba(244, 241, 236, 0.22);
+  stroke-width: 1;
+}
+
+.spc-gap,
+.spc-gap-tick {
+  stroke: var(--accent);
+  stroke-width: 1.2;
+}
+
+.spc-view-1 {
+  border: 0;
+  stroke: rgba(126, 160, 222, 0.5);
+}
+
+.spc-view-2 {
+  stroke: rgba(228, 136, 124, 0.5);
+}
+
+/* the structure both views agree on: steady, so drawn solid and bright */
+.spc-structure path {
+  fill: none;
+  stroke: rgba(244, 241, 236, 0.7);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.spc-merge {
+  fill: none;
+  stroke: rgba(226, 170, 99, 0.5);
+  stroke-width: 1.3;
+  stroke-dasharray: 3 4;
+  animation: sfs-flow 0.9s linear infinite;
+}
+
+.spc-block {
+  fill: url(#spc-blk);
+  stroke: rgba(255, 244, 230, 0.2);
+  stroke-width: 1;
+}
+
+.spc-latent {
+  stroke: rgba(226, 170, 99, 0.55);
+}
+
+.spc-out {
+  stroke: rgba(226, 170, 99, 0.6);
+}
+
+.spc-target {
+  stroke: rgba(244, 241, 236, 0.4);
+}
+
+.spc-loss {
+  stroke: var(--accent);
+  stroke-width: 1.4;
+  stroke-dasharray: 3 3;
+  animation: sfs-flow 0.9s linear infinite;
+}
+
 /* shared SVG type */
 .sfs-cap {
   fill: var(--ink-soft);
@@ -1942,6 +2262,11 @@ html.booted .boot-overlay {
   .denoise-scan,
   .sfs-packet {
     display: none;
+  }
+  /* show only the first time point rather than freezing mid-crossfade */
+  .trio-oct-b {
+    animation: none;
+    opacity: 0;
   }
   /* the weight bars are drawn at full height and scaled down by the
      animation, so without it they need no transform at all */

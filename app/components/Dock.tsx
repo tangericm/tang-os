@@ -65,6 +65,13 @@ const icons = {
       <path d="m4.5 7.5 7.5 6 7.5-6" strokeLinejoin="round" />
     </svg>
   ),
+  terminal: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="m7 10 2.5 2L7 14" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M13 14.5h4" strokeLinecap="round" />
+    </svg>
+  ),
   github: (
     // GitHub's mark (Octicons, MIT), a fill icon, unlike our stroke set
     <svg viewBox="0 0 16 16" fill="currentColor" stroke="none">
@@ -77,6 +84,7 @@ const ITEMS: DockItem[] = [
   { kind: "app", id: "about", label: "About Me", icon: icons.person },
   { kind: "app", id: "projects", label: "Projects", icon: icons.folder },
   { kind: "app", id: "resume", label: "Resume", icon: icons.doc },
+  { kind: "app", id: "terminal", label: "Terminal", icon: icons.terminal },
   { kind: "link", id: "github", label: "GitHub", icon: icons.github, href: "https://github.com/tangericm" },
   { kind: "link", id: "scholar", label: "Publications", icon: icons.scholar, href: "https://scholar.google.com/citations?user=LV0RaF8AAAAJ" },
   { kind: "link", id: "linkedin", label: "LinkedIn", icon: icons.linkedin, href: "https://www.linkedin.com/in/eric-tang-a09524ab/" },
@@ -84,19 +92,12 @@ const ITEMS: DockItem[] = [
 ];
 
 export default function Dock({
-  onOpenAbout,
-  onOpenProjects,
-  onOpenResume,
-  aboutRunning,
-  projectsRunning,
-  resumeRunning,
+  onOpenApp,
+  running,
 }: {
-  onOpenAbout: () => void;
-  onOpenProjects: () => void;
-  onOpenResume: () => void;
-  aboutRunning: boolean;
-  projectsRunning: boolean;
-  resumeRunning: boolean;
+  onOpenApp: (id: string) => void;
+  /** which app ids currently have a window alive, for the running dots */
+  running: Record<string, boolean>;
 }) {
   const [scales, setScales] = useState<number[]>(() => ITEMS.map(() => 1));
   const [canMagnify, setCanMagnify] = useState(false);
@@ -162,26 +163,14 @@ export default function Dock({
                   style={buttonStyle}
                   data-app={item.id}
                   disabled={item.kind === "soon"}
-                  onClick={
-                    item.id === "about"
-                      ? onOpenAbout
-                      : item.id === "projects"
-                        ? onOpenProjects
-                        : item.id === "resume"
-                          ? onOpenResume
-                          : undefined
-                  }
+                  onClick={() => onOpenApp(item.id)}
                   aria-label={item.label}
                 >
                   {item.icon}
                 </button>
               )}
               {/* the little "this app is running" dot */}
-              {((item.id === "about" && aboutRunning) ||
-                (item.id === "projects" && projectsRunning) ||
-                (item.id === "resume" && resumeRunning)) && (
-                <span className="dock-dot" />
-              )}
+              {item.kind === "app" && running[item.id] && <span className="dock-dot" />}
             </li>
           );
         })}
