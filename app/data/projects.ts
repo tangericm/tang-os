@@ -16,8 +16,7 @@ export type Visual =
   | "scanner"
   | "spectral"
   | "denoise"
-  | "calib"
-  | "classify"
+  | "simulator"
   | "tangos";
 
 export type Project = {
@@ -104,37 +103,19 @@ export const PROJECTS: Project[] = [
     links: [{ label: "GitHub", href: "https://github.com/tangericm/OCT-Denoiser" }],
   },
   {
-    id: "calib",
-    name: "Stereo Calibration & 3D Reconstruction",
-    kind: "OpenCV · multi-view geometry",
+    id: "simulator",
+    name: "Physics-Based OCT Simulator",
+    kind: "forward model · synthetic training data",
     group: "Built independently",
-    visual: "calib",
+    visual: "simulator",
     blurb:
-      "Monocular and stereo calibration through to metric 3D reconstruction. Pinhole intrinsics and radial-tangential distortion from planar checkerboard correspondences, then stereo extrinsics, epipolar rectification and disparity triangulation. Validated against known ground truth: focal length recovered to 0.03%, baseline to 0.5%, 0.41 px stereo RMS reprojection error, 0.35 px epipolar alignment. OpenCV, Python, NumPy.",
+      "A forward model that generates OCT from physics rather than augmenting existing scans, built as the data backbone for training in sparse-data regimes. Each A-scan is synthesized as an interferometric spectrum, I(k) = P(k)·|a_ref + sum r·exp(i2kz)|², then DC-removed, windowed and inverse-transformed exactly as real hardware reconstructs it. Source bandwidth, sensitivity falloff, dispersion, integration time, correlated eye motion, shot/RIN/read noise and wavelength-dependent tissue optics are all modeled, so the speed-versus-SNR tradeoff emerges rather than being scripted. Every sample ships a per-pixel layer map, giving free ground truth for segmentation and denoising.",
     tags: [
-      "OpenCV",
-      "Camera calibration",
-      "Epipolar geometry",
-      "Triangulation",
+      "Forward modeling",
+      "Fourier optics",
+      "Synthetic data",
       "NumPy",
-      "Python",
-    ],
-    links: [{ label: "GitHub", href: "https://github.com/tangericm" }],
-  },
-  {
-    id: "classify",
-    name: "CNN Image Classification Pipeline",
-    kind: "PyTorch · training infrastructure",
-    group: "Built independently",
-    visual: "classify",
-    blurb:
-      "Supervised classification framework built for reproducibility rather than a single result. Stratified dataset splits, configuration-driven augmentation, a registry for interchangeable backbones, and a training loop with checkpointing, early stopping, seed control and per-epoch metric logging. Evaluation reports accuracy, macro F1 and confusion matrices; inference runs from a checkpoint. A reference run reaches 95.3% accuracy and 0.953 macro F1.",
-    tags: [
-      "PyTorch",
-      "CNNs",
-      "Transfer learning",
-      "Data augmentation",
-      "Model evaluation",
+      "PySide6",
       "Python",
     ],
     links: [{ label: "GitHub", href: "https://github.com/tangericm" }],

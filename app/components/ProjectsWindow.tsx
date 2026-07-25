@@ -6,7 +6,8 @@ import SelfFusionSchematic from "./SelfFusionSchematic";
 import TrackingSchematic from "./TrackingSchematic";
 import ScannerSchematic from "./ScannerSchematic";
 import SpectralSchematic from "./SpectralSchematic";
-import { CalibSchematic, ClassifySchematic, TangosSchematic } from "./MiniSchematics";
+import SimulatorSchematic from "./SimulatorSchematic";
+import { TangosSchematic } from "./MiniSchematics";
 import { GROUPS, PROJECTS, type Project } from "../data/projects";
 
 /**
@@ -40,22 +41,24 @@ type Passthrough = {
    revealed left-to-right by an animated clip. */
 function DenoiseHero() {
   return (
-    <div className="denoise" aria-label="A real noisy scan resolving into a denoised one">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="denoise-img" src="/oct-raw.jpg" alt="Raw single-frame retinal cross-section, heavy speckle" width={1100} height={455} />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="denoise-img denoise-clean" src="/oct-clean.jpg" alt="Denoised cross-section, layers and choroid clearly resolved" width={1100} height={455} />
-      <span className="denoise-scan" aria-hidden="true" />
+    <>
       <div className="denoise-tags" aria-hidden="true">
         <span>raw</span>
         <span className="denoise-tag-clean">denoised</span>
       </div>
-    </div>
+      <div className="denoise" aria-label="A real noisy scan resolving into a denoised one">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="denoise-img" src="/oct-raw.jpg" alt="Raw single-frame retinal cross-section, heavy speckle" width={1100} height={455} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="denoise-img denoise-clean" src="/oct-clean.jpg" alt="Denoised cross-section, layers and choroid clearly resolved" width={1100} height={455} />
+        <span className="denoise-scan" aria-hidden="true" />
+      </div>
+    </>
   );
 }
 
 /* The tracking hero.
-   Ten consecutive frames from one acquisition, each frame a composite of
+   Twenty-four consecutive frames from one acquisition, each a composite of
    the surgical microscope view, the en face reflectometry frame and the
    tracked OCT volume, recomposed side by side from the source video. They
    are temporally correlated by construction: every column of the sprite is
@@ -63,32 +66,36 @@ function DenoiseHero() {
    microscope is a top-down 2D view and cannot show what the instrument is
    doing to the tissue underneath; the volume can.
 
-   Stepped with a transform on a 1000%-wide strip rather than an animated
+   Twenty-four frames sampled over an eight-second window: ten frames spread
+   across the whole clip read as a slideshow, because smoothness comes from
+   how little moves between frames, not from playback rate alone.
+
+   Stepped with a transform on a 2400%-wide strip rather than an animated
    image format, so prefers-reduced-motion can actually stop it. */
 function TrackingHero() {
   return (
     <figure className="denoise-figure">
-      <div className="seq" aria-label="Ten consecutive frames showing the microscope view, the en face frame and the tracked OCT volume at the same instants">
+      <div className="seq" aria-label="Twenty-four consecutive frames showing the microscope view, the en face frame and the tracked OCT volume at the same instants">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           className="seq-strip"
           src="/track-seq.webp"
-          alt="Ten time points of an instrument at the eye surface, each showing the surgical microscope view, the en face reflectometry frame, and the tracked OCT volume rendered from two angles"
-          width={5890}
+          alt="Twenty-four consecutive time points of an instrument at the eye surface, each showing the surgical microscope view, the en face reflectometry frame, and the tracked OCT volume"
+          width={14136}
           height={300}
         />
-        <div className="seq-labels" aria-hidden="true">
-          <span style={{ flex: "300 1 0" }}>microscope</span>
-          <span style={{ flex: "75 1 0" }}>en face</span>
-          <span className="seq-label-accent" style={{ flex: "206 1 0" }}>tracked OCT volume</span>
-        </div>
+      </div>
+      <div className="seq-labels" aria-hidden="true">
+        <span style={{ flex: "300 1 0" }}>microscope</span>
+        <span style={{ flex: "77 1 0" }}>en face</span>
+        <span className="seq-label-accent" style={{ flex: "212 1 0" }}>tracked OCT volume</span>
       </div>
       <figcaption>
-        Ten consecutive time points from a single acquisition. Each frame shows the
-        same instant three ways, so the panels are correlated rather than merely
-        adjacent. The microscope view is top-down and 2D: it cannot show what the
-        instrument is doing below the surface, which is what the{" "}
-        <strong>tracked volume</strong> resolves.
+        Twenty-four consecutive time points from one acquisition, each frame the same
+        instant three ways, so the panels are correlated rather than merely adjacent.
+        The microscope view is top-down and 2D and cannot show what the instrument is
+        doing below the surface, which is what the <strong>tracked volume</strong>
+        resolves.
       </figcaption>
     </figure>
   );
@@ -116,31 +123,67 @@ function TrackingHero() {
       almost unchanged: crushing harder pushes both toward the same black and
       makes the improvement LESS visible, not more.
 
-   Volume is the macula centre acquisition, from the model trained across all
-   four datasets at once. */
+   Volume is the 2048 A-line line scan, chosen because at 1024 columns the
+   crop was already at maximum field for this aspect, so zooming out required
+   a wider source. Framing is matched to the self-fusion hero (retina band at
+   the same height and scale) so the two denoising results read as directly
+   comparable. A shared gamma of 1.5 rides on top of the shared window; it is
+   applied identically to both frames. */
 function SpectralHero() {
   return (
     <figure className="denoise-figure">
+      <div className="denoise-tags" aria-hidden="true">
+        <span>full-bandwidth reference</span>
+        <span className="denoise-tag-clean">prediction</span>
+      </div>
       <div className="denoise" aria-label="Full-bandwidth reference resolving into the network prediction">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className="denoise-img" src="/spectral-ref.jpg" alt="Full-bandwidth reference reconstruction of a retinal cross-section, speckle throughout and layer boundaries barely separable" width={1100} height={455} />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className="denoise-img denoise-clean" src="/spectral-pred.jpg" alt="Network prediction of the same frame, speckle suppressed with retinal layers resolved and choroidal vessels visible" width={1100} height={455} />
         <span className="denoise-scan" aria-hidden="true" />
-        <div className="denoise-tags" aria-hidden="true">
-          <span>full-bandwidth reference</span>
-          <span className="denoise-tag-clean">prediction</span>
-        </div>
       </div>
       <figcaption>
         Reference against prediction under a{" "}
         <strong>single shared display window</strong>, anchored so the prediction
         keeps its own noise floor: the difference is the model, not the contrast
-        setting. <strong>+9.9 dB SNR</strong> and <strong>+5.4 dB CNR</strong> on
-        this volume. One model spanning four acquisitions (fovea, macula, optic
-        disc, 2048 A-line line scan) holds{" "}
+        setting. <strong>+13.7 dB SNR</strong> and <strong>+8.3 dB CNR</strong> on
+        this volume. One model spanning four acquisitions holds{" "}
         <strong>+9.5 to +13.8 dB SNR</strong> across all of them, and a run
         dedicated to a single volume reaches <strong>+16.5 dB</strong>.
+      </figcaption>
+    </figure>
+  );
+}
+
+/* The simulator's own validation: real device B-scans beside simulated ones
+   at matched display contrast. This is the only claim that matters for a
+   forward model, so it leads the project rather than sitting under the
+   schematic. Two anatomies, because matching one is luck. */
+function SimulatorHero() {
+  return (
+    <figure className="denoise-figure">
+      <div className="simreal">
+        <div className="simreal-tags" aria-hidden="true">
+          <span>real device</span>
+          <span className="simreal-tag-accent">simulated</span>
+        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/sim-real.jpg"
+          alt="Two rows comparing real device B-scans on the left with simulated B-scans on the right, a macula and an optic disc, at matched display contrast."
+          width={1046}
+          height={750}
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+      <figcaption>
+        Real device acquisitions beside synthetic ones at{" "}
+        <strong>matched display contrast</strong>, macula above and optic disc
+        below. Layer ordering, speckle statistics and depth falloff come out of the
+        forward model rather than being tuned to match, which is the only test a
+        physics simulator can meaningfully pass.
       </figcaption>
     </figure>
   );
@@ -162,8 +205,13 @@ function Visual({ kind }: { kind: NonNullable<Project["visual"]> }) {
         <SpectralSchematic />
       </>
     );
-  if (kind === "calib") return <CalibSchematic />;
-  if (kind === "classify") return <ClassifySchematic />;
+  if (kind === "simulator")
+    return (
+      <>
+        <SimulatorHero />
+        <SimulatorSchematic />
+      </>
+    );
   if (kind === "tangos") return <TangosSchematic />;
   return (
     <>
