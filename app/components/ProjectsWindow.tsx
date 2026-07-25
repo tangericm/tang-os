@@ -77,17 +77,20 @@ function DenoiseHero() {
    the .seq-strip comment in globals.css. Still a CSS animation, so
    prefers-reduced-motion stops it.
 
-   The magenta box on the en face panel is derived from the frames, not drawn
-   by hand: the tissue is static and the instrument is not, so differencing
-   each frame against the temporal median localises it. Smoothed over a
-   five-frame window so it does not jitter. Located in 30 of 30 frames. */
+   No detector overlay here on purpose. A box localised by differencing each
+   frame against the temporal median tracked the wrong thing: the brightest
+   moving region is the specular glint on the instrument shaft, not the tool
+   tip, so the box sat well off target. A wrong box is worse than none on a
+   page whose whole claim is tracking accuracy. Use the real YOLOv4 output
+   (media9 / media10, which carry the detector's own magenta boxes) if this
+   is wanted later. */
 function TrackingHero() {
   return (
     <figure className="denoise-figure">
       <div
         className="seq"
         role="img"
-        aria-label="Thirty consecutive frames showing the microscope view, the en face frame with the instrument boxed, and the tracked OCT volume at the same instants"
+        aria-label="Thirty consecutive frames showing the microscope view, the en face frame, and the tracked OCT volume at the same instants"
       >
         <div className="seq-strip" />
       </div>
