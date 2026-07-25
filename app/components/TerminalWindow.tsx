@@ -23,7 +23,7 @@ type Passthrough = {
   zIndex?: number;
   onFocus?: () => void;
   /** so `open projects` can actually open the Projects window */
-  onOpenApp?: (id: "about" | "projects" | "resume") => void;
+  onOpenApp?: (id: "about" | "projects" | "resume" | "game") => void;
 };
 
 type Line = { kind: "in" | "out" | "err" | "note"; text: string };
@@ -88,12 +88,13 @@ export default function TerminalWindow({ onOpenApp, ...props }: Passthrough) {
         push(
           out("ls                list projects"),
           out("cat <project>     print a project summary"),
-          out("open <app>        open about | projects | resume"),
+          out("open <app>        open about | projects | resume | game"),
           out("whoami            short version"),
           out("skills            what I work in"),
           out("contact           how to reach me"),
           out("clear             clear the screen"),
-          out("history           commands this session")
+          out("history           commands this session"),
+          out("play              launch the runner")
         );
         break;
 
@@ -124,9 +125,9 @@ export default function TerminalWindow({ onOpenApp, ...props }: Passthrough) {
       }
 
       case "open": {
-        const target = arg as "about" | "projects" | "resume";
-        if (!["about", "projects", "resume"].includes(target)) {
-          push({ kind: "err", text: "open: try about, projects or resume" });
+        const target = arg as "about" | "projects" | "resume" | "game";
+        if (!["about", "projects", "resume", "game"].includes(target)) {
+          push({ kind: "err", text: "open: try about, projects, resume or game" });
           break;
         }
         onOpenApp?.(target);
@@ -166,12 +167,18 @@ export default function TerminalWindow({ onOpenApp, ...props }: Passthrough) {
         history.forEach((h, i) => push(out(`${String(i + 1).padStart(3)}  ${h}`)));
         break;
 
+      case "play":
+      case "game":
+        onOpenApp?.("game");
+        push({ kind: "note", text: "launching runner..." });
+        break;
+
       /* --- the jokes --- */
       case "sudo":
         push({ kind: "err", text: "eric is not in the sudoers file. This incident has been reported." });
         break;
       case "uname":
-        push(out("TangOS 0.16 (warm graphite) x86_64"));
+        push(out("TangOS 0.17 (warm graphite) x86_64"));
         break;
       case "date":
         push(out(new Date().toString()));

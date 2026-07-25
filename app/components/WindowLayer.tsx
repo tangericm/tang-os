@@ -5,11 +5,12 @@ import AboutWindow from "./AboutWindow";
 import ProjectsWindow from "./ProjectsWindow";
 import ResumeWindow from "./ResumeWindow";
 import TerminalWindow from "./TerminalWindow";
+import GameWindow from "./GameWindow";
 import DesktopFile from "./DesktopFile";
 import Dock from "./Dock";
 
 /**
- * WindowLayer, the window manager, now managing four apps.
+ * WindowLayer, the window manager, now managing five apps.
  *
  * Each app is a little state machine:
  *
@@ -28,7 +29,7 @@ import Dock from "./Dock";
  */
 
 type Phase = "closed" | "open" | "minimizing" | "minimized" | "closing";
-type AppId = "about" | "projects" | "resume" | "terminal";
+type AppId = "about" | "projects" | "resume" | "terminal" | "game";
 
 const EXIT_MS = 280; // keep in sync with the CSS exit animations
 
@@ -37,6 +38,7 @@ export default function WindowLayer() {
   const [projects, setProjects] = useState<Phase>("closed");
   const [resume, setResume] = useState<Phase>("closed");
   const [terminal, setTerminal] = useState<Phase>("closed");
+  const [game, setGame] = useState<Phase>("closed");
   const [front, setFront] = useState<AppId>("about");
   const reducedMotion = useRef(false);
 
@@ -62,6 +64,7 @@ export default function WindowLayer() {
     projects: { phase: projects, set: setProjects },
     resume: { phase: resume, set: setResume },
     terminal: { phase: terminal, set: setTerminal },
+    game: { phase: game, set: setGame },
   };
 
   function open(id: AppId) {
@@ -96,6 +99,7 @@ export default function WindowLayer() {
       {visible(terminal) && (
         <TerminalWindow {...windowProps("terminal")} onOpenApp={open} />
       )}
+      {visible(game) && <GameWindow {...windowProps("game")} />}
 
       <Dock
         onOpenApp={(id) => open(id as AppId)}
@@ -104,6 +108,7 @@ export default function WindowLayer() {
           projects: projects !== "closed",
           resume: resume !== "closed",
           terminal: terminal !== "closed",
+          game: game !== "closed",
         }}
       />
     </>

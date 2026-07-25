@@ -91,7 +91,6 @@ export default function PowerMenu() {
             <button role="menuitem" onClick={() => { setOpen(false); setMode("off"); }}>
               Shut Down
             </button>
-            <div className="power-menu-note">it does what it says</div>
           </div>
         )}
       </div>

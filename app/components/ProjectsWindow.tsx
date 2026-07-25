@@ -54,50 +54,41 @@ function DenoiseHero() {
   );
 }
 
-/* The tracking hero: one moment, three ways of seeing it. The microscope
-   view is what an operator sees, the en face frame is the detector input,
-   and the volume is what the tracking produces. The two volume renderings
-   are different viewpoints of the same tracked volume, NOT successive time
-   points; an earlier version cross-faded them while claiming motion, which
-   was simply wrong. Labelled as viewpoints now. */
+/* The tracking hero.
+   Ten consecutive frames from one acquisition, each frame a composite of
+   the surgical microscope view, the en face reflectometry frame and the
+   tracked OCT volume, recomposed side by side from the source video. They
+   are temporally correlated by construction: every column of the sprite is
+   the same instant seen three ways, which is the whole argument. The
+   microscope is a top-down 2D view and cannot show what the instrument is
+   doing to the tissue underneath; the volume can.
+
+   Stepped with a transform on a 1000%-wide strip rather than an animated
+   image format, so prefers-reduced-motion can actually stop it. */
 function TrackingHero() {
   return (
     <figure className="denoise-figure">
-      <div className="trio">
-        <div className="trio-cell trio-wl">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/track-wl.jpg" alt="Surgical microscope view of ILM forceps at the surface of an ex vivo porcine eye" width={403} height={400} />
-          <span className="trio-label">microscope</span>
-        </div>
-        {/* Twelve consecutive frames of real detector output, laid out as a
-            sprite and stepped with a transform. A sprite plus steps() rather
-            than an animated image format, because that way
-            prefers-reduced-motion can actually stop it. */}
-        <div className="trio-cell trio-detect">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            className="detect-strip"
-            src="/track-detect.webp"
-            alt="Twelve consecutive en face frames with the YOLOv4 bounding box tracking the instrument across the field"
-            width={3600}
-            height={300}
-          />
-          <span className="trio-label trio-label-accent">live detection</span>
-        </div>
-        <div className="trio-cell trio-oct">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/track-oct-a.jpg" alt="Volumetric OCT rendering of the forceps at the corneal surface" width={440} height={440} />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="trio-oct-b" src="/track-oct-b.jpg" alt="The same tracked volume rendered from a second viewpoint" width={440} height={440} />
-          <span className="trio-label trio-label-accent">OCT volume · 2 views</span>
+      <div className="seq" aria-label="Ten consecutive frames showing the microscope view, the en face frame and the tracked OCT volume at the same instants">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          className="seq-strip"
+          src="/track-seq.webp"
+          alt="Ten time points of an instrument at the eye surface, each showing the surgical microscope view, the en face reflectometry frame, and the tracked OCT volume rendered from two angles"
+          width={5890}
+          height={300}
+        />
+        <div className="seq-labels" aria-hidden="true">
+          <span style={{ flex: "300 1 0" }}>microscope</span>
+          <span style={{ flex: "75 1 0" }}>en face</span>
+          <span className="seq-label-accent" style={{ flex: "206 1 0" }}>tracked OCT volume</span>
         </div>
       </div>
       <figcaption>
-        Three views of the system: the surgical microscope image an operator sees,
-        <strong> twelve consecutive frames of real detector output</strong> with the
-        bounding box tracking the instrument, and the tracked OCT volume rendered
-        from two viewpoints. The microscope and volume panels are ILM forceps in an
-        ex vivo porcine eye; the detection sequence is from a separate acquisition.
+        Ten consecutive time points from a single acquisition. Each frame shows the
+        same instant three ways, so the panels are correlated rather than merely
+        adjacent. The microscope view is top-down and 2D: it cannot show what the
+        instrument is doing below the surface, which is what the{" "}
+        <strong>tracked volume</strong> resolves.
       </figcaption>
     </figure>
   );
@@ -105,29 +96,51 @@ function TrackingHero() {
 
 /* The spectral denoiser's own before and after, deliberately built in the
    same frame and with the same wipe as the self-fusion hero so the two
-   denoising projects are visually comparable. Both frames were windowed
-   with ONE shared percentile range: windowing them separately would have
-   flattered the prediction. */
+   denoising projects are visually comparable.
+
+   This is the full-bandwidth reference against the prediction, which is the
+   comparison the reported metrics are actually computed over, so figure and
+   number describe the same thing.
+
+   Two rules govern the display, and both matter:
+
+   1. ONE shared window for both frames. Windowing them separately would
+      flatter the prediction and make the comparison worthless.
+   2. The black point is anchored to the PREDICTION's 1st percentile, not the
+      reference's. Anchoring it to the reference put the floor above the
+      prediction's noise, crushing 39% of it to pure black. A denoised B-scan
+      with no speckle floor at all does not read as an image, it reads as a
+      mask, and the earlier version of this figure looked fake for exactly
+      that reason. At this anchor the prediction retains its floor (1.0% at
+      zero) and, counter-intuitively, reference-to-prediction separation is
+      almost unchanged: crushing harder pushes both toward the same black and
+      makes the improvement LESS visible, not more.
+
+   Volume is the macula centre acquisition, from the model trained across all
+   four datasets at once. */
 function SpectralHero() {
   return (
     <figure className="denoise-figure">
       <div className="denoise" aria-label="Full-bandwidth reference resolving into the network prediction">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="denoise-img" src="/spectral-ref.jpg" alt="Full-bandwidth reference reconstruction of a fovea, speckle throughout" width={1100} height={455} />
+        <img className="denoise-img" src="/spectral-ref.jpg" alt="Full-bandwidth reference reconstruction of a retinal cross-section, speckle throughout and layer boundaries barely separable" width={1100} height={455} />
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="denoise-img denoise-clean" src="/spectral-pred.jpg" alt="Network prediction, speckle suppressed with layer boundaries and choroidal texture preserved" width={1100} height={455} />
+        <img className="denoise-img denoise-clean" src="/spectral-pred.jpg" alt="Network prediction of the same frame, speckle suppressed with retinal layers resolved and choroidal vessels visible" width={1100} height={455} />
         <span className="denoise-scan" aria-hidden="true" />
         <div className="denoise-tags" aria-hidden="true">
-          <span>full-band reference</span>
+          <span>full-bandwidth reference</span>
           <span className="denoise-tag-clean">prediction</span>
         </div>
       </div>
       <figcaption>
-        Validation frame from the trained model. Both panels use a{" "}
-        <strong>single shared display window</strong>. On this frame the prediction
-        measures <strong>SNR 100.95 dB</strong> against 93.76 dB for the
-        full-bandwidth reference, and <strong>CNR 60.46 dB</strong> against 53.83 dB:
-        the output is quantitatively cleaner than its own training target.
+        Reference against prediction under a{" "}
+        <strong>single shared display window</strong>, anchored so the prediction
+        keeps its own noise floor: the difference is the model, not the contrast
+        setting. <strong>+9.9 dB SNR</strong> and <strong>+5.4 dB CNR</strong> on
+        this volume. One model spanning four acquisitions (fovea, macula, optic
+        disc, 2048 A-line line scan) holds{" "}
+        <strong>+9.5 to +13.8 dB SNR</strong> across all of them, and a run
+        dedicated to a single volume reaches <strong>+16.5 dB</strong>.
       </figcaption>
     </figure>
   );

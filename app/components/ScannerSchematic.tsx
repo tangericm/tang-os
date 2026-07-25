@@ -210,7 +210,30 @@ export default function ScannerSchematic() {
         </p>
       </section>
 
-      {/* The measured result, reproduced from the paper. Left on a light card
+      {/* The imaging consequence, which is the part that actually matters:
+          the same vasculature scanned under four tunings. Pink marks where the
+          scan was still nonlinear, so pink is field you cannot use. */}
+      <figure className="paper-figure">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/galvo-octa.jpg"
+          alt="Scan waveform and corresponding en face OCTA projections for four controller tunings; the optimized tuning shows the least nonlinear region and the widest usable field."
+          width={1100}
+          height={375}
+          loading="lazy"
+          decoding="async"
+        />
+        <figcaption>
+          What the tuning buys, measured on tissue: identical vasculature scanned
+          under three factory tunings (blue, green, grey) and the optimized tuning
+          (red). Pink marks regions where the scan was still nonlinear, so pink is
+          field of view that cannot be used. The optimized tuning reaches the widest
+          linear projection. Reproduced from Tang &amp; Tao, Biomed. Opt. Express
+          12(11), 2021.
+        </figcaption>
+      </figure>
+
+      {/* The mechanism behind it, reproduced from the paper. Left on a light card
           rather than inverted: inverting a published plot would shift the
           series colours and misrepresent the figure. The resume viewer already
           establishes a white page in this interface, so a light figure card is

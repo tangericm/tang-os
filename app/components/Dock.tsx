@@ -65,6 +65,15 @@ const icons = {
       <path d="m4.5 7.5 7.5 6 7.5-6" strokeLinejoin="round" />
     </svg>
   ),
+  game: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+      <path d="M3 17.5c0-3.6 2.2-6.5 5-6.5h8c2.8 0 5 2.9 5 6.5" />
+      <path d="M7.5 14.5h2.4M8.7 13.3v2.4" />
+      <circle cx="15.6" cy="14.4" r="0.9" fill="currentColor" stroke="none" />
+      <circle cx="17.6" cy="16.2" r="0.9" fill="currentColor" stroke="none" />
+      <path d="M9 11V7.5a2.5 2.5 0 0 1 5 0V11" />
+    </svg>
+  ),
   terminal: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
       <rect x="3" y="4" width="18" height="16" rx="2" />
@@ -85,6 +94,7 @@ const ITEMS: DockItem[] = [
   { kind: "app", id: "projects", label: "Projects", icon: icons.folder },
   { kind: "app", id: "resume", label: "Resume", icon: icons.doc },
   { kind: "app", id: "terminal", label: "Terminal", icon: icons.terminal },
+  { kind: "app", id: "game", label: "Runner", icon: icons.game },
   { kind: "link", id: "github", label: "GitHub", icon: icons.github, href: "https://github.com/tangericm" },
   { kind: "link", id: "scholar", label: "Publications", icon: icons.scholar, href: "https://scholar.google.com/citations?user=LV0RaF8AAAAJ" },
   { kind: "link", id: "linkedin", label: "LinkedIn", icon: icons.linkedin, href: "https://www.linkedin.com/in/eric-tang-a09524ab/" },
