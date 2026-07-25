@@ -1,33 +1,33 @@
 /**
- * SpectralSchematic: getting two independent looks at one scene out of a
- * single acquisition, and then using them as their own supervision.
+ * SpectralSchematic: sub-band decomposition as a source of supervision, and
+ * the network that consumes it.
  *
- * The idea rests on one physical fact. Speckle is not additive noise
- * sprinkled on a picture, it is interference, and which interference
- * pattern you get depends on which part of the spectrum you kept. So if
- * the raw interferogram is split into two separated sub-bands and each is
- * reconstructed on its own, the two results show the same structure with
- * different speckle. Anything present in both is signal; anything that
- * moves between them is not.
+ * Panel 1 is the physical argument. Speckle is interference, not additive
+ * noise, so the realization depends on which spectral support is retained.
+ * Two separated Gaussian sub-windows reconstructed independently therefore
+ * share structure and differ in speckle, and the full-bandwidth
+ * reconstruction is available at no extra cost as a target.
  *
- * That makes the supervision free: the target is the reconstruction from
- * the whole spectrum, which was always available, so no clean reference
- * image and no repeat acquisition is needed.
- *
- * Panel 1 is the split. Panel 2 is the network that exploits it.
+ * Panel 2 mirrors the actual implementation rather than a generic U-Net.
+ * Verified against networks/resunet_pseudo3d.py: a pseudo-3D stem applies a
+ * 3D convolution across the two-sub-band axis before collapsing to 2D
+ * features, the contracting path runs 64 to 512 channels over four scales
+ * with paired residual blocks, downsampling is strided convolution,
+ * upsampling is transposed convolution, and skips are concatenated then
+ * fused by a 3x3 convolution. Activations are SiLU throughout with batch
+ * normalization; the head is a 1x1 convolution to a single channel.
  */
 
-/** A Gaussian, as an SVG path. Used for the source spectrum and the two
-    sub-windows cut out of it. */
-function gaussian(
-  cx: number,
-  amp: number,
-  sigma: number,
-  base: number,
-  from: number,
-  to: number,
-  step = 4
-) {
+const BASE = 92; // spectrum baseline
+const SPEC_L = 24;
+const SPEC_R = 194;
+const SPEC_C = (SPEC_L + SPEC_R) / 2;
+const GAP = 34;
+const W1 = SPEC_C - GAP / 2;
+const W2 = SPEC_C + GAP / 2;
+
+/** A Gaussian as an SVG path, for the source spectrum and its sub-windows. */
+function gaussian(cx: number, amp: number, sigma: number, base: number, from: number, to: number, step = 4) {
   const pts: string[] = [];
   for (let x = from; x <= to; x += step) {
     const y = base - amp * Math.exp(-((x - cx) ** 2) / (2 * sigma ** 2));
@@ -35,18 +35,6 @@ function gaussian(
   }
   return pts.join(" ");
 }
-
-const BASE = 92; // spectrum baseline
-const SPEC_L = 24;
-const SPEC_R = 194;
-const SPEC_C = (SPEC_L + SPEC_R) / 2;
-const GAP = 34; // separation between the two window centres
-const W1 = SPEC_C - GAP / 2;
-const W2 = SPEC_C + GAP / 2;
-
-/* ============================================================
-   Panel 1: one acquisition, two views
-   ============================================================ */
 
 function Speckle({ x, y, w, h, n, seed }: { x: number; y: number; w: number; h: number; n: number; seed: number }) {
   const pts: string[] = [];
@@ -61,7 +49,7 @@ function Speckle({ x, y, w, h, n, seed }: { x: number; y: number; w: number; h: 
   return <path className="trk-speckle" d={pts.join(" ")} />;
 }
 
-/** The shared structure both views agree on: two steady layer curves. */
+/** Layer boundaries: identical in both sub-band reconstructions. */
 function Structure({ x, y, w }: { x: number; y: number; w: number }) {
   const h = w / 2;
   return (
@@ -72,21 +60,29 @@ function Structure({ x, y, w }: { x: number; y: number; w: number }) {
   );
 }
 
+/* ============================================================
+   Panel 1: sub-band decomposition
+   ============================================================ */
+
 function SplitPanel() {
   return (
     <svg
       className="sfs-svg"
       viewBox="0 0 560 176"
       role="img"
-      aria-label="The raw spectrum is split into two Gaussian sub-windows separated by a tunable gap. Each is reconstructed separately, giving two images with identical structure but independent speckle."
+      aria-label="The raw interferogram is decomposed into two Gaussian sub-windows separated by a tunable gap and each is reconstructed independently, yielding two images with identical structure and statistically independent speckle."
     >
-      {/* --- the source spectrum, with two windows cut from it --- */}
       <path className="spc-envelope" d={gaussian(SPEC_C, 56, 42, BASE, SPEC_L, SPEC_R)} />
-      <path className="spc-win spc-win-1" d={`${gaussian(W1, 40, 13, BASE, SPEC_L, SPEC_R, 3)} L${SPEC_R} ${BASE} L${SPEC_L} ${BASE} Z`} />
-      <path className="spc-win spc-win-2" d={`${gaussian(W2, 40, 13, BASE, SPEC_L, SPEC_R, 3)} L${SPEC_R} ${BASE} L${SPEC_L} ${BASE} Z`} />
+      <path
+        className="spc-win spc-win-1"
+        d={`${gaussian(W1, 40, 13, BASE, SPEC_L, SPEC_R, 3)} L${SPEC_R} ${BASE} L${SPEC_L} ${BASE} Z`}
+      />
+      <path
+        className="spc-win spc-win-2"
+        d={`${gaussian(W2, 40, 13, BASE, SPEC_L, SPEC_R, 3)} L${SPEC_R} ${BASE} L${SPEC_L} ${BASE} Z`}
+      />
       <line className="spc-axis" x1={SPEC_L} y1={BASE} x2={SPEC_R} y2={BASE} />
 
-      {/* the gap, which is the one knob that matters */}
       <line className="spc-gap" x1={W1} y1={104} x2={W2} y2={104} />
       <line className="spc-gap-tick" x1={W1} y1={99} x2={W1} y2={109} />
       <line className="spc-gap-tick" x1={W2} y1={99} x2={W2} y2={109} />
@@ -94,65 +90,72 @@ function SplitPanel() {
         gap
       </text>
       <text className="sfs-cap" x={SPEC_C} y={144} textAnchor="middle">
-        one raw spectrum
+        k-linearized spectrum
       </text>
       <text className="sfs-sub" x={SPEC_C} y={157} textAnchor="middle">
-        two sub-windows cut from it
+        two Gaussian sub-windows, &sigma; and gap tuned
       </text>
 
       <path className="sfs-arrow" d="M212 58 l6 5 l-6 5" />
       <text className="sfs-sub" x={236} y={40}>
-        reconstruct each
+        IFFT, log, z-score
       </text>
 
-      {/* --- two reconstructions: same structure, different speckle --- */}
       <rect className="trk-frame spc-view-1" x={236} y={48} width={132} height={54} rx={3} />
       <Speckle x={238} y={50} w={128} h={50} n={22} seed={5} />
       <Structure x={246} y={66} w={112} />
       <text className="sfs-sub" x={302} y={116} textAnchor="middle">
-        view from window 1
+        sub-band 1
       </text>
 
       <rect className="trk-frame spc-view-2" x={388} y={48} width={132} height={54} rx={3} />
       <Speckle x={390} y={50} w={128} h={50} n={22} seed={41} />
       <Structure x={398} y={66} w={112} />
       <text className="sfs-sub" x={454} y={116} textAnchor="middle">
-        view from window 2
+        sub-band 2
       </text>
 
       <text className="sfs-cap sfs-cap-accent" x={410} y={144} textAnchor="middle">
-        same structure, different speckle
+        shared structure, independent speckle
       </text>
       <text className="sfs-sub" x={410} y={157} textAnchor="middle">
-        the layers hold still, the grain does not
+        speckle realization depends on spectral support
       </text>
     </svg>
   );
 }
 
 /* ============================================================
-   Panel 2: the network, and where the target comes from
+   Panel 2: the ResUNet, as implemented
    ============================================================ */
 
-const NB = 16; // block height
+const NB = 15; // block height
+const NC = 268; // centre line, encoder and decoder mirrored about it
+const NHALF = 56;
+const NENC = NC - NHALF;
+const NDEC = NC + NHALF;
+
+/* four scales, channel counts as implemented (base = 64) */
 const LV = [
-  { y: 40, w: 84 },
-  { y: 76, w: 60 },
-  { y: 112, w: 40 },
+  { y: 34, w: 86, ch: "64" },
+  { y: 70, w: 66, ch: "128" },
+  { y: 106, w: 48, ch: "256" },
 ];
-const NC = 268; // centre line
-const NGAP = 52;
-const NENC = NC - NGAP;
-const NDEC = NC + NGAP;
+const BOT = { y: 142, w: 34, ch: "512" };
 const nmid = (i: number) => LV[i].y + NB / 2;
+
+/* clear of the widest decoder block, which ends at NDEC + 86 = 410 */
+const OUTX = 420;
+const OUTW = 116;
+const OUTMID = OUTX + OUTW / 2;
 
 function NetPanel() {
   return (
     <svg
       className="sfs-svg"
-      viewBox="0 0 560 186"
+      viewBox="0 0 560 226"
       role="img"
-      aria-label="The two sub-band views enter a ResUNet as separate channels. It is trained to output the reconstruction from the full spectrum, so the supervision needs no clean reference image."
+      aria-label="The two sub-band reconstructions are stacked and mixed by a 3D convolution across the sub-band axis, then encoded from 64 to 512 channels over four scales with residual blocks, decoded with transposed convolutions and concatenated skips, and scored against the full-bandwidth reconstruction with a Charbonnier and gradient-L1 loss."
     >
       <defs>
         <linearGradient id="spc-blk" x1="0" y1="0" x2="0" y2="1">
@@ -161,58 +164,83 @@ function NetPanel() {
         </linearGradient>
       </defs>
 
-      {/* --- the two views, stacked as channels --- */}
-      <rect className="trk-frame spc-view-1" x={12} y={44} width={54} height={26} rx={2.5} />
-      <rect className="trk-frame spc-view-2" x={12} y={76} width={54} height={26} rx={2.5} />
-      <path className="spc-merge" d="M66 57 C86 57 86 73 100 73" />
-      <path className="spc-merge" d="M66 89 C86 89 86 73 100 73" />
-      <text className="sfs-cap" x={39} y={122} textAnchor="middle">
-        2 channels
-      </text>
-      <text className="sfs-sub" x={39} y={135} textAnchor="middle">
-        one acquisition
+      {/* --- input: two sub-bands stacked as a depth-2 volume --- */}
+      <rect className="trk-frame spc-view-2" x={16} y={34} width={50} height={24} rx={2.5} />
+      <rect className="trk-frame spc-view-1" x={10} y={44} width={50} height={24} rx={2.5} />
+      <text className="sfs-sub" x={35} y={84} textAnchor="middle">
+        2 sub-bands
       </text>
 
-      {/* --- encoder / decoder, mirrored about NC --- */}
+      {/* the pseudo-3D stem: a 3D kernel spanning the sub-band axis */}
+      <rect className="spc-stem" x={80} y={34} width={44} height={34} rx={3} />
+      <text className="spc-stem-label" x={102} y={55} textAnchor="middle">
+        3D
+      </text>
+      <text className="sfs-sub sfs-sub-accent" x={102} y={84} textAnchor="middle">
+        stem
+      </text>
+      <text className="sfs-sub" x={102} y={97} textAnchor="middle">
+        conv across
+      </text>
+      <text className="sfs-sub" x={102} y={109} textAnchor="middle">
+        sub-band axis
+      </text>
+
+      {/* --- contracting path, expanding path, mirrored --- */}
       {LV.map((l, i) => (
         <g key={i}>
           <rect className="spc-block" x={NENC - l.w} y={l.y} width={l.w} height={NB} rx={3} />
           <rect className="spc-block" x={NDEC} y={l.y} width={l.w} height={NB} rx={3} />
+          <text className="spc-ch" x={NENC - l.w - 6} y={l.y + 11} textAnchor="end">
+            {l.ch}
+          </text>
+          {/* skips are concatenated, then fused by a 3x3 convolution */}
           <path
             className="sfs-skip"
-            d={`M${NENC} ${nmid(i)} C${NENC + 20} ${nmid(i) - 12} ${NDEC - 20} ${nmid(i) - 12} ${NDEC} ${nmid(i)}`}
+            d={`M${NENC} ${nmid(i)} C${NENC + 22} ${nmid(i) - 13} ${NDEC - 22} ${nmid(i) - 13} ${NDEC} ${nmid(i)}`}
             style={{ animationDelay: `${i * 0.2}s` }}
           />
         </g>
       ))}
-      <rect className="spc-block spc-latent" x={NC - 30} y={146} width={60} height={NB} rx={3} />
-      <text className="sfs-sub" x={NC} y={142} textAnchor="middle">
-        residual blocks
+      <rect className="spc-block spc-latent" x={NC - BOT.w / 2} y={BOT.y} width={BOT.w} height={NB} rx={3} />
+      <text className="spc-ch" x={NC - BOT.w / 2 - 6} y={BOT.y + 11} textAnchor="end">
+        {BOT.ch}
       </text>
-      <text className="sfs-tower" x={NENC - 42} y={30} textAnchor="middle">
-        encoder
+      <text className="sfs-sub" x={NC} y={BOT.y + 30} textAnchor="middle">
+        residual blocks · SiLU · batch norm
       </text>
-      <text className="sfs-tower" x={NDEC + 42} y={30} textAnchor="middle">
-        decoder
+      <text className="sfs-tower" x={NENC - 44} y={20} textAnchor="middle">
+        strided conv
+      </text>
+      <text className="sfs-tower" x={NDEC + 44} y={20} textAnchor="middle">
+        transposed conv
+      </text>
+      <text className="sfs-sub sfs-sub-accent" x={NC} y={30} textAnchor="middle">
+        concat skips
       </text>
 
-      {/* --- output, and the target it is scored against --- */}
-      <rect className="trk-frame spc-out" x={412} y={38} width={112} height={44} rx={3} />
-      <Structure x={422} y={54} w={92} />
-      <text className="sfs-cap sfs-cap-accent" x={468} y={98} textAnchor="middle">
+      {/* --- prediction, target, and the objective between them --- */}
+      <rect className="trk-frame spc-out" x={OUTX} y={30} width={OUTW} height={46} rx={3} />
+      <Structure x={OUTX + 10} y={46} w={OUTW - 20} />
+      <text className="sfs-cap sfs-cap-accent" x={OUTMID} y={90} textAnchor="middle">
         prediction
       </text>
-
-      <rect className="trk-frame spc-target" x={412} y={112} width={112} height={44} rx={3} />
-      <Structure x={422} y={128} w={92} />
-      <text className="sfs-cap" x={468} y={172} textAnchor="middle">
-        full spectrum, kept as target
+      <text className="sfs-sub" x={OUTMID} y={103} textAnchor="middle">
+        1&times;1 conv head
       </text>
 
-      {/* the comparison, which is the whole trick */}
-      <line className="spc-loss" x1={468} y1={82} x2={468} y2={112} />
-      <text className="sfs-sub sfs-sub-accent" x={478} y={102}>
-        loss
+      {/* the objective gets its own pill so the label has room to breathe */}
+      <line className="spc-loss" x1={OUTMID} y1={104} x2={OUTMID} y2={118} />
+      <rect className="spc-loss-pill" x={OUTX + 2} y={118} width={OUTW - 4} height={20} rx={10} />
+      <text className="spc-loss-label" x={OUTMID} y={132} textAnchor="middle">
+        Charbonnier + &nabla;L1
+      </text>
+      <line className="spc-loss" x1={OUTMID} y1={138} x2={OUTMID} y2={152} />
+
+      <rect className="trk-frame spc-target" x={OUTX} y={152} width={OUTW} height={46} rx={3} />
+      <Structure x={OUTX + 10} y={168} w={OUTW - 20} />
+      <text className="sfs-cap" x={OUTMID} y={212} textAnchor="middle">
+        full-bandwidth target
       </text>
     </svg>
   );
@@ -223,45 +251,50 @@ export default function SpectralSchematic() {
     <div className="sfs">
       <section className="sfs-panel">
         <h3 className="sfs-head">
-          <span className="sfs-step">1</span> Two views, one acquisition
-          <span className="sfs-badge">no repeat frames</span>
+          <span className="sfs-step">1</span> Spectral sub-band decomposition
+          <span className="sfs-badge">single acquisition</span>
         </h3>
         <div className="sfs-canvas">
           <SplitPanel />
         </div>
         <p className="sfs-note">
-          Speckle is not dirt on the lens, it is interference, and the pattern you
-          get depends on which slice of the spectrum you kept. So splitting the raw
-          interferogram into two Gaussian sub-windows and reconstructing each
-          separately buys two looks at the same scene: identical structure, because
-          the sample did not move, and uncorrelated grain, because the physics that
-          produced it changed. The separation between those windows is the one knob
-          that really matters, and it is tuned with Optuna rather than by eye.
+          Speckle is coherent interference rather than additive noise, so its
+          realization is determined by the spectral support retained during
+          reconstruction. Decomposing the k-linearized interferogram into two
+          Gaussian sub-windows and reconstructing each independently therefore
+          produces two images of the same sample with identical structure and
+          statistically independent speckle. Window width and inter-window gap are
+          the controlling parameters and are optimized with Optuna rather than set by
+          inspection.
         </p>
       </section>
 
       <div className="sfs-bridge" aria-hidden="true">
         <span className="sfs-bridge-line" />
-        <span className="sfs-bridge-text">now the supervision is free</span>
+        <span className="sfs-bridge-text">full-band reconstruction supplies the target</span>
         <span className="sfs-bridge-line" />
       </div>
 
       <section className="sfs-panel">
         <h3 className="sfs-head">
-          <span className="sfs-step">2</span> Learning what they agree on
+          <span className="sfs-step">2</span> ResUNet reconstruction
           <span className="sfs-badge sfs-badge-live">no clean reference</span>
         </h3>
         <div className="sfs-canvas">
           <NetPanel />
         </div>
         <p className="sfs-note">
-          The two views go in as separate channels of a ResUNet, and the target is
-          the reconstruction from the whole spectrum, which cost nothing extra
-          because it was in the raw data all along. That is what makes this
-          self-supervised in the useful sense: no clean ground truth was ever
-          acquired, and nothing was averaged. A Charbonnier loss keeps outliers from
-          dominating while a gradient term protects edges, which matters because the
-          easiest way to win a denoising loss is to blur everything.
+          The two sub-bands are stacked and mixed by a 3D convolution spanning the
+          sub-band axis before collapsing to 2D features, which lets the stem model
+          the relationship between the two reconstructions directly rather than
+          treating them as unrelated channels. The contracting path runs 64 to 512
+          channels over four scales with paired residual blocks, SiLU activations and
+          batch normalization; downsampling is strided convolution and upsampling is
+          transposed convolution with concatenated skips fused by a 3x3 convolution.
+          Supervision is the full-bandwidth reconstruction, so no clean reference is
+          ever acquired. The Charbonnier term is robust to outliers and the gradient
+          term penalizes edge loss, since minimizing a pixel-wise objective alone is
+          most easily achieved by blurring.
         </p>
       </section>
     </div>

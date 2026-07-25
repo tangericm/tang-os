@@ -112,10 +112,10 @@ function TargetPanel() {
         </g>
       </g>
       <text className="sfs-cap" x={188} y={114} textAnchor="middle">
-        register onto n
+        register onto frame n
       </text>
       <text className="sfs-sub" x={188} y={128} textAnchor="middle">
-        deformable, motion tolerant
+        symmetric normalization
       </text>
 
       <Arrow x={256} y={67} />
@@ -138,10 +138,10 @@ function TargetPanel() {
         );
       })}
       <text className="sfs-cap" x={332} y={114} textAnchor="middle">
-        weight by similarity
+        similarity weighting
       </text>
       <text className="sfs-sub" x={332} y={128} textAnchor="middle">
-        local patch agreement
+        local patch similarity
       </text>
 
       <Arrow x={400} y={67} />
@@ -153,7 +153,7 @@ function TargetPanel() {
         fused target
       </text>
       <text className="sfs-sub" x={485} y={132} textAnchor="middle">
-        0.42 fps, offline only
+        offline only
       </text>
 
       <defs>
@@ -284,7 +284,7 @@ function NetworkPanel() {
       </g>
       <LayerStack x={11} y={mid(0) - 4} w={26} />
       <text className="sfs-cap" x={28} y={mid(0) + 38} textAnchor="middle">
-        3 raw
+        3 raw frames
       </text>
       <text className="sfs-sub" x={28} y={mid(0) + 51} textAnchor="middle">
         n−1, n, n+1
@@ -294,10 +294,10 @@ function NetworkPanel() {
       <rect className="sfs-out" x={OUT.x} y={mid(0) - 26} width={OUT.w} height={54} rx={3} />
       <LayerStack x={OUT.x + 9} y={mid(0) - 12} w={OUT.w - 18} clean />
       <text className="sfs-cap sfs-cap-accent" x={outMid} y={mid(0) + 44} textAnchor="middle">
-        1 clean frame
+        fused estimate
       </text>
       <text className="sfs-sub" x={outMid} y={mid(0) + 57} textAnchor="middle">
-        22 fps on GPU
+        22 fps, LibTorch
       </text>
 
       <text className="sfs-sub sfs-sub-accent" x={CENTER} y={28} textAnchor="middle">
@@ -330,44 +330,46 @@ export default function SelfFusionSchematic() {
     <div className="sfs">
       <section className="sfs-panel">
         <h3 className="sfs-head">
-          <span className="sfs-step">1</span> Where the target comes from
-          <span className="sfs-badge">too slow to watch</span>
+          <span className="sfs-step">1</span> Self-fusion target generation
+          <span className="sfs-badge">0.42 fps</span>
         </h3>
         <div className="sfs-canvas">
           <TargetPanel />
         </div>
         <p className="sfs-note">
-          Self-fusion needs no second acquisition: a frame&rsquo;s own neighbors stand
-          in for the atlases of multi-atlas label fusion. Each is deformably
-          registered onto the center frame, then fused with weights from local
-          patch agreement, so speckle averages away while real edges, which the
-          neighbors agree on, survive. Registration is the expensive part, at a
-          radius of 3 frames it lands around 0.42 fps.
+          Adapted from multi-atlas label fusion, self-fusion treats a frame&rsquo;s own
+          neighbors as the atlas set, so no second acquisition is required. Each
+          neighbor within a radius of 3 is deformably registered onto the target by
+          symmetric normalization, then fused with weights derived from local patch
+          similarity: uncorrelated speckle averages out while structure the
+          neighbors agree on is preserved. Deformable registration dominates cost,
+          limiting throughput to about 0.42 fps.
         </p>
       </section>
 
       <div className="sfs-bridge" aria-hidden="true">
         <span className="sfs-bridge-line" />
-        <span className="sfs-bridge-text">the network below learns to match this</span>
+        <span className="sfs-bridge-text">used as the regression target below</span>
         <span className="sfs-bridge-line" />
       </div>
 
       <section className="sfs-panel">
         <h3 className="sfs-head">
-          <span className="sfs-step">2</span> What runs in real time
-          <span className="sfs-badge sfs-badge-live">real time</span>
+          <span className="sfs-step">2</span> Distilled network inference
+          <span className="sfs-badge sfs-badge-live">22 fps</span>
         </h3>
         <div className="sfs-canvas">
           <NetworkPanel />
         </div>
         <p className="sfs-note">
-          The network never registers anything. It sees three raw frames, and
-          residual encoder blocks read the wider context while the decoder
-          rebuilds texture. Skip connections, plus a path that carries every
-          encoder level back to full size at the output, return the thin layer
-          edges speckle erodes. Trained against the fused target, it reaches
-          about 22 fps in C++, roughly fifty times faster than the method it
-          learned from, and it doubles contrast to noise over a raw frame.
+          The network performs no registration at inference. Three raw adjacent
+          frames are mapped directly to the fused estimate: dilated residual blocks
+          in the contracting path encode spatial context, the expanding path
+          recovers texture, and skip connections plus a hierarchical full-resolution
+          path restore boundaries eroded by speckle. Serialized with TorchScript and
+          executed from C++ via LibTorch, inference reaches roughly 22 fps, a 50x
+          speedup over the method it distills, approximately doubling CNR relative
+          to a raw frame.
         </p>
       </section>
     </div>
