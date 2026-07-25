@@ -2624,6 +2624,8 @@ html.booted .boot-overlay {
 .sleep-veil {
   position: fixed;
   inset: 0;
+  width: 100vw;
+  height: 100dvh;
   z-index: 900;
   display: flex;
   align-items: flex-end;
@@ -2644,6 +2646,8 @@ html.booted .boot-overlay {
 .power-off {
   position: fixed;
   inset: 0;
+  width: 100vw;
+  height: 100dvh;
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -2723,25 +2727,31 @@ html.booted .boot-overlay {
 .seq {
   position: relative;
   width: 100%;
-  aspect-ratio: 589 / 300;
+  aspect-ratio: 527 / 300;
   border-radius: 10px;
   overflow: hidden;
   border: 1px solid var(--hairline);
   background: #080706;
 }
 
-/* Twenty-four frames side by side, so the strip is 2400% of the container and
-   one translateX(-100%) walks the loop. Stepping a transform rather than using
-   an animated image format is what lets prefers-reduced-motion stop it. */
+/* Thirty frames side by side, so the strip is 3000% of the container and one
+   translateX(-100%) walks the loop. Stepping a transform rather than using an
+   animated image format is what lets prefers-reduced-motion stop it.
+
+   Timing is deliberate: 30 frames sampled from a 2.5s window and played back
+   over 2.5s, so the motion runs at real speed at 12fps. The previous pass
+   sampled 8s into a 4s loop, which is why it read as sped up. Frame COUNT
+   buys smoothness; matching the loop to the sampled window is what keeps the
+   speed honest. */
 .seq-strip {
   position: absolute;
   inset: 0 auto auto 0;
-  width: 2400%;
+  width: 3000%;
   max-width: none;
   height: 100%;
   object-fit: fill;
   image-rendering: auto;
-  animation: seq-play 4s steps(24) infinite;
+  animation: seq-play 2.5s steps(30) infinite;
 }
 
 @keyframes seq-play {

@@ -283,7 +283,9 @@ function NetworkPanel() {
         <rect className="sfs-in-front" x={6} y={mid(0) - 14} width={36} height={36} rx={2.5} />
       </g>
       <LayerStack x={11} y={mid(0) - 4} w={26} />
-      <text className="sfs-cap" x={28} y={mid(0) + 38} textAnchor="middle">
+      {/* Anchored at 32, not at the stack's own centre of 28: centred on 28 the
+          label ran 2.3 units past the left edge of the viewBox and clipped. */}
+      <text className="sfs-cap" x={32} y={mid(0) + 38} textAnchor="middle">
         3 raw frames
       </text>
       <text className="sfs-sub" x={28} y={mid(0) + 51} textAnchor="middle">

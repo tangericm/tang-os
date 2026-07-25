@@ -58,7 +58,7 @@ function DenoiseHero() {
 }
 
 /* The tracking hero.
-   Twenty-four consecutive frames from one acquisition, each a composite of
+   Thirty consecutive frames from one acquisition, each a composite of
    the surgical microscope view, the en face reflectometry frame and the
    tracked OCT volume, recomposed side by side from the source video. They
    are temporally correlated by construction: every column of the sprite is
@@ -66,32 +66,33 @@ function DenoiseHero() {
    microscope is a top-down 2D view and cannot show what the instrument is
    doing to the tissue underneath; the volume can.
 
-   Twenty-four frames sampled over an eight-second window: ten frames spread
-   across the whole clip read as a slideshow, because smoothness comes from
-   how little moves between frames, not from playback rate alone.
+   Thirty frames sampled from a 2.5s window and played back over 2.5s, so the
+   motion runs at real speed at 12fps. Only one of the two volume viewpoints
+   is kept: the second was another angle on the same instant, and dropping it
+   gives the microscope and en face panels the width they need.
 
-   Stepped with a transform on a 2400%-wide strip rather than an animated
+   Stepped with a transform on a 3000%-wide strip rather than an animated
    image format, so prefers-reduced-motion can actually stop it. */
 function TrackingHero() {
   return (
     <figure className="denoise-figure">
-      <div className="seq" aria-label="Twenty-four consecutive frames showing the microscope view, the en face frame and the tracked OCT volume at the same instants">
+      <div className="seq" aria-label="Thirty consecutive frames showing the microscope view, the en face frame and the tracked OCT volume at the same instants">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           className="seq-strip"
           src="/track-seq.webp"
-          alt="Twenty-four consecutive time points of an instrument at the eye surface, each showing the surgical microscope view, the en face reflectometry frame, and the tracked OCT volume"
-          width={14136}
+          alt="Thirty consecutive time points of an instrument at the eye surface, each showing the surgical microscope view, the en face reflectometry frame, and the tracked OCT volume"
+          width={15810}
           height={300}
         />
       </div>
       <div className="seq-labels" aria-hidden="true">
         <span style={{ flex: "300 1 0" }}>microscope</span>
         <span style={{ flex: "77 1 0" }}>en face</span>
-        <span className="seq-label-accent" style={{ flex: "212 1 0" }}>tracked OCT volume</span>
+        <span className="seq-label-accent" style={{ flex: "150 1 0" }}>tracked OCT volume</span>
       </div>
       <figcaption>
-        Twenty-four consecutive time points from one acquisition, each frame the same
+        Thirty consecutive time points from one acquisition, each frame the same
         instant three ways, so the panels are correlated rather than merely adjacent.
         The microscope view is top-down and 2D and cannot show what the instrument is
         doing below the surface, which is what the <strong>tracked volume</strong>
@@ -159,7 +160,13 @@ function SpectralHero() {
 /* The simulator's own validation: real device B-scans beside simulated ones
    at matched display contrast. This is the only claim that matters for a
    forward model, so it leads the project rather than sitting under the
-   schematic. Two anatomies, because matching one is luck. */
+   schematic. Two fields of view, because matching one is luck.
+
+   The simulated panels are put through a display window matched to the
+   device's. Raw, the sim reads as noise-dominated, but that is display
+   processing rather than physics: measured, the sim background sat at 40-55
+   where the device sat at 0-24. The optic disc row was dropped because the
+   real frame in it wraps at DC. */
 function SimulatorHero() {
   return (
     <figure className="denoise-figure">
@@ -171,19 +178,21 @@ function SimulatorHero() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/sim-real.jpg"
-          alt="Two rows comparing real device B-scans on the left with simulated B-scans on the right, a macula and an optic disc, at matched display contrast."
+          alt="Two rows comparing real device B-scans on the left with simulated B-scans on the right, a 6 mm macula and a 12 by 9 mm wide field, at matched display contrast."
           width={1046}
-          height={750}
+          height={749}
           loading="lazy"
           decoding="async"
         />
       </div>
       <figcaption>
-        Real device acquisitions beside synthetic ones at{" "}
-        <strong>matched display contrast</strong>, macula above and optic disc
-        below. Layer ordering, speckle statistics and depth falloff come out of the
-        forward model rather than being tuned to match, which is the only test a
-        physics simulator can meaningfully pass.
+        Real device acquisitions beside synthetic ones, a 6 mm macula above and a
+        12x9 mm wide field below. The two pipelines apply different display
+        processing, so the simulated panels are shown through a{" "}
+        <strong>display window matched to the device&rsquo;s</strong>; the underlying
+        layer ordering, speckle statistics and depth falloff come out of the forward
+        model rather than being tuned to match, which is the only test a physics
+        simulator can meaningfully pass.
       </figcaption>
     </figure>
   );
