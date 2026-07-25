@@ -337,13 +337,7 @@ export default function SelfFusionSchematic() {
           <TargetPanel />
         </div>
         <p className="sfs-note">
-          Adapted from multi-atlas label fusion, self-fusion treats a frame&rsquo;s own
-          neighbors as the atlas set, so no second acquisition is required. Each
-          neighbor within a radius of 3 is deformably registered onto the target by
-          symmetric normalization, then fused with weights derived from local patch
-          similarity: uncorrelated speckle averages out while structure the
-          neighbors agree on is preserved. Deformable registration dominates cost,
-          limiting throughput to about 0.42 fps.
+          Adapted from multi-atlas label fusion: a frame&rsquo;s own neighbours act as atlases. Deformable registration brings a &plusmn;3-frame window onto the target, and a weighted vote keeps structure that recurs across frames while speckle, which does not recur, cancels. Registration is what makes it work and also what makes it slow.
         </p>
       </section>
 
@@ -362,14 +356,7 @@ export default function SelfFusionSchematic() {
           <NetworkPanel />
         </div>
         <p className="sfs-note">
-          The network performs no registration at inference. Three raw adjacent
-          frames are mapped directly to the fused estimate: dilated residual blocks
-          in the contracting path encode spatial context, the expanding path
-          recovers texture, and skip connections plus a hierarchical full-resolution
-          path restore boundaries eroded by speckle. Serialized with TorchScript and
-          executed from C++ via LibTorch, inference reaches roughly 22 fps, a 50x
-          speedup over the method it distills, approximately doubling CNR relative
-          to a raw frame.
+          No registration at inference. Three raw adjacent frames map straight to the fused estimate, so the cost of the deformable step is paid once in building training targets rather than on every frame. That is the whole 50x: the same output, without the registration.
         </p>
       </section>
     </div>

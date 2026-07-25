@@ -20,7 +20,7 @@ export default function DesktopFile({
   label: string;
   onOpen: () => void;
   /** which icon to draw; the drag behaviour is identical either way */
-  art?: "pdf" | "terminal";
+  art?: "pdf" | "terminal" | "game";
 }) {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const drag = useRef<{
@@ -81,7 +81,24 @@ export default function DesktopFile({
       title="Double-click to open"
     >
       <span className="desktop-file-art" aria-hidden="true">
-        {art === "terminal" ? (
+        {art === "game" ? (
+          /* the runner, as a cartridge: a little dino against a screen */
+          <svg viewBox="0 0 40 48">
+            <rect x="3" y="5" width="34" height="32" rx="4" fill="#14100c" stroke="#6b5f50" strokeWidth="1.6" />
+            <rect x="6.5" y="8.5" width="27" height="19" rx="2" fill="#efe9df" />
+            <g fill="#4a4038">
+              <rect x="18" y="12" width="7" height="6" />
+              <rect x="24" y="15" width="2.5" height="2" />
+              <rect x="14" y="16" width="7" height="6" />
+              <rect x="11" y="17" width="4" height="2" />
+              <rect x="15" y="22" width="2.5" height="3" />
+              <rect x="19" y="22" width="2.5" height="2" />
+            </g>
+            <rect x="6.5" y="25.5" width="27" height="1.4" fill="#8a7c6a" />
+            <circle cx="11" cy="32" r="2.4" fill="#2c261f" stroke="#6b5f50" strokeWidth="1.1" />
+            <rect x="25" y="30.5" width="7" height="2.6" rx="1.3" fill="#e2aa63" />
+          </svg>
+        ) : art === "terminal" ? (
           <svg viewBox="0 0 40 48">
             <rect x="2" y="6" width="36" height="30" rx="3.5" fill="#14100c" stroke="#6b5f50" strokeWidth="1.6" />
             <rect x="2" y="6" width="36" height="7" rx="3.5" fill="#2c261f" />

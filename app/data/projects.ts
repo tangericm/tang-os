@@ -46,7 +46,7 @@ export const PROJECTS: Project[] = [
     group: "First-author research",
     visual: "tracking",
     blurb:
-      "Closed-loop instrument tracking for video-rate 4D imaging. A GPU-accelerated YOLOv4 detector (OpenCV DNN, CUDA) localizes instruments in en face frames co-registered with cross-sectional OCT, and drives calibrated galvanometer offsets that re-center the imaging field at a 16 Hz volume rate over 25 x 25 mm. Packing the current frame with a 5-frame running mean and variance into three input channels gave 99.98% mAP, 97% precision, 99% recall, F1 0.98 at 23 Hz. Localization held to the 2.95 px resolution limit through 9 mm defocus and 10 mm/s. Multithreaded C++ acquisition, inference and scan generation.",
+      "Closed-loop instrument tracking for video-rate 4D imaging. A GPU YOLOv4 detector (OpenCV DNN, CUDA) localizes instruments in en face frames co-registered with cross-sectional OCT and drives galvanometer offsets that re-center the field at 16 Hz volumes over 25 x 25 mm. Packing the current frame with a 5-frame running mean and variance into three channels: 99.98% mAP, F1 0.98, 23 Hz. Localization holds to the 2.95 px resolution limit through 9 mm defocus and 10 mm/s. Multithreaded C++ acquisition, inference and scan generation.",
     tags: [
       "YOLOv4",
       "CUDA",
@@ -69,7 +69,7 @@ export const PROJECTS: Project[] = [
     group: "First-author research",
     visual: "scanner",
     blurb:
-      "Bayesian optimization of galvanometer controller tuning to recover scan dead time. Settling time was modeled against closed-loop PID parameters using Gaussian process regression, whose posterior variance directs sampling instead of an exhaustive sweep. Optimized tunings cut settling time by over 50% versus factory configurations, and the recovered budget extended the linear scan region, raising field of view, SNR and CNR (p < 0.001) at fixed acquisition rate. Applied entirely through stock controller firmware.",
+      "Bayesian optimization of galvanometer tuning to recover scan dead time. Settling time is modeled against closed-loop PID parameters by Gaussian process regression, whose posterior variance directs sampling instead of an exhaustive sweep. Optimized tunings cut settling time by over 50%, and the recovered budget extends the linear scan region, raising field of view, SNR and CNR (p < 0.001) at fixed rate. Stock controller firmware throughout.",
     tags: [
       "Gaussian process regression",
       "Bayesian optimization",
@@ -92,7 +92,7 @@ export const PROJECTS: Project[] = [
     group: "Built independently",
     visual: "spectral",
     blurb:
-      "Self-supervised speckle reduction supervised by image-formation physics: no clean reference, no repeat acquisition. The raw interferogram is split into two Gaussian sub-bands separated by a tunable gap, each reconstructed independently to give two views with identical structure but uncorrelated speckle, with the full-bandwidth reconstruction as target. ResUNet with a pseudo-3D stem convolving across the sub-band axis, 64 to 512 channels over four scales. AdamW, Charbonnier plus gradient-L1, Optuna over window width and gap. One model across four acquisitions holds +9.5 to +13.8 dB SNR and +4.7 to +8.3 dB CNR over the reference; a single-volume run reaches +16.5 dB SNR and +12.3 dB CNR. Mirror-phantom PSF measurement confirms resolution is preserved.",
+      "Self-supervised speckle reduction supervised by image-formation physics: no clean reference, no repeat acquisition. The raw interferogram is split into two Gaussian sub-bands separated by a tunable gap, each reconstructed independently to give two views with identical structure but uncorrelated speckle, against the full-bandwidth reconstruction as target. ResUNet with a pseudo-3D stem convolving across the sub-band axis, 64 to 512 channels over four scales. AdamW, Charbonnier plus gradient-L1, Optuna over window width and gap. One model across four acquisitions holds +9.5 to +13.8 dB SNR; a single-volume run reaches +16.5 dB. Mirror-phantom PSF confirms resolution is preserved.",
     tags: [
       "PyTorch",
       "ResUNet",
@@ -110,7 +110,7 @@ export const PROJECTS: Project[] = [
     group: "Built independently",
     visual: "calib",
     blurb:
-      "Monocular and stereo calibration carried through to metric 3D reconstruction. Pinhole intrinsics and radial-tangential distortion are estimated from planar checkerboard correspondences, then stereo extrinsics, epipolar rectification and disparity triangulation. RMS reprojection error is reported at every stage and rectification is validated against epipolar alignment. OpenCV, Python, NumPy.",
+      "Monocular and stereo calibration through to metric 3D reconstruction. Pinhole intrinsics and radial-tangential distortion from planar checkerboard correspondences, then stereo extrinsics, epipolar rectification and disparity triangulation. Validated against known ground truth: focal length recovered to 0.03%, baseline to 0.5%, 0.41 px stereo RMS reprojection error, 0.35 px epipolar alignment. OpenCV, Python, NumPy.",
     tags: [
       "OpenCV",
       "Camera calibration",
@@ -128,7 +128,7 @@ export const PROJECTS: Project[] = [
     group: "Built independently",
     visual: "classify",
     blurb:
-      "Reusable supervised classification framework built for reproducibility rather than a single result. Dataset abstraction with stratified splits, configuration-driven augmentation, a registry for interchangeable CNN backbones, and a training loop with checkpointing, early stopping, seed control and per-epoch metric logging. Evaluation reports accuracy, precision, recall and confusion matrices; a small application runs inference from a checkpoint. PyTorch.",
+      "Supervised classification framework built for reproducibility rather than a single result. Stratified dataset splits, configuration-driven augmentation, a registry for interchangeable backbones, and a training loop with checkpointing, early stopping, seed control and per-epoch metric logging. Evaluation reports accuracy, macro F1 and confusion matrices; inference runs from a checkpoint. A reference run reaches 95.3% accuracy and 0.953 macro F1.",
     tags: [
       "PyTorch",
       "CNNs",
@@ -146,7 +146,7 @@ export const PROJECTS: Project[] = [
     group: "Built independently",
     visual: "tangos",
     blurb:
-      "Desktop-metaphor portfolio built without a UI framework or component library. Window manager with an explicit per-application lifecycle state machine, pointer-capture drag and resize, true maximize and restore, focus-order z-indexing, a magnifying dock, a document viewer, an interactive terminal, a playable game, and the animated SVG explainers on this page. Next.js App Router, React, TypeScript; centralized design tokens and full prefers-reduced-motion support.",
+      "Desktop-metaphor portfolio with no UI framework or component library. Window manager with a per-application lifecycle state machine, pointer-capture drag and resize, true maximize and restore, focus-order z-indexing, a magnifying dock, a document viewer, an interactive terminal, a dinosaur runner, and the animated SVG explainers on this page. Next.js App Router, React, TypeScript; centralized design tokens and full prefers-reduced-motion support.",
     tags: [
       "Next.js",
       "React",
@@ -164,7 +164,7 @@ export const PROJECTS: Project[] = [
     group: "Co-authored research",
     visual: "denoise",
     blurb:
-      "Neural acceleration of self-fusion, a registration-based speckle-reduction method adapted from multi-atlas label fusion. Deformable registration limits the original to roughly 0.42 fps, so a convolutional encoder-decoder was trained to regress its 7-frame fused output from three raw frames, then serialized with TorchScript and executed from C++ via LibTorch in a GPU acquisition pipeline. Inference reaches about 22 fps, a 50x speedup, roughly doubling contrast-to-noise over a raw frame and beating frame averaging on CNR and PSNR.",
+      "Neural acceleration of self-fusion, a registration-based speckle-reduction method adapted from multi-atlas label fusion. Deformable registration caps the original at 0.42 fps, so a convolutional encoder-decoder was trained to regress its 7-frame fused output from three raw frames, serialized with TorchScript and run from C++ via LibTorch in a GPU acquisition pipeline. Inference reaches 22 fps, a 50x speedup, roughly doubling contrast-to-noise over a raw frame and beating frame averaging on CNR and PSNR.",
     tags: [
       "PyTorch",
       "LibTorch",

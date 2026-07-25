@@ -178,7 +178,7 @@ export default function TerminalWindow({ onOpenApp, ...props }: Passthrough) {
         push({ kind: "err", text: "eric is not in the sudoers file. This incident has been reported." });
         break;
       case "uname":
-        push(out("TangOS 0.17 (warm graphite) x86_64"));
+        push(out("TangOS 0.18 (warm graphite) x86_64"));
         break;
       case "date":
         push(out(new Date().toString()));
