@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 /**
  * PowerMenu: the power glyph in the menu bar, made to mean something.
@@ -13,6 +14,21 @@ import { useEffect, useRef, useState } from "react";
  * button, which is exactly the deal a real machine offers.
  *
  * Escape and a click outside both close the menu; sleep wakes on any input.
+ *
+ * ⚠️ The two full-screen overlays are rendered through a PORTAL to
+ * document.body, and that is load-bearing rather than tidiness. `.menubar`
+ * carries `backdrop-filter` for its glass effect, and a filtered element
+ * becomes the containing block for `position: fixed` DESCENDANTS. Rendered
+ * in place, `inset: 0` therefore resolved against a 30px-tall bar: sleep
+ * showed as a black strip at the top of the screen and shut down put its
+ * power button up there with it. Portalling to the body means no ancestor
+ * can capture them, whatever styles it grows later.
+ *
+ * Headless Chromium does NOT reproduce this, because it skips
+ * backdrop-filter compositing and so never creates the containing block.
+ * Two rounds of automated checks passed while a real phone kept failing.
+ * Measure fixed overlays against the VIEWPORT, and do not trust headless
+ * for anything that depends on filters or compositing.
  */
 
 type Mode = null | "sleep" | "off";
@@ -20,7 +36,10 @@ type Mode = null | "sleep" | "off";
 export default function PowerMenu() {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<Mode>(null);
+  const [mounted, setMounted] = useState(false);
   const wrap = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => setMounted(true), []);
 
   /* Close on outside click or Escape, the two things a menu must honour.
      Armed on a delay for the same reason as the sleep veil: the tap that
@@ -128,28 +147,32 @@ export default function PowerMenu() {
         )}
       </div>
 
-      {mode === "sleep" && (
-        <div
-          className="sleep-veil"
-          role="presentation"
-          onPointerUp={() => setMode(null)}
-        >
-          <p>Sleeping. Tap anywhere to wake.</p>
-        </div>
-      )}
+      {mounted && mode === "sleep" &&
+        createPortal(
+          <div
+            className="sleep-veil"
+            role="presentation"
+            onPointerUp={() => setMode(null)}
+          >
+            <p>Sleeping. Tap anywhere to wake.</p>
+          </div>,
+          document.body
+        )}
 
-      {mode === "off" && (
-        <div className="power-off" role="dialog" aria-label="Powered off">
-          <p className="power-off-line">It is now safe to close this tab.</p>
-          <button className="power-on" onPointerUp={powerOn} onClick={powerOn} aria-label="Power on">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-              <path d="M12 3v8" />
-              <path d="M6.2 6.2a8.2 8.2 0 1 0 11.6 0" />
-            </svg>
-          </button>
-          <p className="power-off-hint">power on</p>
-        </div>
-      )}
+      {mounted && mode === "off" &&
+        createPortal(
+          <div className="power-off" role="dialog" aria-label="Powered off">
+            <p className="power-off-line">It is now safe to close this tab.</p>
+            <button className="power-on" onPointerUp={powerOn} onClick={powerOn} aria-label="Power on">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                <path d="M12 3v8" />
+                <path d="M6.2 6.2a8.2 8.2 0 1 0 11.6 0" />
+              </svg>
+            </button>
+            <p className="power-off-hint">power on</p>
+          </div>,
+          document.body
+        )}
     </>
   );
 }

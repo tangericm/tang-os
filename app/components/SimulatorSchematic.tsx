@@ -146,12 +146,18 @@ function ForwardPanel() {
 
 /* ---------- panel 2: what the physics buys you ---------- */
 
+/* Values are kept short enough to fit CHIP_W minus its padding. Measured, not
+   eyeballed: three of the original strings ran past the chip edge, the worst by
+   16 units. If you lengthen one, re-measure the text bbox against the rect. */
+const CHIP_W = 116;
+const CHIP_GAP = 8;
+
 const EFFECTS = [
-  { k: "source", v: "bandwidth sets axial resolution" },
-  { k: "falloff", v: "sensitivity roll-off with depth" },
-  { k: "dispersion", v: "axial stretch, signed chirp" },
-  { k: "T_int", v: "SNR up, fringe washout up" },
-  { k: "motion", v: "drift, pulse, microsaccade" },
+  { k: "source", v: "sets axial resolution" },
+  { k: "falloff", v: "roll-off with depth" },
+  { k: "dispersion", v: "stretch, signed chirp" },
+  { k: "T_int", v: "SNR up, washout up" },
+  { k: "motion", v: "drift, pulse, saccade" },
   { k: "noise", v: "shot, RIN, read floor" },
 ];
 
@@ -166,11 +172,11 @@ function EffectsPanel() {
       {EFFECTS.map((e, i) => {
         const col = i % 3;
         const row = Math.floor(i / 3);
-        const x = 16 + col * 118;
+        const x = 16 + col * (CHIP_W + CHIP_GAP);
         const y = 20 + row * 40;
         return (
           <g key={e.k}>
-            <rect className="sim-chip" x={x} y={y} width={108} height={30} rx={4} />
+            <rect className="sim-chip" x={x} y={y} width={CHIP_W} height={30} rx={4} />
             <text className="sim-chip-k" x={x + 8} y={y + 13}>
               {e.k}
             </text>
@@ -182,9 +188,9 @@ function EffectsPanel() {
       })}
 
       {/* they all feed one model */}
-      <path className="sim-feed" d="M70 100 C70 118 200 118 200 124" />
-      <path className="sim-feed" d="M188 100 C188 116 200 118 200 124" />
-      <path className="sim-feed" d="M306 100 C306 118 200 118 200 124" />
+      <path className="sim-feed" d="M74 100 C74 118 200 118 200 124" />
+      <path className="sim-feed" d="M198 100 C198 116 200 118 200 124" />
+      <path className="sim-feed" d="M322 100 C322 118 200 118 200 124" />
 
       <rect className="sim-core" x={126} y={124} width={148} height={30} rx={5} />
       <text className="sim-core-t" x={200} y={143} textAnchor="middle">
