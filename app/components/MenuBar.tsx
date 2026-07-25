@@ -4,6 +4,7 @@
 // because the clock ticks, everything else on the page stays server-only.
 
 import { useEffect, useState } from "react";
+import PowerMenu from "./PowerMenu";
 
 /** Format a Date like the macOS menu bar: "Wed Jul 23  4:32 PM" */
 function formatClock(d: Date): string {
@@ -36,17 +37,7 @@ export default function MenuBar() {
   return (
     <header className="menubar">
       <div className="menubar-left">
-        <svg
-          className="menubar-logo"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.4"
-          strokeLinecap="round"
-        >
-          <path d="M12 3v8" />
-          <path d="M6.2 6.2a8.2 8.2 0 1 0 11.6 0" />
-        </svg>
+        <PowerMenu />
         <span className="menubar-app">TangOS</span>
         {/* Real dropdown menus can land here when there's something
             real to put in them (e.g. File → Download Resume) */}

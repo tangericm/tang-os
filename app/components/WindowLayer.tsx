@@ -88,6 +88,7 @@ export default function WindowLayer() {
   return (
     <>
       <DesktopFile label="Eric Tang Resume.pdf" onOpen={() => open("resume")} />
+      <DesktopFile label="Terminal" art="terminal" onOpen={() => open("terminal")} />
 
       {visible(about) && <AboutWindow {...windowProps("about")} />}
       {visible(projects) && <ProjectsWindow {...windowProps("projects")} />}

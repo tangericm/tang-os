@@ -15,9 +15,12 @@ import { useRef, useState } from "react";
 export default function DesktopFile({
   label,
   onOpen,
+  art = "pdf",
 }: {
   label: string;
   onOpen: () => void;
+  /** which icon to draw; the drag behaviour is identical either way */
+  art?: "pdf" | "terminal";
 }) {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const drag = useRef<{
@@ -78,6 +81,19 @@ export default function DesktopFile({
       title="Double-click to open"
     >
       <span className="desktop-file-art" aria-hidden="true">
+        {art === "terminal" ? (
+          <svg viewBox="0 0 40 48">
+            <rect x="2" y="6" width="36" height="30" rx="3.5" fill="#14100c" stroke="#6b5f50" strokeWidth="1.6" />
+            <rect x="2" y="6" width="36" height="7" rx="3.5" fill="#2c261f" />
+            <circle cx="7.5" cy="9.5" r="1.3" fill="#8a7c6a" />
+            <circle cx="12" cy="9.5" r="1.3" fill="#8a7c6a" />
+            <g stroke="#e2aa63" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" fill="none">
+              <path d="m8 19 3.5 3L8 25" />
+            </g>
+            <path d="M15.5 25.5h9" stroke="#f4f1ec" strokeWidth="1.9" strokeLinecap="round" opacity="0.75" />
+            <rect x="8" y="29.5" width="6" height="2.2" rx="1.1" fill="#e2aa63" />
+          </svg>
+        ) : (
         <svg viewBox="0 0 40 48">
           <path
             d="M4 3a3 3 0 0 1 3-3h19l10 10v35a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V3z"
@@ -100,6 +116,7 @@ export default function DesktopFile({
             PDF
           </text>
         </svg>
+        )}
       </span>
       <span className="desktop-file-label">{label}</span>
     </button>

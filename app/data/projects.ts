@@ -1,18 +1,32 @@
 /**
- * The project list, kept out of any component because two things read it
- * now: the Projects window and the terminal's `ls` / `cat`. One copy means
- * they cannot drift apart.
+ * The project list, kept out of any component because two things read it:
+ * the Projects window and the terminal's `ls` / `cat`. One copy means they
+ * cannot drift apart.
+ *
+ * Register is deliberately technical. Every entry front-loads the
+ * frameworks, architectures, methods and validation metrics a reader (or a
+ * keyword filter) would look for, and states numbers rather than
+ * describing them.
  */
 
 export type Group = "First-author research" | "Built independently" | "Co-authored research";
+
+export type Visual =
+  | "tracking"
+  | "scanner"
+  | "spectral"
+  | "denoise"
+  | "calib"
+  | "classify"
+  | "tangos";
 
 export type Project = {
   id: string;
   name: string;
   kind: string;
   group: Group;
-  /** which animated explainer, if any, belongs to this project */
-  visual?: "tracking" | "scanner" | "spectral" | "denoise";
+  /** which animated explainer belongs to this project */
+  visual?: Visual;
   blurb: string;
   tags: string[];
   links: { label: string; href: string }[];
@@ -27,13 +41,20 @@ export const GROUPS: Group[] = [
 export const PROJECTS: Project[] = [
   {
     id: "tracking",
-    name: "Real-Time Instrument Tracking",
-    kind: "Closed-loop vision",
+    name: "Real-Time Instrument Tracking & 4D Imaging",
+    kind: "YOLOv4 · closed-loop scan control",
     group: "First-author research",
     visual: "tracking",
     blurb:
-      "A detector and a scanner wired into a closed loop. Two imaging modes share one laser and one optical path, so a wide overhead view and a narrow cross-section are captured together and arrive already registered to each other. A YOLOv4 detector finds the tool in the overhead view, and its bounding box is converted into mirror voltages that re-aim the cross-sectional scan, so the imaged volume follows the tool across 25 mm of travel with nobody touching a control. Tracking holds to the resolution limit of the optics through 9 mm of defocus and up to 10 mm/s, about twenty times faster than the motion it was built for.",
-    tags: ["YOLOv4", "Real-time C++", "Closed-loop control", "CUDA", "Multi-channel CNN"],
+      "Multimodal imaging system for automated instrument tracking and video-rate 4D visualization. A GPU-accelerated YOLOv4 detector (OpenCV DNN, CUDA) localizes 25-gauge instruments in en face spectrally encoded reflectometry frames, inherently co-registered with cross-sectional OCT through a shared swept-source path at a 400 kHz A-scan rate. Detected bounding-box coordinates drive a calibrated galvanometer voltage offset via non-regenerative DAQ buffering, re-centering the imaging field on the instrument at a 16 Hz volume rate across a 25 x 25 mm range. Multi-channel temporal encoding, packing the raw frame with a 5-frame running mean and variance into a single 3-channel input, reached 99.98% mAP, 97% precision, 99% recall and an F1 of 0.98 at 23 Hz inference. Resolution-limited localization accuracy of 2.95 px held across 9 mm of defocus and instrument velocities to 10 mm/s. Acquisition, inference and scan generation implemented as multithreaded C++.",
+    tags: [
+      "YOLOv4",
+      "CUDA",
+      "OpenCV DNN",
+      "C++ multithreading",
+      "Closed-loop control",
+      "Object detection",
+    ],
     links: [
       {
         label: "Paper · Biomed. Opt. Express 2022",
@@ -43,13 +64,20 @@ export const PROJECTS: Project[] = [
   },
   {
     id: "galvo",
-    name: "Scanner Modeling & Control",
-    kind: "Controls, optimization",
+    name: "Galvanometer Modeling & Scan Optimization",
+    kind: "Gaussian process regression · controls",
     group: "First-author research",
     visual: "scanner",
     blurb:
-      "Every point-scanning instrument wastes time waiting for its mirrors to settle, and that dead time caps both field of view and frame rate. This work models the closed-loop galvanometer controller, then searches its parameter space with Gaussian process regression to find tunings that cut settling time by more than half. The recovered response is then spent deliberately, on scan waveforms that widen the usable field and raise signal-to-noise, contrast, and speed together. It runs on stock controller hardware, with no custom electronics, which is what makes it worth reproducing.",
-    tags: ["Control systems", "Gaussian process regression", "Bayesian optimization", "MATLAB", "DSP"],
+      "System-identification and Bayesian-optimization approach to reducing galvanometer settling time, the dominant source of dead time in point-scanning instruments. Step responses were characterized electronically and optically across scan amplitudes, and settling time was modeled as a function of closed-loop PID controller parameters using Gaussian process regression, which yields a predictive surface with calibrated uncertainty and so directs sampling toward informative parameter combinations. Optimized tunings reduced settling time by over 50% relative to factory configurations. The recovered temporal budget was reinvested in custom scan waveforms, measurably increasing linear field of view, SNR and CNR (p < 0.001) at fixed acquisition rate. All tuning applies through stock controller firmware, requiring no custom electronics.",
+    tags: [
+      "Gaussian process regression",
+      "Bayesian optimization",
+      "PID tuning",
+      "System identification",
+      "MATLAB",
+      "Signal processing",
+    ],
     links: [
       {
         label: "Paper · Biomed. Opt. Express 2021",
@@ -59,54 +87,92 @@ export const PROJECTS: Project[] = [
   },
   {
     id: "spectral",
-    name: "Spectral-Split Denoiser",
-    kind: "Physics-informed ML",
+    name: "Spectral-Split Self-Supervised Denoising",
+    kind: "ResUNet · physics-informed learning",
     group: "Built independently",
     visual: "spectral",
     blurb:
-      "Denoising without ever collecting a clean reference, by using how the image is formed. The raw interferogram is split into two Gaussian sub-bands separated by a tunable gap, and each is reconstructed on its own. That gives two views of the same scene whose structure is identical but whose speckle is independent, because speckle depends on which part of the spectrum you keep. A ResUNet with a pseudo-3D stem takes those views as input channels and is trained to output the full-bandwidth reconstruction, so it learns to keep what the views agree on and discard what they do not. A Charbonnier loss with a gradient term stops edges being smoothed off, and the window width and gap are tuned with Optuna rather than guessed.",
-    tags: ["PyTorch", "ResUNet", "Physics-informed", "Optuna", "Mixed precision"],
+      "Self-supervised speckle reduction that derives its supervision from image-formation physics, requiring no clean reference and no repeat acquisition. The raw interferogram is DC-subtracted, resampled to linear wavenumber by cubic spline, then decomposed into two Gaussian sub-bands separated by a tunable gap; each is independently reconstructed by IFFT, log-compression and z-score normalization. Because speckle realization depends on the spectral support retained, the two reconstructions share identical structure while carrying statistically independent speckle, and the full-bandwidth reconstruction serves as the training target. A ResUNet with a pseudo-3D input stem, a 3D convolution across the sub-band axis collapsed to 2D features, encodes 64 to 512 channels over four scales using residual blocks, SiLU activations, batch normalization, strided-convolution downsampling and transposed-convolution upsampling with concatenated skips. Trained with AdamW under a composite Charbonnier and gradient-L1 objective under mixed precision, with Optuna search over window width and gap; evaluated by SNR and CNR in the physical domain.",
+    tags: [
+      "PyTorch",
+      "ResUNet",
+      "Self-supervised learning",
+      "Optuna",
+      "Mixed precision",
+      "Fourier-domain processing",
+    ],
     links: [{ label: "GitHub", href: "https://github.com/tangericm/OCT-Denoiser" }],
   },
   {
     id: "calib",
-    name: "Camera Calibration & Stereo",
-    kind: "Classical vision",
+    name: "Stereo Calibration & 3D Reconstruction",
+    kind: "OpenCV · multi-view geometry",
     group: "Built independently",
+    visual: "calib",
     blurb:
-      "Single and stereo camera calibration carried through to a usable 3D measurement: intrinsics, lens distortion, extrinsics, rectification, and triangulation from checkerboard captures, built on OpenCV. Reprojection error is tracked at each stage, because a calibration you cannot evaluate is a calibration you should not trust.",
-    tags: ["OpenCV", "Stereo vision", "Camera geometry", "Python"],
+      "Monocular and stereo camera calibration carried through to metric 3D reconstruction. Pinhole intrinsics and radial-tangential distortion coefficients are estimated from planar checkerboard correspondences, followed by stereo extrinsics, epipolar rectification and disparity-based triangulation. Calibration quality is quantified by RMS reprojection error at each stage rather than assumed, and rectification is validated against epipolar alignment. Implemented with OpenCV in Python.",
+    tags: [
+      "OpenCV",
+      "Camera calibration",
+      "Epipolar geometry",
+      "Triangulation",
+      "NumPy",
+      "Python",
+    ],
     links: [{ label: "GitHub", href: "https://github.com/tangericm" }],
   },
   {
     id: "classify",
-    name: "Image Classification Pipeline",
-    kind: "Training infrastructure",
+    name: "CNN Image Classification Pipeline",
+    kind: "PyTorch · training infrastructure",
     group: "Built independently",
+    visual: "classify",
     blurb:
-      "An end-to-end classification pipeline built to be reused rather than demonstrated once: dataset handling and splits, interchangeable model definitions, a training loop with checkpointing and metric logging, and a small app that runs inference from a saved checkpoint. The scaffolding is the point, since it is what gets rewritten on every new problem.",
-    tags: ["PyTorch", "CNN", "Python"],
+      "Reusable supervised classification framework built for reproducibility rather than a single result. Provides dataset abstraction with stratified splits, configurable augmentation, a registry for interchangeable CNN backbones, and a training loop with checkpointing, early stopping, seed control and per-epoch metric logging. Evaluation reports accuracy, precision, recall and confusion matrices, and a lightweight inference application runs predictions from a saved checkpoint. Implemented in PyTorch.",
+    tags: [
+      "PyTorch",
+      "CNNs",
+      "Transfer learning",
+      "Data augmentation",
+      "Model evaluation",
+      "Python",
+    ],
     links: [{ label: "GitHub", href: "https://github.com/tangericm" }],
   },
   {
     id: "tangos",
     name: "TangOS",
-    kind: "This site",
+    kind: "Next.js · this site",
     group: "Built independently",
+    visual: "tangos",
     blurb:
-      "The desktop you are reading this on. Draggable and resizable windows with real maximise and restore, a magnifying dock, a document viewer, and the animated schematics on this page, built from scratch with Next.js, React, and TypeScript. No UI framework and no component library, because the window manager was the interesting part.",
-    tags: ["Next.js", "React", "TypeScript", "SVG animation"],
+      "Desktop-metaphor portfolio implemented without a UI framework or component library. Includes a window manager with an explicit per-application lifecycle state machine, pointer-capture drag and resize, true maximize and restore, focus-order z-indexing, dock magnification, a document viewer, an interactive terminal and the animated SVG explainers on this page. Built with the Next.js App Router, React and TypeScript; design tokens are centralized so the theme is a single-file change, and all motion respects prefers-reduced-motion.",
+    tags: [
+      "Next.js",
+      "React",
+      "TypeScript",
+      "SVG animation",
+      "CSS architecture",
+      "Accessibility",
+    ],
     links: [{ label: "Source", href: "https://github.com/tangericm/tang-os" }],
   },
   {
     id: "denoise",
-    name: "Real-Time Image Denoising",
-    kind: "Deep learning, real-time",
+    name: "Real-Time Self-Fusion Denoising",
+    kind: "CNN · TorchScript deployment",
     group: "Co-authored research",
     visual: "denoise",
     blurb:
-      "Self-fusion cleans up a frame using the frames on either side of it. Each neighbour is deformably registered onto the target and fused by local similarity, so speckle averages away while the edges the neighbours agree on stay sharp. It tolerates motion, and at roughly 0.42 fps it is far too slow to watch. This work trains a network to reproduce that fused result from three raw frames instead, reaching about 22 fps once exported through TorchScript and run from C++, which is the difference between a method and something you can put in front of a live feed.",
-    tags: ["PyTorch", "Self-fusion network", "C++ / LibTorch", "TorchScript", "Real-time"],
+      "Neural-network acceleration of self-fusion, a registration-based speckle-reduction method adapted from multi-atlas label fusion. Self-fusion deformably registers a frame's neighbors onto it and fuses them by local patch similarity, suppressing speckle while preserving edges, but symmetric-normalization registration limits throughput to roughly 0.42 fps. A convolutional encoder-decoder is instead trained to regress the 7-frame fused result from three raw adjacent frames, then serialized with TorchScript and executed from C++ through LibTorch inside a GPU-accelerated acquisition pipeline. Inference reaches approximately 22 fps, a 50x speedup over the method it distills, roughly doubling contrast-to-noise relative to a raw frame and outperforming frame averaging on both CNR and PSNR.",
+    tags: [
+      "PyTorch",
+      "LibTorch",
+      "TorchScript",
+      "C++ / CUDA",
+      "Image registration",
+      "Real-time inference",
+    ],
     links: [
       {
         label: "Paper · Biomed. Opt. Express 2022",

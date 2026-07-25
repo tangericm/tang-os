@@ -64,22 +64,22 @@ function SettlePanel() {
       <line className="scn-target-line" x1={EDGE} y1={TOP} x2={520} y2={TOP} />
 
       <text className="sfs-sub" x={26} y={BASE - 8}>
-        commanded
+        commanded step
       </text>
       <text className="sfs-sub sfs-sub-accent" x={EDGE + 34} y={20}>
-        overshoot, then ringing
+        overshoot and ringing
       </text>
       <text className="sfs-cap" x={EDGE + 59} y={148} textAnchor="middle">
-        settling
+        settling window
       </text>
       <text className="sfs-sub" x={EDGE + 59} y={161} textAnchor="middle">
-        position untrustworthy
+        position not guaranteed
       </text>
       <text className="sfs-cap sfs-cap-accent" x={380} y={148} textAnchor="middle">
         usable sweep
       </text>
       <text className="sfs-sub" x={380} y={161} textAnchor="middle">
-        what you actually get to image with
+        available for acquisition
       </text>
     </svg>
   );
@@ -124,10 +124,10 @@ function TunePanel() {
       <circle className="scn-min" cx={110} cy={106} r={3.4} />
       <line className="scn-min-tick" x1={110} y1={106} x2={110} y2={122} />
       <text className="sfs-cap" x={98} y={140} textAnchor="middle">
-        search the tuning
+        GPR response surface
       </text>
       <text className="sfs-sub" x={98} y={153} textAnchor="middle">
-        Gaussian process, not knobs
+        posterior mean and variance
       </text>
 
       <path className="sfs-arrow" d="M190 62 l6 5 l-6 5" />
@@ -138,10 +138,10 @@ function TunePanel() {
       <path className="scn-resp" d={TUNED} />
       <rect className="scn-dead scn-dead-small" x={250} y={30} width={54} height={88} rx={2} />
       <text className="sfs-cap sfs-cap-accent" x={287} y={140} textAnchor="middle">
-        settles in half the time
+        &gt;50% settling reduction
       </text>
       <text className="sfs-sub" x={287} y={153} textAnchor="middle">
-        original dashed, tuned solid
+        factory dashed, optimized solid
       </text>
 
       <path className="sfs-arrow" d="M376 62 l6 5 l-6 5" />
@@ -154,10 +154,10 @@ function TunePanel() {
       <rect className="scn-linear" x={414} y={32} width={112} height={84} rx={2} />
       <path className="scn-sweep" d="M404 112 L414 104 L526 40 L536 32" />
       <text className="sfs-cap sfs-cap-accent" x={470} y={140} textAnchor="middle">
-        wider linear sweep
+        extended linear sweep
       </text>
       <text className="sfs-sub" x={470} y={153} textAnchor="middle">
-        more field, more signal, faster
+        FOV, SNR, CNR all increase
       </text>
     </svg>
   );
@@ -168,47 +168,71 @@ export default function ScannerSchematic() {
     <div className="sfs">
       <section className="sfs-panel">
         <h3 className="sfs-head">
-          <span className="sfs-step">1</span> Where the time goes
+          <span className="sfs-step">1</span> Step response and settling time
           <span className="sfs-badge">dead time</span>
         </h3>
         <div className="sfs-canvas">
           <SettlePanel />
         </div>
         <p className="sfs-note">
-          Command a galvanometer to jump and it does not arrive, it overshoots and
-          rings its way in. Anything sampled during that window sits at a position
-          the controller cannot vouch for, so settling is not a cosmetic problem: it
-          is field of view and frame rate that has already been paid for and cannot
-          be used. Every line of every frame pays it again.
+          A commanded step produces overshoot and damped oscillation before the
+          mirror position converges. Samples acquired during settling correspond to
+          positions the controller cannot guarantee, so settling time is
+          unrecoverable dead time that directly bounds linear field of view and
+          achievable frame rate, and it is incurred on every line of every frame.
         </p>
       </section>
 
       <div className="sfs-bridge" aria-hidden="true">
         <span className="sfs-bridge-line" />
-        <span className="sfs-bridge-text">so go and get it back</span>
+        <span className="sfs-bridge-text">model the controller, then reallocate the budget</span>
         <span className="sfs-bridge-line" />
       </div>
 
       <section className="sfs-panel">
         <h3 className="sfs-head">
-          <span className="sfs-step">2</span> Tune it, then spend it
+          <span className="sfs-step">2</span> Controller optimization by GPR
           <span className="sfs-badge sfs-badge-live">&gt;50% faster</span>
         </h3>
         <div className="sfs-canvas">
           <TunePanel />
         </div>
         <p className="sfs-note">
-          The controller is a model with parameters, so the tuning is a search
-          rather than an afternoon with a screwdriver. Gaussian process regression
-          fits a response surface over that space from a modest number of measured
-          settling times and reports both a best guess and where it is still
-          uncertain, which is what makes the next measurement worth taking. The
-          tunings it finds cut settling time by more than half, and the recovered
-          time is spent on scan waveforms that stay linear across more of the sweep:
-          wider field, better signal-to-noise and contrast, higher rate. All on the
-          stock controller, which is the part that makes it reproducible.
+          Settling time is modeled as a function of the closed-loop PID parameters.
+          Gaussian process regression fits a response surface from a modest set of
+          measured step responses and returns posterior mean and variance, so
+          candidate tunings can be selected where the model is both promising and
+          uncertain rather than by exhaustive sweep. Optimized tunings reduce
+          settling time by over 50%, and the recovered budget is reinvested in scan
+          waveforms that extend the linear portion of the sweep, increasing field of
+          view, SNR and CNR (p &lt; 0.001) at fixed rate. Applied entirely through
+          stock controller firmware.
         </p>
       </section>
+
+      {/* The measured result, reproduced from the paper. Left on a light card
+          rather than inverted: inverting a published plot would shift the
+          series colours and misrepresent the figure. The resume viewer already
+          establishes a white page in this interface, so a light figure card is
+          consistent rather than jarring. */}
+      <figure className="paper-figure">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/galvo-settling.jpg"
+          alt="Measured step responses under optimized tuning with settling times marked, and settling time versus scan angle for four tunings, the optimized tuning lowest throughout."
+          width={1100}
+          height={508}
+          loading="lazy"
+          decoding="async"
+        />
+        <figcaption>
+          Measured result: step responses under the optimized tuning with settling
+          times marked (left), and settling time against scan angle for each
+          candidate tuning (right). The optimized tuning is lowest across the full
+          range of scan amplitudes. Reproduced from Tang &amp; Tao, Biomed. Opt.
+          Express 12(11), 2021.
+        </figcaption>
+      </figure>
     </div>
   );
 }

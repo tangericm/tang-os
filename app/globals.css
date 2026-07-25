@@ -1450,13 +1450,42 @@ html.booted .boot-overlay {
 }
 
 .trio-wl {
-  flex: 356 1 0;
-  aspect-ratio: 356 / 400;
+  flex: 403 1 0;
+  aspect-ratio: 403 / 400;
 }
 
-.trio-ser {
-  flex: 231 1 0;
-  aspect-ratio: 231 / 400;
+.trio-detect {
+  flex: 300 1 0;
+  aspect-ratio: 1;
+  border-color: rgba(226, 170, 99, 0.35);
+}
+
+/* The sprite is twelve 300px frames side by side, so the strip is 1200% of
+   the cell and one full translateX(-100%) walks the whole loop. Stepping a
+   transform rather than using an animated image format is the only way
+   prefers-reduced-motion can actually stop it, and it stays on the
+   compositor.
+
+   Selector needs both classes: `.trio-cell img` above is (0,1,1) and would
+   otherwise win, and its `inset: 0` pins the strip to a single frame's
+   width, which shows one sliver and then nothing. */
+.trio-cell .detect-strip {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 1200%;
+  max-width: none;
+  height: 100%;
+  object-fit: fill;
+  animation: detect-play 1.9s steps(12) infinite;
+}
+
+@keyframes detect-play {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
 }
 
 .trio-oct {
@@ -1507,7 +1536,7 @@ html.booted .boot-overlay {
 .denoise {
   position: relative;
   width: 100%;
-  aspect-ratio: 1500 / 620;
+  aspect-ratio: 1100 / 455;
   border-radius: 10px;
   overflow: hidden;
   border: 1px solid var(--hairline);
@@ -2177,6 +2206,182 @@ html.booted .boot-overlay {
   animation: sfs-flow 0.9s linear infinite;
 }
 
+/* ---- a published figure, reproduced as-is ----
+   Left on a light card rather than inverted. Inverting a plot shifts its
+   series colours, which would misrepresent the figure; and the resume
+   viewer already establishes a white page in this interface. */
+.paper-figure {
+  margin: 12px 0 0;
+  padding: 12px 12px 0;
+  border-radius: 10px;
+  background: #f7f5f2;
+  border: 1px solid var(--panel-edge);
+}
+
+.paper-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.paper-figure figcaption {
+  padding: 9px 2px 12px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #4a4239;
+}
+
+/* ---- stereo calibration ---- */
+.cal-board rect {
+  fill: rgba(244, 241, 236, 0.72);
+}
+
+.cal-warp {
+  fill: none;
+  stroke: rgba(226, 170, 99, 0.7);
+  stroke-width: 1.4;
+}
+
+.cal-grid {
+  fill: none;
+  stroke: rgba(244, 241, 236, 0.22);
+  stroke-width: 1;
+}
+
+.cal-epi {
+  fill: none;
+  stroke: rgba(226, 170, 99, 0.42);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.cal-pt {
+  fill: var(--accent);
+}
+
+.cal-cam {
+  fill: rgba(244, 241, 236, 0.6);
+}
+
+.cal-ray {
+  fill: none;
+  stroke: rgba(226, 170, 99, 0.55);
+  stroke-width: 1.2;
+  stroke-dasharray: 3 3;
+  animation: sfs-flow 0.9s linear infinite;
+}
+
+.cal-target {
+  fill: var(--accent);
+  animation: trk-blob 2.6s ease-in-out infinite;
+}
+
+.cal-baseline {
+  stroke: rgba(244, 241, 236, 0.4);
+  stroke-width: 1.4;
+}
+
+/* ---- classification pipeline ---- */
+.cls-box {
+  fill: rgba(255, 244, 230, 0.05);
+  stroke: var(--hairline);
+  stroke-width: 1;
+}
+
+.cls-box-model {
+  fill: rgba(226, 170, 99, 0.1);
+  stroke: rgba(226, 170, 99, 0.45);
+}
+
+/* a highlight sweeping down the pipeline, one stage at a time */
+.cls-pulse {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.4;
+  opacity: 0;
+  animation: cls-sweep 3.2s ease-in-out infinite;
+}
+
+@keyframes cls-sweep {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  8%,
+  16% {
+    opacity: 0.9;
+  }
+  30% {
+    opacity: 0;
+  }
+}
+
+.cls-feedback {
+  fill: none;
+  stroke: rgba(226, 170, 99, 0.4);
+  stroke-width: 1.2;
+  stroke-dasharray: 4 4;
+  animation: sfs-flow 1.2s linear infinite;
+}
+
+/* ---- TangOS lifecycle ---- */
+.tos-node {
+  fill: url(#spc-blk);
+  fill: rgba(150, 133, 112, 0.28);
+  stroke: rgba(255, 244, 230, 0.24);
+  stroke-width: 1;
+}
+
+.tos-node-transient {
+  fill: rgba(226, 170, 99, 0.12);
+  stroke: rgba(226, 170, 99, 0.5);
+  stroke-dasharray: 4 3;
+}
+
+.tos-label {
+  fill: var(--ink-soft);
+  font-size: 9.5px;
+}
+
+.tos-edge {
+  fill: none;
+  stroke: rgba(226, 170, 99, 0.45);
+  stroke-width: 1.3;
+  stroke-dasharray: 4 4;
+  animation: sfs-flow 1s linear infinite;
+}
+
+/* ---- spectral: pseudo-3D stem and the objective ---- */
+.spc-stem {
+  fill: rgba(226, 170, 99, 0.14);
+  stroke: rgba(226, 170, 99, 0.55);
+  stroke-width: 1.2;
+}
+
+.spc-stem-label {
+  fill: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.spc-ch {
+  fill: var(--ink-faint);
+  font-size: 8.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.spc-loss-pill {
+  fill: rgba(226, 170, 99, 0.12);
+  stroke: rgba(226, 170, 99, 0.5);
+  stroke-width: 1;
+}
+
+.spc-loss-label {
+  fill: var(--accent);
+  font-size: 10px;
+}
+
 /* shared SVG type */
 .sfs-cap {
   fill: var(--ink-soft);
@@ -2268,6 +2473,19 @@ html.booted .boot-overlay {
     animation: none;
     opacity: 0;
   }
+  /* hold the first frame of the detection sequence */
+  .trio-cell .detect-strip {
+    animation: none;
+  }
+  .cal-ray,
+  .cal-target,
+  .cls-pulse,
+  .cls-feedback,
+  .tos-edge,
+  .spc-loss,
+  .spc-merge {
+    animation: none;
+  }
   /* the weight bars are drawn at full height and scaled down by the
      animation, so without it they need no transform at all */
   .sfs-weight {
@@ -2289,4 +2507,170 @@ html.booted .boot-overlay {
 .denoise-figure figcaption strong {
   color: var(--ink-soft);
   font-weight: 600;
+}
+
+/* ============================================================
+   Power menu (the glyph at top left, made functional)
+   ============================================================ */
+.power {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.power-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 22px;
+  margin-right: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.power-button svg {
+  width: 15px;
+  height: 15px;
+}
+
+.power-button:hover,
+.power-button[aria-expanded="true"] {
+  background: rgba(255, 244, 230, 0.14);
+}
+
+.power-menu {
+  position: absolute;
+  top: 26px;
+  left: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  min-width: 152px;
+  padding: 5px;
+  border-radius: 9px;
+  background: var(--surface-window);
+  border: 1px solid var(--edge-light);
+  box-shadow: var(--shadow-window);
+  animation: win-open 140ms ease-out;
+}
+
+.power-menu button {
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.power-menu button:hover {
+  background: var(--seg-active-bg);
+  color: var(--seg-active-fg);
+}
+
+.power-menu-note {
+  padding: 6px 10px 3px;
+  margin-top: 3px;
+  border-top: 1px solid var(--hairline);
+  font-size: 10.5px;
+  color: var(--ink-faint);
+}
+
+/* sleep: dim, but not gone */
+.sleep-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 16vh;
+  background: rgba(6, 5, 4, 0.9);
+  cursor: pointer;
+  animation: fade-in 700ms ease both;
+}
+
+.sleep-veil p {
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  color: rgba(244, 241, 236, 0.42);
+}
+
+/* shut down: the screen is off, and the power button is the only way back */
+.power-off {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: #070605;
+  animation: power-down 900ms cubic-bezier(0.5, 0, 0.75, 0) both;
+}
+
+@keyframes power-down {
+  0% {
+    opacity: 0;
+    transform: scaleY(1);
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+.power-off-line {
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  color: rgba(244, 241, 236, 0.5);
+  animation: fade-in 800ms ease 500ms both;
+}
+
+.power-on {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid rgba(226, 170, 99, 0.5);
+  background: rgba(226, 170, 99, 0.1);
+  color: var(--accent);
+  cursor: pointer;
+  animation: fade-in 800ms ease 900ms both;
+}
+
+.power-on svg {
+  width: 24px;
+  height: 24px;
+}
+
+.power-on:hover {
+  background: rgba(226, 170, 99, 0.22);
+}
+
+.power-off-hint {
+  font-size: 10.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgba(244, 241, 236, 0.34);
+  animation: fade-in 800ms ease 1100ms both;
+}
+
+/* a second desktop icon needs to sit below the first */
+.desktop-file + .desktop-file {
+  top: 172px;
 }

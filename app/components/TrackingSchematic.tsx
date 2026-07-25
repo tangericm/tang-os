@@ -73,7 +73,7 @@ function DetectPanel() {
         5 frames
       </text>
       <text className="sfs-sub" x={48} y={119} textAnchor="middle">
-        rolling buffer
+        FIFO buffer
       </text>
 
       <Arrow x={100} y={56} />
@@ -92,7 +92,7 @@ function DetectPanel() {
         </g>
       ))}
       <text className="sfs-sub sfs-sub-accent" x={124} y={140}>
-        variance isolates whatever moved
+        variance isolates inter-frame motion
       </text>
 
       <Arrow x={296} y={56} />
@@ -111,10 +111,10 @@ function DetectPanel() {
       <Speckle x={320} y={32} w={76} h={52} n={16} seed={11} />
       <rect className="trk-var-blob" x={352} y={50} width={14} height={18} rx={2} />
       <text className="sfs-cap" x={358} y={102} textAnchor="middle">
-        one colour image
+        3-channel input
       </text>
       <text className="sfs-sub" x={358} y={115} textAnchor="middle">
-        3 channels, no extra cost
+        no added inference cost
       </text>
 
       <Arrow x={412} y={56} />
@@ -185,7 +185,7 @@ function SteerPanel() {
         calibrate
       </text>
       <text className="sfs-sub" x={161} y={113} textAnchor="middle">
-        one axis is nonlinear
+        higher-order fast-axis fit
       </text>
 
       <Arrow x={218} y={55} />
@@ -197,10 +197,10 @@ function SteerPanel() {
         <path className="trk-ramp" d={RAMP} />
       </g>
       <text className="sfs-cap" x={288} y={100} textAnchor="middle">
-        reshape the scan
+        adaptive sampling
       </text>
       <text className="sfs-sub" x={288} y={113} textAnchor="middle">
-        centre sampled 4&times; denser
+        centre 4&times; denser
       </text>
 
       <Arrow x={350} y={55} />
@@ -213,10 +213,10 @@ function SteerPanel() {
       {/* the imaged field, chasing it */}
       <rect className="trk-fov" x={386} y={30} width={44} height={50} rx={2} />
       <text className="sfs-cap sfs-cap-accent" x={458} y={106} textAnchor="middle">
-        field re-centres every volume
+        field re-centres per volume
       </text>
       <text className="sfs-sub" x={458} y={119} textAnchor="middle">
-        16 Hz, 25 mm of travel
+        16 Hz over 25 mm
       </text>
     </svg>
   );
@@ -231,45 +231,47 @@ export default function TrackingSchematic() {
     <div className="sfs">
       <section className="sfs-panel">
         <h3 className="sfs-head">
-          <span className="sfs-step">1</span> Feeding the detector
+          <span className="sfs-step">1</span> Multi-channel input encoding
           <span className="sfs-badge">99.98% mAP</span>
         </h3>
         <div className="sfs-canvas">
           <DetectPanel />
         </div>
         <p className="sfs-note">
-          The frames are grayscale, so the three channels a detector expects are
-          sitting empty. Filling them with the last frame, a running mean and a
-          running variance hands the network temporal context for the price of one
-          forward pass: the mean suppresses speckle, and the variance channel is
-          bright only where something actually moved. Trained across three tool
-          classes, this reaches 99.98% mAP with 99% recall.
+          Source frames are single-channel, leaving the three input channels of a
+          standard detector unused. Encoding the current frame, a 5-frame running
+          mean and a 5-frame variance into those channels supplies temporal context
+          at the cost of one forward pass: the mean suppresses speckle, while the
+          variance channel responds only to inter-frame motion, separating the
+          instrument from static tissue. Trained across three instrument classes
+          (N = 4031), the detector achieves 99.98% mAP, 97% precision, 99% recall
+          and an F1 of 0.98.
         </p>
       </section>
 
       <div className="sfs-bridge" aria-hidden="true">
         <span className="sfs-bridge-line" />
-        <span className="sfs-bridge-text">the box becomes a scan pattern</span>
+        <span className="sfs-bridge-text">bounding box drives the scan waveform</span>
         <span className="sfs-bridge-line" />
       </div>
 
       <section className="sfs-panel">
         <h3 className="sfs-head">
-          <span className="sfs-step">2</span> Steering the scanner
+          <span className="sfs-step">2</span> Closed-loop scan control
           <span className="sfs-badge sfs-badge-live">closed loop</span>
         </h3>
         <div className="sfs-canvas">
           <SteerPanel />
         </div>
         <p className="sfs-note">
-          Box coordinates become mirror voltages, one axis needing a nonlinear fit
-          because the scan itself is nonlinear. The waveform buffer is run in a
-          mode that can be rewritten while scanning, and the pattern written into
-          it deliberately samples the middle of the field about four times denser
-          than the edges, so the detail follows the target instead of sitting in the
-          middle of the frame. Detection is the fast part at 23 Hz; the loop closes
-          once per volume at 16 Hz, because updating mid-volume would tear the
-          reconstruction.
+          Bounding-box coordinates are mapped to galvanometer drive voltages, the
+          fast axis requiring a higher-order fit because adaptive sampling makes the
+          offset-to-position relation nonlinear. Waveforms are written through a
+          non-regenerative DAQ buffer, which permits modification mid-scan, and the
+          adaptive protocol samples the field centre approximately 4x denser than
+          the periphery so sampling density tracks the instrument. Detection runs at
+          23 Hz but the loop is closed once per volume at 16 Hz; intra-volume
+          updates would introduce reconstruction discontinuities.
         </p>
       </section>
     </div>

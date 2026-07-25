@@ -6,6 +6,7 @@ import SelfFusionSchematic from "./SelfFusionSchematic";
 import TrackingSchematic from "./TrackingSchematic";
 import ScannerSchematic from "./ScannerSchematic";
 import SpectralSchematic from "./SpectralSchematic";
+import { CalibSchematic, ClassifySchematic, TangosSchematic } from "./MiniSchematics";
 import { GROUPS, PROJECTS, type Project } from "../data/projects";
 
 /**
@@ -41,9 +42,9 @@ function DenoiseHero() {
   return (
     <div className="denoise" aria-label="A real noisy scan resolving into a denoised one">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="denoise-img" src="/oct-raw.jpg" alt="Raw single-frame retinal cross-section, heavy speckle" width={1500} height={620} />
+      <img className="denoise-img" src="/oct-raw.jpg" alt="Raw single-frame retinal cross-section, heavy speckle" width={1100} height={455} />
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="denoise-img denoise-clean" src="/oct-clean.jpg" alt="Denoised cross-section, layers and choroid clearly resolved" width={1500} height={620} />
+      <img className="denoise-img denoise-clean" src="/oct-clean.jpg" alt="Denoised cross-section, layers and choroid clearly resolved" width={1100} height={455} />
       <span className="denoise-scan" aria-hidden="true" />
       <div className="denoise-tags" aria-hidden="true">
         <span>raw</span>
@@ -54,40 +55,79 @@ function DenoiseHero() {
 }
 
 /* The tracking hero: one moment, three ways of seeing it. The microscope
-   view is what a person sees, the en face view is what the detector is
-   given, and the volume is what the tracking buys you. All three come from
-   the same row of the same figure, deliberately: the needle is the one
-   instrument whose en face view actually shows the tool, and this panel
-   claims to be the view the detector works from, so it had better. The
-   volume alternates between two real time points, which is what makes the
-   fourth dimension something you see rather than something asserted. */
+   view is what an operator sees, the en face frame is the detector input,
+   and the volume is what the tracking produces. The two volume renderings
+   are different viewpoints of the same tracked volume, NOT successive time
+   points; an earlier version cross-faded them while claiming motion, which
+   was simply wrong. Labelled as viewpoints now. */
 function TrackingHero() {
   return (
     <figure className="denoise-figure">
       <div className="trio">
         <div className="trio-cell trio-wl">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/track-wl.jpg" alt="Microscope view of a needle at the surface of an ex vivo porcine eye" width={356} height={400} />
+          <img src="/track-wl.jpg" alt="Surgical microscope view of ILM forceps at the surface of an ex vivo porcine eye" width={403} height={400} />
           <span className="trio-label">microscope</span>
         </div>
-        <div className="trio-cell trio-ser">
+        {/* Twelve consecutive frames of real detector output, laid out as a
+            sprite and stepped with a transform. A sprite plus steps() rather
+            than an animated image format, because that way
+            prefers-reduced-motion can actually stop it. */}
+        <div className="trio-cell trio-detect">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/track-ser.jpg" alt="En face reflectometry image of the same scene, the view the detector is given" width={231} height={400} />
-          <span className="trio-label">en face</span>
+          <img
+            className="detect-strip"
+            src="/track-detect.webp"
+            alt="Twelve consecutive en face frames with the YOLOv4 bounding box tracking the instrument across the field"
+            width={3600}
+            height={300}
+          />
+          <span className="trio-label trio-label-accent">live detection</span>
         </div>
         <div className="trio-cell trio-oct">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/track-oct-a.jpg" alt="Volumetric render of a 30-gauge needle at the corneal surface" width={440} height={440} />
+          <img src="/track-oct-a.jpg" alt="Volumetric OCT rendering of the forceps at the corneal surface" width={440} height={440} />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="trio-oct-b" src="/track-oct-b.jpg" alt="The same volume moments later, the needle having moved across the surface" width={440} height={440} />
-          <span className="trio-label trio-label-accent">4D volume</span>
+          <img className="trio-oct-b" src="/track-oct-b.jpg" alt="The same tracked volume rendered from a second viewpoint" width={440} height={440} />
+          <span className="trio-label trio-label-accent">OCT volume · 2 views</span>
         </div>
       </div>
       <figcaption>
-        One moment in an <strong>ex vivo porcine eye</strong>, three ways: the
-        microscope view, the en face image the detector actually works from, and
-        the tracked volume. The volume alternates between two real time points, so
-        the motion you are watching is the needle&rsquo;s, not an animation.
+        Three views of the system: the surgical microscope image an operator sees,
+        <strong> twelve consecutive frames of real detector output</strong> with the
+        bounding box tracking the instrument, and the tracked OCT volume rendered
+        from two viewpoints. The microscope and volume panels are ILM forceps in an
+        ex vivo porcine eye; the detection sequence is from a separate acquisition.
+      </figcaption>
+    </figure>
+  );
+}
+
+/* The spectral denoiser's own before and after, deliberately built in the
+   same frame and with the same wipe as the self-fusion hero so the two
+   denoising projects are visually comparable. Both frames were windowed
+   with ONE shared percentile range: windowing them separately would have
+   flattered the prediction. */
+function SpectralHero() {
+  return (
+    <figure className="denoise-figure">
+      <div className="denoise" aria-label="Full-bandwidth reference resolving into the network prediction">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="denoise-img" src="/spectral-ref.jpg" alt="Full-bandwidth reference reconstruction of a fovea, speckle throughout" width={1100} height={455} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="denoise-img denoise-clean" src="/spectral-pred.jpg" alt="Network prediction, speckle suppressed with layer boundaries and choroidal texture preserved" width={1100} height={455} />
+        <span className="denoise-scan" aria-hidden="true" />
+        <div className="denoise-tags" aria-hidden="true">
+          <span>full-band reference</span>
+          <span className="denoise-tag-clean">prediction</span>
+        </div>
+      </div>
+      <figcaption>
+        Validation frame from the trained model. Both panels use a{" "}
+        <strong>single shared display window</strong>. On this frame the prediction
+        measures <strong>SNR 100.95 dB</strong> against 93.76 dB for the
+        full-bandwidth reference, and <strong>CNR 60.46 dB</strong> against 53.83 dB:
+        the output is quantitatively cleaner than its own training target.
       </figcaption>
     </figure>
   );
@@ -102,7 +142,16 @@ function Visual({ kind }: { kind: NonNullable<Project["visual"]> }) {
       </>
     );
   if (kind === "scanner") return <ScannerSchematic />;
-  if (kind === "spectral") return <SpectralSchematic />;
+  if (kind === "spectral")
+    return (
+      <>
+        <SpectralHero />
+        <SpectralSchematic />
+      </>
+    );
+  if (kind === "calib") return <CalibSchematic />;
+  if (kind === "classify") return <ClassifySchematic />;
+  if (kind === "tangos") return <TangosSchematic />;
   return (
     <>
       <figure className="denoise-figure">
