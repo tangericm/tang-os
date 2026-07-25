@@ -1424,114 +1424,6 @@ html.booted .boot-overlay {
   background: #ecb676;
 }
 
-/* --- the tracking trio: microscope, en face, volume ---
-   Each cell grows in proportion to its own natural width and carries its
-   own aspect ratio, so all three end up exactly the same height without
-   any of it being hard-coded, and they shrink together on a narrow pane. */
-.trio {
-  display: flex;
-  gap: 6px;
-}
-
-.trio-cell {
-  position: relative;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid var(--hairline);
-  background: #000;
-}
-
-.trio-cell img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.trio-wl {
-  flex: 403 1 0;
-  aspect-ratio: 403 / 400;
-}
-
-.trio-detect {
-  flex: 300 1 0;
-  aspect-ratio: 1;
-  border-color: rgba(226, 170, 99, 0.35);
-}
-
-/* The sprite is twelve 300px frames side by side, so the strip is 1200% of
-   the cell and one full translateX(-100%) walks the whole loop. Stepping a
-   transform rather than using an animated image format is the only way
-   prefers-reduced-motion can actually stop it, and it stays on the
-   compositor.
-
-   Selector needs both classes: `.trio-cell img` above is (0,1,1) and would
-   otherwise win, and its `inset: 0` pins the strip to a single frame's
-   width, which shows one sliver and then nothing. */
-.trio-cell .detect-strip {
-  position: absolute;
-  inset: 0 auto auto 0;
-  width: 1200%;
-  max-width: none;
-  height: 100%;
-  object-fit: fill;
-  animation: detect-play 1.9s steps(12) infinite;
-}
-
-@keyframes detect-play {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-100%);
-  }
-}
-
-.trio-oct {
-  flex: 400 1 0;
-  aspect-ratio: 1;
-  border-color: rgba(226, 170, 99, 0.35);
-}
-
-/* the second time point, cross-faded over the first */
-.trio-oct-b {
-  animation: oct-swap 5.4s ease-in-out infinite;
-}
-
-@keyframes oct-swap {
-  0%,
-  36% {
-    opacity: 0;
-  }
-  52%,
-  86% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
-.trio-label {
-  position: absolute;
-  left: 6px;
-  bottom: 6px;
-  z-index: 1;
-  padding: 2px 6px;
-  border-radius: 5px;
-  font-size: 9.5px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: rgba(244, 241, 236, 0.72);
-  background: rgba(12, 10, 8, 0.66);
-  pointer-events: none;
-}
-
-.trio-label-accent {
-  color: var(--accent);
-}
-
 /* --- the raw → denoised reveal --- */
 .denoise {
   position: relative;
@@ -2469,12 +2361,8 @@ html.booted .boot-overlay {
     display: none;
   }
   /* show only the first time point rather than freezing mid-crossfade */
-  .trio-oct-b {
-    animation: none;
-    opacity: 0;
-  }
-  /* hold the first frame of the detection sequence */
-  .trio-cell .detect-strip {
+  /* hold the first frame of the tracking sequence */
+  .seq-strip {
     animation: none;
   }
   .cal-ray,
@@ -2673,4 +2561,137 @@ html.booted .boot-overlay {
 /* a second desktop icon needs to sit below the first */
 .desktop-file + .desktop-file {
   top: 172px;
+}
+
+/* ============================================================
+   Tracking sequence (stepped composite of correlated views)
+   ============================================================ */
+.seq {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 589 / 300;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  background: #080706;
+}
+
+/* Ten frames side by side, so the strip is 1000% of the container and one
+   translateX(-100%) walks the loop. Stepping a transform rather than using
+   an animated image format is what lets prefers-reduced-motion stop it. */
+.seq-strip {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 1000%;
+  max-width: none;
+  height: 100%;
+  object-fit: fill;
+  image-rendering: auto;
+  animation: seq-play 5s steps(10) infinite;
+}
+
+@keyframes seq-play {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+/* labels sit over the panel boundaries, flex-weighted to match the crops */
+.seq-labels {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 1;
+  display: flex;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.seq-labels span {
+  padding: 3px 0 4px;
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-align: center;
+  color: rgba(244, 241, 236, 0.72);
+  background: linear-gradient(180deg, rgba(8, 7, 6, 0), rgba(8, 7, 6, 0.82) 45%);
+}
+
+.seq-label-accent {
+  color: var(--accent) !important;
+}
+
+/* ============================================================
+   Runner (GameWindow)
+   ============================================================ */
+.window-game {
+  width: min(640px, 94vw);
+}
+
+.window-game .window-body {
+  padding: 0;
+  height: auto;
+  max-height: none;
+  overflow: hidden;
+}
+
+.game {
+  position: relative;
+  background: #14100c;
+  outline: none;
+}
+
+.game:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--accent-soft);
+}
+
+.game-hud {
+  display: flex;
+  justify-content: space-between;
+  padding: 9px 14px 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+}
+
+.game-score {
+  color: var(--accent);
+}
+
+.game-best {
+  color: var(--ink-faint);
+}
+
+.game-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: manipulation;
+}
+
+.game-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(20, 16, 12, 0.72);
+  cursor: pointer;
+}
+
+.game-msg {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.game-hint {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
 }
