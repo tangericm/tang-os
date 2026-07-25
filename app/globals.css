@@ -198,6 +198,12 @@ body {
   }
 }
 
+/* set by the inline script in layout.tsx when this session has already
+   seen the boot sequence */
+html.booted .boot-overlay {
+  display: none;
+}
+
 .boot-center {
   display: flex;
   flex-direction: column;
@@ -786,6 +792,69 @@ body {
 }
 
 /* ============================================================
+   Alert dialog (the 404)
+   ============================================================ */
+.alert {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: min(420px, 90vw);
+  padding: 28px 30px 24px;
+  border-radius: 12px;
+  background: var(--surface-window);
+  border: 1px solid var(--edge-light);
+  box-shadow: var(--shadow-window);
+  animation: win-open 220ms ease-out;
+}
+
+.alert-mark svg {
+  display: block;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 14px;
+}
+
+.alert-mark circle {
+  fill: rgba(226, 170, 99, 0.12);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.alert-mark path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+
+.alert-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.alert-body {
+  margin: 9px 0 20px;
+  max-width: 34ch;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.alert-code {
+  margin-top: 18px;
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  color: var(--ink-faint);
+}
+
+/* ============================================================
    Desktop file (the resume on the desktop)
    ============================================================ */
 .desktop-file {
@@ -1127,6 +1196,28 @@ body {
   border-right: 1px solid var(--hairline);
   background: var(--surface-sidebar);
   overflow-y: auto;
+}
+
+/* Sidebar groups. The order of the work says something (first-author,
+   then built alone, then co-authored), so the groups are labelled rather
+   than left for the reader to infer from a flat list. */
+.proj-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.proj-group + .proj-group {
+  margin-top: 15px;
+}
+
+.proj-group-title {
+  padding: 0 11px 3px;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: rgba(244, 241, 236, 0.36);
 }
 
 .proj-item {
@@ -1612,6 +1703,160 @@ body {
   fill: #f4d29a;
 }
 
+/* ---- the tracking schematic (TrackingSchematic.tsx) ----
+   The red/green/blue here is the one place this warm palette gives way to
+   literal colour, because the subject IS the three channels of an RGB
+   input. Kept muted so it reads as a diagram, not a rainbow. */
+.trk-stack rect {
+  fill: rgba(40, 34, 28, 0.95);
+  stroke: rgba(255, 244, 230, 0.16);
+  stroke-width: 1;
+  animation: trk-roll 2.8s ease-in-out infinite;
+}
+
+@keyframes trk-roll {
+  0%,
+  72%,
+  100% {
+    stroke: rgba(255, 244, 230, 0.16);
+  }
+  18% {
+    stroke: rgba(226, 170, 99, 0.7);
+  }
+}
+
+.trk-frame {
+  fill: rgba(14, 11, 9, 0.9);
+  stroke: var(--hairline);
+  stroke-width: 1;
+}
+
+.trk-ch {
+  stroke-width: 1;
+}
+
+.sfs-ch-b {
+  fill: rgba(96, 128, 190, 0.2);
+  stroke: rgba(126, 160, 222, 0.55);
+}
+
+.sfs-ch-g {
+  fill: rgba(104, 168, 112, 0.2);
+  stroke: rgba(130, 202, 138, 0.55);
+}
+
+.sfs-ch-r {
+  fill: rgba(190, 104, 96, 0.2);
+  stroke: rgba(228, 136, 124, 0.55);
+}
+
+.trk-speckle {
+  stroke: rgba(244, 241, 236, 0.3);
+  stroke-width: 1.1;
+  stroke-linecap: round;
+}
+
+/* the mover: the only thing a variance image keeps */
+.trk-var-blob {
+  fill: rgba(228, 136, 124, 0.5);
+  stroke: rgba(240, 164, 152, 0.85);
+  stroke-width: 1;
+  animation: trk-blob 2.8s ease-in-out infinite;
+}
+
+@keyframes trk-blob {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  45% {
+    opacity: 1;
+  }
+}
+
+.trk-fused {
+  stroke: rgba(226, 170, 99, 0.45);
+}
+
+.trk-box {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.6;
+  stroke-dasharray: 4 3;
+  animation: sfs-flow 0.9s linear infinite;
+}
+
+.trk-chip {
+  fill: rgba(226, 170, 99, 0.14);
+  stroke: rgba(226, 170, 99, 0.5);
+  stroke-width: 1;
+}
+
+.trk-curve {
+  fill: none;
+  stroke: rgba(226, 170, 99, 0.75);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.trk-curve-lin {
+  stroke: rgba(244, 241, 236, 0.22);
+  stroke-width: 1.2;
+  stroke-dasharray: 3 3;
+}
+
+.trk-ramp {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.trk-pt {
+  fill: rgba(244, 241, 236, 0.55);
+}
+
+.trk-field {
+  fill: rgba(10, 8, 6, 0.92);
+}
+
+/* The payoff: the target drifts, the imaged field chases it. The chase
+   lags on purpose, because the real loop closes once per volume rather
+   than once per detection. */
+.trk-target {
+  fill: rgba(226, 170, 99, 0.85);
+  animation: trk-drift 4.4s ease-in-out infinite;
+}
+
+.trk-fov {
+  fill: rgba(226, 170, 99, 0.07);
+  stroke: var(--accent);
+  stroke-width: 1.4;
+  animation: trk-chase 4.4s ease-in-out infinite;
+}
+
+@keyframes trk-drift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(96px, 12px);
+  }
+}
+
+@keyframes trk-chase {
+  0%,
+  9%,
+  100% {
+    transform: translate(0, 0);
+  }
+  59% {
+    transform: translate(96px, 12px);
+  }
+}
+
 /* shared SVG type */
 .sfs-cap {
   fill: var(--ink-soft);
@@ -1686,7 +1931,12 @@ body {
   .sfs-warp-b,
   .sfs-weight,
   .sfs-target,
-  .sfs-skip {
+  .sfs-skip,
+  .trk-stack rect,
+  .trk-var-blob,
+  .trk-box,
+  .trk-target,
+  .trk-fov {
     animation: none;
   }
   .denoise-scan,

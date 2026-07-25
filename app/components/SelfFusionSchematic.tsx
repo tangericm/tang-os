@@ -10,10 +10,10 @@
  * edge preserving and tolerant of motion, and the registration makes it
  * far too slow to watch live.
  *
- * Panel 2 is what actually runs during surgery. The network sees only
- * three raw frames and is trained to reproduce that slow fused result,
- * which is the whole trick: the quality of a seven frame registration at
- * a frame rate you can operate under.
+ * Panel 2 is what actually runs live. The network sees only three raw
+ * frames and is trained to reproduce that slow fused result, which is the
+ * whole trick: the quality of a seven frame registration at a frame rate
+ * you can watch.
  *
  * Numbers on the panels come from the paper (Rico-Jimenez et al., Biomed.
  * Opt. Express 13(3), 2022). Deliberately no channel counts or layer
@@ -69,7 +69,7 @@ function TargetPanel() {
       className="sfs-svg"
       viewBox="0 0 560 150"
       role="img"
-      aria-label="Self-fusion: seven neighboring B-scans are deformably registered onto the center frame, weighted by local similarity, and fused into one high quality target image."
+      aria-label="Self-fusion: seven neighboring frames are deformably registered onto the center frame, weighted by local similarity, and fused into one high quality target image."
     >
       {/* --- stage 1: the seven neighbors --- */}
       <g className="sfs-stack">
@@ -169,15 +169,25 @@ function TargetPanel() {
    Panel 2: the network that runs live
    ============================================================ */
 
+/* The two towers really are symmetric in the architecture this is based
+   on: three blocks down, three up, the same 64 channels throughout, three
+   halvings against three doublings. The only asymmetry is in the dilation
+   rates, which is not something a diagram at this level should show. So
+   the drawing is built around a single centre line and mirrored about it,
+   rather than eyeballed. */
 const BH = 20; // block height
-const ENC_R = 210; // encoder blocks are right-aligned here
-const DEC_L = 342; // decoder blocks are left-aligned here
+const CENTER = 275;
+const HALF_GAP = 64; // encoder and decoder edges, equidistant from CENTER
+const ENC_R = CENTER - HALF_GAP; // encoder blocks are right-aligned here
+const DEC_L = CENTER + HALF_GAP; // decoder blocks are left-aligned here
 const LEVELS = [
   { y: 40, w: 104 },
   { y: 82, w: 76 },
   { y: 124, w: 50 },
 ];
-const LATENT = { x: 242, y: 166, w: 84 };
+const LATENT = { x: CENTER - 42, y: 166, w: 84 }; // centred on CENTER too
+const OUT = { x: 488, w: 66 };
+const outMid = OUT.x + OUT.w / 2;
 
 const mid = (i: number) => LEVELS[i].y + BH / 2;
 const encMid = (i: number) => ENC_R - LEVELS[i].w / 2;
@@ -201,7 +211,7 @@ function NetworkPanel() {
     ` C${encMid(2) + 22} ${mid(2)} ${LATENT.x - 4} ${latMid} ${LATENT.x} ${latMid}` +
     ` H${LATENT.x + LATENT.w}` +
     ` C${LATENT.x + LATENT.w + 22} ${latMid} ${decMid(2) - 22} ${mid(2)} ${decMid(2)} ${mid(2)}` +
-    ` L${decMid(1)} ${mid(1)} L${decMid(0)} ${mid(0)} H504`;
+    ` L${decMid(1)} ${mid(1)} L${decMid(0)} ${mid(0)} H${outMid}`;
 
   return (
     <svg
@@ -281,16 +291,16 @@ function NetworkPanel() {
       </text>
 
       {/* --- output: one denoised frame --- */}
-      <rect className="sfs-out" x={466} y={mid(0) - 26} width={76} height={54} rx={3} />
-      <LayerStack x={476} y={mid(0) - 12} w={56} clean />
-      <text className="sfs-cap sfs-cap-accent" x={504} y={mid(0) + 44} textAnchor="middle">
-        1 denoised frame
+      <rect className="sfs-out" x={OUT.x} y={mid(0) - 26} width={OUT.w} height={54} rx={3} />
+      <LayerStack x={OUT.x + 9} y={mid(0) - 12} w={OUT.w - 18} clean />
+      <text className="sfs-cap sfs-cap-accent" x={outMid} y={mid(0) + 44} textAnchor="middle">
+        1 clean frame
       </text>
-      <text className="sfs-sub" x={504} y={mid(0) + 57} textAnchor="middle">
+      <text className="sfs-sub" x={outMid} y={mid(0) + 57} textAnchor="middle">
         22 fps on GPU
       </text>
 
-      <text className="sfs-sub sfs-sub-accent" x={276} y={28} textAnchor="middle">
+      <text className="sfs-sub sfs-sub-accent" x={CENTER} y={28} textAnchor="middle">
         skip connections
       </text>
 
@@ -344,7 +354,7 @@ export default function SelfFusionSchematic() {
 
       <section className="sfs-panel">
         <h3 className="sfs-head">
-          <span className="sfs-step">2</span> What runs during surgery
+          <span className="sfs-step">2</span> What runs in real time
           <span className="sfs-badge sfs-badge-live">real time</span>
         </h3>
         <div className="sfs-canvas">
@@ -357,7 +367,7 @@ export default function SelfFusionSchematic() {
           encoder level back to full size at the output, return the thin layer
           edges speckle erodes. Trained against the fused target, it reaches
           about 22 fps in C++, roughly fifty times faster than the method it
-          learned from, and it doubles contrast to noise over a raw B-scan.
+          learned from, and it doubles contrast to noise over a raw frame.
         </p>
       </section>
     </div>

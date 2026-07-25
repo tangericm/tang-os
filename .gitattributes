@@ -1,0 +1,18 @@
+# Normalise line endings.
+#
+# Without this, a Windows editor (or OneDrive) rewrites files as CRLF and
+# every tracked file shows up as modified even when the content is byte
+# identical, which makes `git status` useless and hides real changes. Text
+# files are stored LF in the repo and checked out LF, which is what the
+# committed history already uses.
+* text=auto eol=lf
+
+# Binary, never touch these
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.avif binary
+*.pdf binary
+*.ico binary
+*.woff binary
+*.woff2 binary
