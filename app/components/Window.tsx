@@ -170,21 +170,82 @@ export default function Window({
     const frame = frameRef.current;
     if (!frame) return;
     const rect = frame.getBoundingClientRect();
+    /* Pin to pixels on the first grab so the translate below has a fixed
+       origin to work from, whatever the stylesheet had been doing. */
     if (pos === null) setPos({ x: rect.left, y: rect.top });
+    dragStart.current = { x: rect.left, y: rect.top };
+    dragOffset.current = { x: 0, y: 0 };
     grabOffset.current = { dx: e.clientX - rect.left, dy: e.clientY - rect.top };
     e.currentTarget.setPointerCapture(e.pointerId);
   }
 
-  function onPointerMove(e: React.PointerEvent<HTMLElement>) {
-    if (!grabOffset.current) return;
-    setPos({
-      x: e.clientX - grabOffset.current.dx,
-      y: Math.max(34, e.clientY - grabOffset.current.dy),
-    });
+  /* Drag writes to the DOM, not through React.
+     `left`/`top` are layout properties: setting them per pointer event forced
+     a full layout and repaint of a position:fixed box carrying a 70px blur
+     shadow, a 12px radius and overflow:hidden, sixty-plus times a second.
+     A translate is a compositor-only transform, so the frame moves without
+     the page being laid out again.
+
+     React state is updated once, on pointerup. During the drag it would only
+     re-render the frame to produce a value the DOM already has. */
+  const dragStart = useRef<{ x: number; y: number } | null>(null);
+  const dragOffset = useRef<{ x: number; y: number } | null>(null);
+  const dragFrame = useRef<number | null>(null);
+  const dragPending = useRef<{ x: number; y: number } | null>(null);
+
+  function paintDrag() {
+    dragFrame.current = null;
+    const frame = frameRef.current;
+    const next = dragPending.current;
+    if (!frame || !next || !dragStart.current) return;
+    dragOffset.current = {
+      x: next.x - dragStart.current.x,
+      y: next.y - dragStart.current.y,
+    };
+    /* Custom properties, not `style.transform` directly. React owns the
+       transform declaration on this element, and anything that re-renders the
+       frame mid-drag — a focus change, the parent re-rendering — would write
+       it back and drop the window on the floor. React does not manage --dx
+       and --dy, so they survive. */
+    frame.style.setProperty("--dx", `${dragOffset.current.x}px`);
+    frame.style.setProperty("--dy", `${dragOffset.current.y}px`);
   }
 
+  function onPointerMove(e: React.PointerEvent<HTMLElement>) {
+    if (!grabOffset.current) return;
+    dragPending.current = {
+      x: e.clientX - grabOffset.current.dx,
+      y: Math.max(34, e.clientY - grabOffset.current.dy),
+    };
+    /* Coalesced: pointer events outpace the compositor, so more than one
+       write per frame is work thrown away. */
+    if (dragFrame.current === null) {
+      dragFrame.current = requestAnimationFrame(paintDrag);
+    }
+  }
+
+  /* Commit once, at the end. The translate that carried the drag is folded
+     back into left/top and cleared, so the resting window is described by
+     ordinary coordinates again — which is what minimize measures, what the
+     viewport clamp adjusts, and what zoom stashes and restores. Leaving a
+     live transform on the frame would quietly break all three. */
   function onPointerUp() {
+    if (!grabOffset.current) return;
     grabOffset.current = null;
+    if (dragFrame.current !== null) {
+      cancelAnimationFrame(dragFrame.current);
+      dragFrame.current = null;
+    }
+    const landed = dragPending.current;
+    dragPending.current = null;
+    dragStart.current = null;
+    dragOffset.current = null;
+    const frame = frameRef.current;
+    if (frame) {
+      frame.style.removeProperty("--dx");
+      frame.style.removeProperty("--dy");
+    }
+    if (landed) setPos(clampToViewport(landed, frame));
   }
 
   /* Resizing (the bottom-right grip): record the size and cursor at
@@ -259,7 +320,17 @@ export default function Window({
       ref={frameRef}
       className={classes}
       style={{
-        ...(pos ? { left: pos.x, top: pos.y, transform: "none" } : null),
+        /* `transform: none` used to sit here to cancel the stylesheet's
+           centring translateX(-50%). It now carries the drag offset instead,
+           which defaults to zero — same resting result, and the drag has a
+           compositor-only channel that survives a re-render. */
+        ...(pos
+          ? {
+              left: pos.x,
+              top: pos.y,
+              transform: "translate3d(var(--dx, 0px), var(--dy, 0px), 0)",
+            }
+          : null),
         ...(size ? { width: size.w, height: size.h } : null),
         ...(zIndex !== undefined ? { zIndex } : null),
       }}

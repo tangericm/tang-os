@@ -20,12 +20,11 @@ function formatClock(d: Date): string {
   return `${date} ${time}`; //   = en-space, slightly wider gap
 }
 
-export default function MenuBar() {
-  // `now` starts as null on purpose. The server renders this component once
-  // (with no clock), and the browser's FIRST render must produce identical
-  // HTML, if the server baked in its own time, the two would differ and
-  // React would warn about a "hydration mismatch". Effects only run in the
-  // browser, so the real time appears right after mount.
+/* The clock is its own component so its once-a-second setState re-renders one
+   <span> instead of the whole menu bar. It used to live in MenuBar, which
+   meant PowerMenu — portals, listeners and all — re-rendered every second for
+   the life of the page to redraw a string that changes once a minute. */
+function Clock() {
   const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -34,6 +33,15 @@ export default function MenuBar() {
     return () => clearInterval(id); // cleanup: stop ticking if unmounted
   }, []);
 
+  return <span className="menubar-clock">{now ? formatClock(now) : ""}</span>;
+}
+
+export default function MenuBar() {
+  // `now` starts as null on purpose. The server renders this component once
+  // (with no clock), and the browser's FIRST render must produce identical
+  // HTML, if the server baked in its own time, the two would differ and
+  // React would warn about a "hydration mismatch". Effects only run in the
+  // browser, so the real time appears right after mount.
   return (
     <header className="menubar">
       <div className="menubar-left">
@@ -44,7 +52,7 @@ export default function MenuBar() {
       </div>
 
       <div className="menubar-right">
-        <span className="menubar-clock">{now ? formatClock(now) : ""}</span>
+        <Clock />
       </div>
     </header>
   );

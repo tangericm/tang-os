@@ -49,9 +49,9 @@ function DenoiseHero() {
       </div>
       <div className="denoise" aria-label="A real noisy scan resolving into a denoised one">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="denoise-img" src="/oct-raw.jpg" alt="Raw single-frame retinal cross-section, heavy speckle" width={1100} height={455} />
+        <img className="denoise-img" src="/oct-raw.jpg" alt="Raw single-frame retinal cross-section, heavy speckle" loading="lazy" decoding="async" width={1100} height={455} />
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="denoise-img denoise-clean" src="/oct-clean.jpg" alt="Denoised cross-section, layers and choroid clearly resolved" width={1100} height={455} />
+        <img className="denoise-img denoise-clean" src="/oct-clean.jpg" alt="Denoised cross-section, layers and choroid clearly resolved" loading="lazy" decoding="async" width={1100} height={455} />
         <span className="denoise-scan" aria-hidden="true" />
       </div>
     </>
@@ -148,9 +148,9 @@ function SpectralHero() {
       </div>
       <div className="denoise" aria-label="Full-bandwidth reference resolving into the network prediction">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="denoise-img" src="/spectral-ref.jpg" alt="Full-bandwidth reference reconstruction of a retinal cross-section, speckle throughout and layer boundaries barely separable" width={1100} height={455} />
+        <img className="denoise-img" src="/spectral-ref.jpg" alt="Full-bandwidth reference reconstruction of a retinal cross-section, speckle throughout and layer boundaries barely separable" loading="lazy" decoding="async" width={1100} height={455} />
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="denoise-img denoise-clean" src="/spectral-pred.jpg" alt="Network prediction of the same frame, speckle suppressed with retinal layers resolved and choroidal vessels visible" width={1100} height={455} />
+        <img className="denoise-img denoise-clean" src="/spectral-pred.jpg" alt="Network prediction of the same frame, speckle suppressed with retinal layers resolved and choroidal vessels visible" loading="lazy" decoding="async" width={1100} height={455} />
         <span className="denoise-scan" aria-hidden="true" />
       </div>
       <figcaption>
