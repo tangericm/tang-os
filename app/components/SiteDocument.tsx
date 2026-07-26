@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import ResumeDocument from "./ResumeDocument";
 import { EDUCATION, EXPERIENCE, LINKS, PROFILE, TAGLINE } from "../data/profile";
-import { GROUPS, PROJECTS } from "../data/projects";
+import { GROUPS, PROJECTS, type Project } from "../data/projects";
 import { PUBLICATIONS } from "../data/publications";
 
 /**
@@ -112,39 +112,68 @@ const Education = () => (
  * only — an h4 would land unstyled, which after the global margin reset means
  * a bold line jammed against the heading above it with no separation at all.
  */
-const Projects = () => (
+const ProjectBody = ({ project }: { project: Project }) => (
+  <>
+    <p>
+      <small>{project.kind}</small>
+    </p>
+    <p>{project.blurb}</p>
+    <p>
+      <small>{project.tags.join(" · ")}</small>
+    </p>
+    {/* Guarded rather than always emitted: an empty <ul> is legal but still
+        carries its bottom margin, so a link-less project would print a 16px
+        hole under itself. */}
+    {project.links.length > 0 && (
+      <ul>
+        {project.links.map((link) => (
+          <li key={link.href}>
+            <a href={link.href} target="_blank" rel="noreferrer">
+              {link.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    )}
+  </>
+);
+
+/* The single-project document. No group heading: on /projects/[id] the
+   project is the subject of the page, and its name is already the h1. */
+const OneProject = ({ project }: { project: Project }) => (
+  <>
+    <h2>About this project</h2>
+    <ProjectBody project={project} />
+  </>
+);
+
+const Projects = ({
+  headingLevel = 2,
+  exclude,
+}: {
+  /* On /projects/[id] this list is a secondary "other work" section sitting
+     under its own h2, so its group headings have to drop a level to keep the
+     outline contiguous. */
+  headingLevel?: 2 | 3;
+  exclude?: string;
+} = {}) => (
   <>
     {orderedGroups().map((group) => {
-      const inGroup = PROJECTS.filter((project) => project.group === group);
+      const inGroup = PROJECTS.filter(
+        (project) => project.group === group && project.id !== exclude
+      );
       if (inGroup.length === 0) return null;
+
+      const GroupHeading = headingLevel === 2 ? "h2" : "h3";
+      const NameHeading = headingLevel === 2 ? "h3" : "h4";
 
       return (
         <Fragment key={group}>
-          <h2>Projects · {group}</h2>
+          <GroupHeading>Projects · {group}</GroupHeading>
           {inGroup.map((project) => (
             <article key={project.id}>
-              <h3>{project.name}</h3>
-              <p>
-                <small>{project.kind}</small>
-              </p>
-              <p>{project.blurb}</p>
-              <p>
-                <small>{project.tags.join(" · ")}</small>
-              </p>
-              {/* Guarded rather than always emitted: an empty <ul> is legal but
-                  still carries its bottom margin, so a link-less project would
-                  print a 16px hole under itself. */}
-              {project.links.length > 0 && (
-                <ul>
-                  {project.links.map((link) => (
-                    <li key={link.href}>
-                      <a href={link.href} target="_blank" rel="noreferrer">
-                        {link.label}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <NameHeading>{project.name}</NameHeading>
+              <ProjectBody project={project} />
             </article>
           ))}
         </Fragment>
@@ -231,23 +260,94 @@ const Contact = () => (
 
 /* ---------- the document ---------- */
 
-export default function SiteDocument() {
+export type DocScope = "home" | "projects" | "project" | "resume";
+
+/**
+ * One component, four documents.
+ *
+ * Every route renders this, and the scope decides what goes under the shared
+ * identity header. The split is not cosmetic: two URLs whose text is
+ * near-identical are the only kind of duplication that actually costs
+ * ranking, so /resume must not be /?resume-and-everything-else. Each scope
+ * leads with the thing its URL claims to be about and links to the rest.
+ *
+ * The h1 is per-document rather than global. On a project page the project is
+ * the subject; burying it under a personal-name h1 would describe the page
+ * wrongly to anything reading the outline.
+ */
+export default function SiteDocument({
+  scope = "home",
+  projectId,
+}: {
+  scope?: DocScope;
+  projectId?: string;
+}) {
+  const project = projectId ? PROJECTS.find((p) => p.id === projectId) : undefined;
+
+  /* Identity leads on every route: these documents are read out of context,
+     pasted into a chat window or an ATS, and a page that opens on a blurb with
+     no name attached is a page that does not say whose work it is. */
+  const header = (
+    <>
+      <h1>
+        {scope === "project" && project
+          ? project.name
+          : `${PROFILE.name}, ${PROFILE.honorific}`}
+      </h1>
+      {scope === "project" && project ? (
+        <p>
+          {project.kind} — work by <strong>{PROFILE.name}</strong>, {PROFILE.jobTitle} at{" "}
+          {PROFILE.employer}.
+        </p>
+      ) : (
+        <>
+          <p>{TAGLINE}</p>
+          <p>
+            Currently <strong>{PROFILE.jobTitle}</strong> at {PROFILE.employer}, based in{" "}
+            {PROFILE.location}.
+          </p>
+        </>
+      )}
+    </>
+  );
+
+  if (scope === "project" && project) {
+    return (
+      <>
+        {header}
+        <OneProject project={project} />
+        <h2>Other work</h2>
+        <Projects headingLevel={3} exclude={project.id} />
+        <Contact />
+      </>
+    );
+  }
+
+  if (scope === "projects") {
+    return (
+      <>
+        {header}
+        <Projects />
+        <Publications />
+        <Contact />
+      </>
+    );
+  }
+
+  if (scope === "resume") {
+    return (
+      <>
+        {header}
+        <Resume />
+        <Publications />
+        <Contact />
+      </>
+    );
+  }
+
   return (
     <>
-      {/* The page's only h1. The desktop deliberately ships none — a window
-          title is not a document title — and ResumeDocument starts at h2 for
-          the same reason, so this is the single root the whole outline hangs
-          from. Name plus honorific, both from PROFILE, which also keeps it
-          distinct from the resume's heading (that one uses the legal name). */}
-      <h1>
-        {PROFILE.name}, {PROFILE.honorific}
-      </h1>
-      <p>{TAGLINE}</p>
-      <p>
-        Currently <strong>{PROFILE.jobTitle}</strong> at {PROFILE.employer}, based in{" "}
-        {PROFILE.location}.
-      </p>
-
+      {header}
       <Experience />
       <Education />
       <Projects />

@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { PROJECTS } from "./data/projects";
 
 /**
  * sitemap.xml via Next's file convention (served at /sitemap.xml).
@@ -53,12 +54,18 @@ function entry(path: string, priority: number): MetadataRoute.Sitemap[number] {
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     /* Root is "" rather than "/" so the URL emitted is exactly the canonical
-       one in layout.tsx's metadata — https://ericmtang.com, no trailing
+       one in app/(desktop)/page.tsx — https://ericmtang.com, no trailing
        slash. A sitemap disagreeing with the canonical tag by one character
        is a self-inflicted duplicate-content report. */
     entry("", 1),
-    /* Per-project URLs land here once routing ships. Projects currently open
-       as windows over "/", so there is nothing to point at yet; add each
-       route the same day it starts resolving, not in anticipation of it. */
+    entry("/resume", 0.9),
+    entry("/projects", 0.8),
+    /* Driven off PROJECTS, so a seventh project appears here the day it is
+       added rather than the day someone remembers this file. The ids are the
+       same ones generateStaticParams builds, which is what keeps every entry
+       a URL that actually returns 200. */
+    ...PROJECTS.map((project) => entry(`/projects/${project.id}`, 0.7)),
+    /* /terminal and /play are deliberately absent: both are noindex, and a
+       sitemap is a list of pages you are asking to have indexed. */
   ];
 }

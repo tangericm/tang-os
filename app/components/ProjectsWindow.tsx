@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Window from "./Window";
 import SelfFusionSchematic from "./SelfFusionSchematic";
 import TrackingSchematic from "./TrackingSchematic";
@@ -246,9 +245,19 @@ function Visual({ kind }: { kind: NonNullable<Project["visual"]> }) {
   );
 }
 
-export default function ProjectsWindow(props: Passthrough) {
-  const [sel, setSel] = useState<string>("tracking");
-  const project = PROJECTS.find((p) => p.id === sel)!;
+/* Controlled by WindowLayer, because the selected project IS the URL now
+   (/projects/spectral). Holding it in local state as well would give two
+   sources of truth for one fact, and the one that loses is the one a shared
+   link restores. */
+export default function ProjectsWindow({
+  selected,
+  onSelect,
+  ...props
+}: Passthrough & { selected: string; onSelect: (id: string) => void }) {
+  const sel = selected;
+  /* A project id that survives parseRoute is always real, but a stale link or
+     a hand-edited URL can still miss; fall back rather than crash the window. */
+  const project = PROJECTS.find((p) => p.id === sel) ?? PROJECTS[0];
 
   return (
     <Window title="Projects" frameClassName="window-projects" {...props}>
@@ -261,7 +270,7 @@ export default function ProjectsWindow(props: Passthrough) {
                 <button
                   key={p.id}
                   className={p.id === sel ? "proj-item proj-item-active" : "proj-item"}
-                  onClick={() => setSel(p.id)}
+                  onClick={() => onSelect(p.id)}
                   aria-current={p.id === sel}
                 >
                   <span className="proj-item-name">{p.name}</span>
