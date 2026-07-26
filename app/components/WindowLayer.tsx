@@ -115,10 +115,19 @@ export default function WindowLayer() {
       const out = { ...p, [next]: "open" as Phase };
       /* Back closes the app the URL used to name, and only that one. Closing
          everything would feel like a page reload; closing nothing would make
-         Back do visibly nothing. About is the arrival screen and stays. */
-      if (prev !== "about") out[prev] = "closing";
+         Back do visibly nothing. About is the arrival screen and stays.
+
+         A MINIMIZED window goes straight to "closed" with no animation. It is
+         unmounted while minimized and mounted while closing, so handing it
+         "closing" would pop it back to full size to play an exit animation
+         for something the user cannot currently see — the window visibly
+         reappearing in order to disappear. */
+      if (prev !== "about") out[prev] = p[prev] === "open" ? "closing" : "closed";
       return out;
     });
+    /* Unconditional on purpose: settle only acts when the phase is still the
+       transient one it was given, so for a window sent directly to "closed"
+       this is already a no-op and needs no second condition to keep in sync. */
     if (prev !== "about") settle(prev, "closing", "closed");
     setFront(next);
   }, [route.app]);

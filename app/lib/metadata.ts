@@ -31,14 +31,19 @@ export function routeMetadata({
   path: string;
   index?: boolean;
 }): Metadata {
-  /* The home page's title already carries the name, so appending it again
-     would read as a stutter. */
-  const cardTitle = title.includes(PROFILE.name) ? title : `${title} · ${PROFILE.name}`;
+  /* Whether the title already ends in the name decides two things at once:
+     the <title> must opt out of the root layout's template, and the card
+     title must not have the name appended a second time.
+
+     The root layout's `title.template` appends " · Eric M. Tang" to every
+     DESCENDANT title, and the home page's title is the full brand string that
+     already carries it, so letting the template run emits
+     "…Computer Vision · Eric M. Tang". `absolute` opts that one route out. */
+  const carriesName = title.includes(PROFILE.name);
+  const cardTitle = carriesName ? title : `${title} · ${PROFILE.name}`;
 
   return {
-    /* Resolves through the template in app/layout.tsx to "<title> · Eric M.
-       Tang", so a shared link names both the page and the person. */
-    title,
+    title: carriesName ? { absolute: title } : title,
     description,
     alternates: { canonical: path },
     openGraph: {
@@ -50,11 +55,16 @@ export function routeMetadata({
       title: cardTitle,
       description,
       url: path,
-      /* type and siteName are inherited from the root layout, and correctly:
-         they do not vary per route. Only the three fields that identify WHICH
-         page this is get overridden. */
+      /* Restated, NOT inherited. Next replaces nested metadata objects rather
+         than deep-merging them, so declaring `openGraph` here drops every
+         field the root layout set — `type` and `siteName` disappeared
+         outright, and `twitter.card` silently fell back from
+         summary_large_image to the small `summary` card. The invariant to
+         remember: any key you touch, you own completely. */
+      type: "website",
+      siteName: PROFILE.name,
     },
-    twitter: { title: cardTitle, description },
+    twitter: { card: "summary_large_image", title: cardTitle, description },
     ...(index ? {} : { robots: { index: false } }),
   };
 }
