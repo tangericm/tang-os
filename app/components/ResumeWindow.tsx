@@ -24,6 +24,8 @@ type Passthrough = {
   minimizeTarget?: string;
   zIndex?: number;
   onFocus?: () => void;
+  /** true while minimized; the window stays mounted but is display:none */
+  hidden?: boolean;
 };
 
 const ZOOMS = [0.85, 1, 1.15, 1.3];

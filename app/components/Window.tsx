@@ -35,6 +35,9 @@ function maximizedGeometry() {
  */
 
 type WindowProps = {
+  /** minimized: stays mounted so its app keeps its state, but out of layout,
+   *  out of the tab order and out of the accessibility tree */
+  hidden?: boolean;
   title: string;
   onClose: () => void;
   onMinimize?: () => void;
@@ -56,6 +59,7 @@ export default function Window({
   zIndex,
   onFocus,
   frameClassName,
+  hidden = false,
   children,
 }: WindowProps) {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
@@ -64,6 +68,24 @@ export default function Window({
   const grabOffset = useRef<{ dx: number; dy: number } | null>(null);
   const resizeStart = useRef<{ w: number; h: number; x: number; y: number } | null>(null);
   const frameRef = useRef<HTMLElement | null>(null);
+
+  /* Un-minimizing. A window that owns explicit coordinates cannot reuse
+     `win-open`: that keyframe hardcodes translateX(-50%) for the centered
+     default, and this frame writes `transform: none` inline, so replaying it
+     would yank the window half its own width to the left before settling.
+     `win-restore` runs the genie backwards from the dock icon instead, using
+     the --min-dx/--min-dy vector minimize already measured.
+
+     Windows still at the stylesheet's default position need none of this:
+     display:none → displayed restarts CSS animations by itself, and for them
+     `win-open` is the geometrically correct one. */
+  const [restoring, setRestoring] = useState(false);
+  const wasHidden = useRef(hidden);
+  useEffect(() => {
+    if (wasHidden.current && !hidden && pos !== null) setRestoring(true);
+    wasHidden.current = hidden;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hidden]);
   /* geometry to restore when the window is un-zoomed; null means "go back
      to whatever the stylesheet says", which is the state a freshly opened
      window is in */
@@ -184,7 +206,12 @@ export default function Window({
 
   const classes = [
     "window",
-    "window-opening", // entrance animation on mount
+    /* Only for a window sitting where the stylesheet put it. Once pos is set
+       the frame carries `transform: none` and win-open's translateX(-50%)
+       would be a visible sideways jump. */
+    pos === null ? "window-opening" : "",
+    restoring ? "window-restoring" : "",
+    hidden ? "window-hidden" : "",
     zoomed ? "window-zoomed" : "",
     motion ? `window-${motion}` : "", // exit animations override entrance
     frameClassName ?? "",
@@ -202,6 +229,11 @@ export default function Window({
         ...(zIndex !== undefined ? { zIndex } : null),
       }}
       onPointerDownCapture={onFocus}
+      /* Guarded: animationend bubbles, and the window body is full of
+         animated schematics that would otherwise clear this on their own. */
+      onAnimationEnd={(e) => {
+        if (e.target === e.currentTarget) setRestoring(false);
+      }}
     >
       <header
         className="window-titlebar"

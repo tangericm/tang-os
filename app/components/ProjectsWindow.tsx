@@ -32,6 +32,8 @@ type Passthrough = {
   minimizeTarget?: string;
   zIndex?: number;
   onFocus?: () => void;
+  /** true while minimized; the window stays mounted but is display:none */
+  hidden?: boolean;
 };
 
 /* The hero for the denoising project: a raw frame resolving into its

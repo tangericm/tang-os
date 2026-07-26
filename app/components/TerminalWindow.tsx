@@ -23,6 +23,8 @@ type Passthrough = {
   minimizeTarget?: string;
   zIndex?: number;
   onFocus?: () => void;
+  /** true while minimized; the window stays mounted but is display:none */
+  hidden?: boolean;
   /** so `open projects` can actually open the Projects window */
   onOpenApp?: (id: "about" | "projects" | "resume" | "game") => void;
 };
@@ -52,7 +54,7 @@ function wrap(text: string, width = 72): string[] {
   return out;
 }
 
-export default function TerminalWindow({ onOpenApp, ...props }: Passthrough) {
+export default function TerminalWindow({ onOpenApp, hidden = false, ...props }: Passthrough) {
   const [lines, setLines] = useState<Line[]>(BANNER);
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<string[]>([]);
@@ -60,11 +62,21 @@ export default function TerminalWindow({ onOpenApp, ...props }: Passthrough) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  // keep the newest output in view
+  /* Keep the newest output in view — and re-run when the window comes back.
+     While minimized the shell is display:none, so scrollHeight reads 0 and any
+     output written in that time pins the view to the top; without `hidden` in
+     the deps it stays there after restore, with the newest lines off screen. */
   useEffect(() => {
+    if (hidden) return;
     const el = scrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [lines]);
+  }, [lines, hidden]);
+
+  /* autoFocus fires on mount only, and a minimized window no longer remounts,
+     so restoring it would leave the caret nowhere. */
+  useEffect(() => {
+    if (!hidden) inputRef.current?.focus();
+  }, [hidden]);
 
   function push(...next: Line[]) {
     setLines((prev) => [...prev, ...next]);
@@ -225,7 +237,7 @@ export default function TerminalWindow({ onOpenApp, ...props }: Passthrough) {
   }
 
   return (
-    <Window title="Terminal" frameClassName="window-term" {...props}>
+    <Window title="Terminal" frameClassName="window-term" hidden={hidden} {...props}>
       {/* clicking anywhere in the shell should put the caret back */}
       <div className="term" onPointerDown={() => inputRef.current?.focus()}>
         <div className="term-scroll" ref={scrollRef}>

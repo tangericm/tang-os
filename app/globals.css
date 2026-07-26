@@ -3124,3 +3124,47 @@ html.booted .boot-overlay {
 :where(.sitedoc) {
   user-select: text;
 }
+
+/* ============================================================
+   Minimized windows
+   ============================================================
+   Kept MOUNTED so the app inside keeps its state — terminal scrollback, the
+   runner's high score, the resume's zoom, a window's dragged position. They
+   used to unmount, so restoring from the dock rebuilt the app from scratch
+   while the dock still showed a running dot for it, which is a promise the
+   window could not keep.
+
+   `display: none` is the right primitive here, and only here. It takes the
+   subtree out of layout, out of the paint tree, out of the tab order and out
+   of the accessibility tree in one declaration, and it stops every CSS
+   animation inside it dead — which is what makes it cheap to leave five
+   windows mounted. (The mirror in the .sitedoc section needs the opposite
+   treatment for the opposite reason: it must stay indexable.)
+
+   Applied on "minimized" only, never on "minimizing": the genie has to be
+   visible while it plays, and Window's useLayoutEffect measures the frame
+   with getBoundingClientRect during that phase — on a display:none element
+   that returns all zeros and the animation aims at the origin. */
+.window-hidden {
+  display: none;
+}
+
+/* Coming back. `win-open` is wrong for a window that owns coordinates because
+   it hardcodes translateX(-50%) for the centered default; this runs the
+   minimize genie backwards instead, reusing the vector minimize measured. */
+.window-restoring {
+  animation: win-restore 220ms cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+@keyframes win-restore {
+  from {
+    opacity: 0;
+    transform: translate(var(--min-dx, 0px), var(--min-dy, 42vh)) scale(0.06);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .window-restoring {
+    animation: none;
+  }
+}
