@@ -56,6 +56,9 @@ export default function GameWindow({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [phase, setPhase] = useState<Phase>("ready");
   const [score, setScore] = useState(0);
+  /* What the HUD is currently showing. The loop compares against this rather
+     than against `score`, which it cannot see updates to. */
+  const shownScore = useRef(0);
   const [best, setBest] = useState(0);
 
   const g = useRef({
@@ -261,7 +264,15 @@ export default function GameWindow({
         setPhase("over");
         return;
       }
-      if (s.score !== score) setScore(s.score);
+      /* Compared against the ref, not the `score` state. `score` is captured
+         when the effect runs and is deliberately absent from the dep array,
+         so the closure held 0 for the whole run and this called setScore on
+         essentially every frame once the score passed zero — sixty state
+         updates a second that React then had to bail out of one by one. */
+      if (s.score !== shownScore.current) {
+        shownScore.current = s.score;
+        setScore(s.score);
+      }
       s.raf = requestAnimationFrame(frame);
     };
     s.raf = requestAnimationFrame(frame);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 /**
  * Dock, the launcher bar, with the famous magnification effect.
@@ -154,9 +154,29 @@ export default function Dock({
   /** which app ids currently have a window alive, for the running dots */
   running: Record<string, boolean>;
 }) {
-  const [scales, setScales] = useState<number[]>(() => ITEMS.map(() => 1));
   const [canMagnify, setCanMagnify] = useState(false);
   const listRef = useRef<HTMLUListElement | null>(null);
+
+  /* Resting centres, measured once. The previous version called
+     getBoundingClientRect on all nine items inside the mousemove handler —
+     nine forced synchronous layouts per event — and then setState with a
+     fresh nine-element array, re-rendering the whole dock on top of a
+     backdrop-filter layer. Measuring at rest is also more correct: distances
+     have to be taken from where the icons SIT, not from where the current
+     magnification has already pushed them, or the geometry feeds back on
+     itself as the cursor moves. */
+  const centres = useRef<number[]>([]);
+  const frame = useRef<number | null>(null);
+  const pendingX = useRef<number | null>(null);
+
+  const measure = useCallback(() => {
+    const ul = listRef.current;
+    if (!ul) return;
+    centres.current = Array.from(ul.children).map((el) => {
+      const r = (el as HTMLElement).getBoundingClientRect();
+      return r.left + r.width / 2;
+    });
+  }, []);
 
   // matchMedia touches `window`, which doesn't exist during server
   // rendering, so we ask the question once, after mount.
@@ -164,22 +184,62 @@ export default function Dock({
     setCanMagnify(window.matchMedia("(pointer: fine)").matches);
   }, []);
 
-  function onMouseMove(e: React.MouseEvent) {
-    if (!canMagnify || !listRef.current) return;
-    const items = Array.from(listRef.current.children) as HTMLElement[];
-    setScales(
-      items.map((el) => {
-        const r = el.getBoundingClientRect();
-        const d = Math.abs(e.clientX - (r.left + r.width / 2));
+  useLayoutEffect(() => {
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [measure]);
+
+  /* Writes straight to the DOM as a custom property. React never sees a
+     pointer move, so nothing re-renders and the nine <li> elements are not
+     rebuilt sixty times a second; CSS reads --s for both the layout width and
+     the button transform. */
+  const apply = useCallback((x: number | null) => {
+    const ul = listRef.current;
+    if (!ul) return;
+    const items = ul.children;
+    for (let i = 0; i < items.length; i++) {
+      let scale = 1;
+      if (x !== null) {
+        const d = Math.abs(x - (centres.current[i] ?? 0));
         const t = 1 - (d / RADIUS) ** 2;
-        return t > 0 ? 1 + MAX_GROWTH * t : 1;
-      })
-    );
+        if (t > 0) scale = 1 + MAX_GROWTH * t;
+      }
+      (items[i] as HTMLElement).style.setProperty("--s", String(scale));
+    }
+  }, []);
+
+  function onMouseMove(e: React.MouseEvent) {
+    if (!canMagnify) return;
+    listRef.current?.classList.remove("dock-settling");
+    pendingX.current = e.clientX;
+    /* Coalesced to one write per frame. Pointer events fire faster than the
+       compositor paints, so anything more is work thrown away. */
+    if (frame.current !== null) return;
+    frame.current = requestAnimationFrame(() => {
+      frame.current = null;
+      apply(pendingX.current);
+    });
   }
 
   function onMouseLeave() {
-    setScales(ITEMS.map(() => 1));
+    if (frame.current !== null) {
+      cancelAnimationFrame(frame.current);
+      frame.current = null;
+    }
+    /* The only moment a transition is wanted. While the cursor is over the
+       dock the icons must track it exactly; a transition there would make the
+       whole row lag behind the pointer. On the way out there is nothing to
+       track, so the collapse gets to ease. */
+    listRef.current?.classList.add("dock-settling");
+    apply(null);
   }
+
+  useEffect(() => {
+    return () => {
+      if (frame.current !== null) cancelAnimationFrame(frame.current);
+    };
+  }, []);
 
   return (
     <nav className="dock" aria-label="Dock">
@@ -189,22 +249,17 @@ export default function Dock({
           real rendering quirk of backdrop-filter + child transforms. */}
       <div className="dock-glass" aria-hidden="true" />
       <ul ref={listRef} onMouseMove={onMouseMove} onMouseLeave={onMouseLeave}>
-        {ITEMS.map((item, i) => {
-          const s = scales[i];
-          // Two jobs, two elements: the <li> grows in LAYOUT width so
-          // neighbors get pushed aside (transforms alone don't take up
-          // space, that was the "squished icons" bug), while the
-          // button inside scales visually.
-          const liStyle = { width: 48 * s };
-          const buttonStyle = {
-            transform: `translateY(${-(s - 1) * 14}px) scale(${s})`,
-          };
+        {ITEMS.map((item) => {
+          /* Two jobs, two elements, both driven by --s: the <li> grows in
+             LAYOUT width so neighbours get pushed aside (transforms alone
+             take up no space — that was the "squished icons" bug), while the
+             button inside scales visually. Both live in globals.css now, so
+             the pointer handler only has to write one number. */
           return (
-            <li key={item.id} className="dock-item" data-label={item.label} style={liStyle}>
+            <li key={item.id} className="dock-item" data-label={item.label}>
               {item.kind === "link" ? (
                 <a
                   className="dock-button"
-                  style={buttonStyle}
                   href={item.href}
                   target={item.href.startsWith("mailto") ? undefined : "_blank"}
                   rel="noreferrer"
@@ -215,7 +270,6 @@ export default function Dock({
               ) : (
                 <button
                   className="dock-button"
-                  style={buttonStyle}
                   data-app={item.id}
                   disabled={item.kind === "soon"}
                   onClick={() => onOpenApp(item.id)}

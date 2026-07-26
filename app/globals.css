@@ -649,16 +649,35 @@ html.booted .boot-overlay {
   padding: 8px 12px;
 }
 
+/* --s is written by Dock.tsx, once per animation frame, straight to the
+   element. It used to arrive as an inline style from React state, which meant
+   a re-render of the whole dock per pointer move.
+
+   No transition here. `width` is a LAYOUT property, so transitioning it asked
+   the browser to reflow the dock every frame of a 130ms ease — on top of the
+   backdrop-filter layer behind it — and the transition then fought the
+   per-frame updates it was supposed to smooth. The cursor is the animation;
+   the icons only need to follow it exactly. */
 .dock-item {
   position: relative;
   display: flex;
   justify-content: center;
   align-items: flex-end;
+  width: calc(48px * var(--s, 1));
+}
+
+/* The one moment easing is right: the pointer has left, so there is nothing
+   left to track and the row can settle by itself. */
+.dock-settling .dock-item {
   transition: width 130ms ease-out;
 }
 
-.dock-button {
+.dock-settling .dock-button {
   transition: transform 130ms ease-out;
+}
+
+.dock-button {
+  transform: translateY(calc(-14px * (var(--s, 1) - 1))) scale(var(--s, 1));
   transform-origin: bottom center;
   display: flex;
   align-items: center;
@@ -2101,13 +2120,6 @@ html.booted .boot-overlay {
   stroke-linecap: round;
 }
 
-.spc-merge {
-  fill: none;
-  stroke: rgba(226, 170, 99, 0.5);
-  stroke-width: 1.3;
-  stroke-dasharray: 3 4;
-  animation: sfs-flow 0.9s linear infinite;
-}
 
 .spc-block {
   fill: url(#spc-blk);
@@ -2257,18 +2269,7 @@ html.booted .boot-overlay {
   fill: rgba(244, 241, 236, 0.6);
 }
 
-.cal-ray {
-  fill: none;
-  stroke: rgba(226, 170, 99, 0.55);
-  stroke-width: 1.2;
-  stroke-dasharray: 3 3;
-  animation: sfs-flow 0.9s linear infinite;
-}
 
-.cal-target {
-  fill: var(--accent);
-  animation: trk-blob 2.6s ease-in-out infinite;
-}
 
 .cal-baseline {
   stroke: rgba(244, 241, 236, 0.4);
@@ -2288,13 +2289,6 @@ html.booted .boot-overlay {
 }
 
 /* a highlight sweeping down the pipeline, one stage at a time */
-.cls-pulse {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.4;
-  opacity: 0;
-  animation: cls-sweep 3.2s ease-in-out infinite;
-}
 
 @keyframes cls-sweep {
   0%,
@@ -2310,13 +2304,6 @@ html.booted .boot-overlay {
   }
 }
 
-.cls-feedback {
-  fill: none;
-  stroke: rgba(226, 170, 99, 0.4);
-  stroke-width: 1.2;
-  stroke-dasharray: 4 4;
-  animation: sfs-flow 1.2s linear infinite;
-}
 
 /* ---- TangOS lifecycle ---- */
 .tos-node {
