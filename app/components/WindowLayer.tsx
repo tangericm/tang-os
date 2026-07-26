@@ -164,11 +164,18 @@ export default function WindowLayer() {
       /* Minimize deliberately does NOT touch the URL: a minimized app is still
          running, and the address bar should not disagree with the dock. */
       onMinimize: () => exit(id, "minimizing", "minimized"),
+      /* Out of layout and out of the accessibility tree, but still mounted —
+         see .window-hidden in globals.css. */
+      hidden: phase === "minimized",
       onClose: () => close(id),
     };
   }
 
-  const visible = (p: Phase) => p === "open" || p === "minimizing" || p === "closing";
+  /* Mounted for every phase except closed. A minimized window used to unmount,
+     which threw away the terminal's scrollback, the runner's high score, the
+     selected project and any window the visitor had dragged somewhere they
+     wanted it — while the dock went on showing a running dot for it. */
+  const mounted = (p: Phase) => p !== "closed";
 
   return (
     <>
@@ -176,19 +183,19 @@ export default function WindowLayer() {
       <DesktopFile label="Terminal" art="terminal" onOpen={() => open("terminal")} />
       <DesktopFile label="Runner" art="game" onOpen={() => open("game")} />
 
-      {visible(phases.about) && <AboutWindow {...windowProps("about")} />}
-      {visible(phases.projects) && (
+      {mounted(phases.about) && <AboutWindow {...windowProps("about")} />}
+      {mounted(phases.projects) && (
         <ProjectsWindow
           {...windowProps("projects")}
           selected={selected}
           onSelect={selectProject}
         />
       )}
-      {visible(phases.resume) && <ResumeWindow {...windowProps("resume")} />}
-      {visible(phases.terminal) && (
+      {mounted(phases.resume) && <ResumeWindow {...windowProps("resume")} />}
+      {mounted(phases.terminal) && (
         <TerminalWindow {...windowProps("terminal")} onOpenApp={open} />
       )}
-      {visible(phases.game) && <GameWindow {...windowProps("game")} />}
+      {mounted(phases.game) && <GameWindow {...windowProps("game")} active={phases.game === "open"} />}
 
       <Dock
         onOpenApp={(id) => open(id as AppId)}
