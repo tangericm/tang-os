@@ -63,16 +63,35 @@ export default function Desktop() {
         <BootScreen />
       </main>
 
-      {/* A <div>, not a second <main>. Exactly one main landmark is allowed,
-          and it belongs to the interactive site rather than to a copy that is
-          inert whenever anyone can interact with anything. Crawlers do not
-          need the landmark; they need the text, which is right here.
+      {/* role="main" on a <div>, rather than a second <main> element. The
+          markup rule is about elements — more than one <main> is invalid —
+          but the landmark that matters is the one in the accessibility tree,
+          and exactly one of these two is ever exposed there:
+
+            scripting off → .desktop-mirrored is display:none, so its <main>
+                            is gone from the tree entirely and this is the
+                            whole page. Without the role it would be the only
+                            visible content on the site with no landmark at
+                            all, which is what an earlier revision shipped.
+            scripting on  → this subtree is inert, and inert content is hidden
+                            from assistive technology, so the desktop's <main>
+                            is the only landmark exposed.
+
+          suppressHydrationWarning is about MIRROR_INERT, not about anything
+          rendered here. That script sets `inert` before React hydrates, so at
+          hydration the DOM carries an attribute the props do not declare.
+          React 19 collects exactly that case and warns
+          (react-dom-client.development.js, warnForExtraAttributes). It only
+          warns — the attribute survives, which is what makes the script work
+          — but a diff printed on every dev load is how a real hydration bug
+          goes unnoticed. This flag is React's sanctioned way to say the
+          mutation is deliberate.
 
           Placed after the desktop so that on the one path where both are
           reachable — scripting on, before MIRROR_INERT runs — the mirror is
           behind the dock in the tab order rather than in front of the menu
           bar. */}
-      <div className="sitedoc">
+      <div className="sitedoc" role="main" suppressHydrationWarning>
         <SiteDocument />
       </div>
       <script dangerouslySetInnerHTML={{ __html: MIRROR_INERT }} />
