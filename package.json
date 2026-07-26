@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "check:crawlable": "node scripts/check-crawlable.mjs",
+    "verify": "npm run typecheck && npm run build && npm run check:crawlable"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
