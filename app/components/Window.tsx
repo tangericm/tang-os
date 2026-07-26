@@ -9,6 +9,19 @@ const MENUBAR_H = 30;
 const DOCK_RESERVE = 84;
 const EDGE_GAP = 8;
 
+/* Enough of the frame to grab and drag back. A window may sit mostly
+   off-screen — that is a legitimate place to put one — but its titlebar has to
+   remain reachable or the only recovery is a reload. */
+const MIN_ON_SCREEN = 96;
+
+function clampToViewport(p: { x: number; y: number }, frame: HTMLElement | null) {
+  const w = frame?.offsetWidth ?? MIN_ON_SCREEN;
+  return {
+    x: Math.min(Math.max(p.x, MIN_ON_SCREEN - w), window.innerWidth - MIN_ON_SCREEN),
+    y: Math.min(Math.max(p.y, MENUBAR_H + 4), window.innerHeight - MIN_ON_SCREEN),
+  };
+}
+
 function maximizedGeometry() {
   return {
     pos: { x: EDGE_GAP, y: MENUBAR_H + EDGE_GAP },
@@ -81,8 +94,22 @@ export default function Window({
      `win-open` is the geometrically correct one. */
   const [restoring, setRestoring] = useState(false);
   const wasHidden = useRef(hidden);
-  useEffect(() => {
-    if (wasHidden.current && !hidden && pos !== null) setRestoring(true);
+  /* useLayoutEffect, not useEffect, and that is the whole point of it. The
+     render that un-minimizes a window removes `window-hidden` while
+     `restoring` is still false; a post-paint effect would let the browser
+     paint the window once at full size before the animation started, so every
+     restore flashed. A layout effect commits the class before that paint.
+
+     It also clamps the position it is about to reveal. The window kept its
+     coordinates while minimized, which is the feature — but if the viewport
+     narrowed in the meantime (a rotated phone, a resized browser) those
+     coordinates can be off-screen, and unmounting used to hide that by
+     re-centring on the way back. */
+  useLayoutEffect(() => {
+    if (wasHidden.current && !hidden) {
+      setPos((p) => (p === null ? p : clampToViewport(p, frameRef.current)));
+      if (pos !== null) setRestoring(true);
+    }
     wasHidden.current = hidden;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hidden]);
@@ -125,8 +152,16 @@ export default function Window({
   /* A maximized window should stay maximized when the viewport changes,
      otherwise rotating a tablet leaves it the wrong size. */
   useEffect(() => {
-    if (!zoomed) return;
-    const fit = () => setSize(maximizedGeometry().size);
+    /* Two jobs, because both failure modes are the viewport moving underneath
+       a window that is not going to move itself: a maximized one has to keep
+       filling the screen, and a positioned one has to stay reachable. The
+       second matters more now that windows survive minimize — a window
+       dragged to the right edge on a wide browser is off-screen entirely once
+       the same session continues on a narrow one. */
+    const fit = () => {
+      if (zoomed) setSize(maximizedGeometry().size);
+      else setPos((p) => (p === null ? p : clampToViewport(p, frameRef.current)));
+    };
     window.addEventListener("resize", fit);
     return () => window.removeEventListener("resize", fit);
   }, [zoomed]);
