@@ -85,7 +85,17 @@ const bareProfile = projectLinks.filter((href) =>
   /^https:\/\/github\.com\/[^/]+\/?$/.test(href)
 );
 check("no project links to a bare profile", bareProfile.length === 0, bareProfile.join(", "));
-check("every project has a link", projectLinks.length >= projectIds.length, `${projectLinks.length} links / ${projectIds.length} projects`);
+
+/* Per project, not a total. Comparing counts would pass with one project
+   holding two links and another holding none, which is precisely the
+   regression this is here to catch — the schema allows a links array of any
+   length, so only inspecting each record proves anything. */
+const blocks = projectsSrc.split(/^\s+id: "/m).slice(1);
+check("parsed one block per project", blocks.length === projectIds.length, `${blocks.length} blocks`);
+for (const block of blocks) {
+  const id = block.slice(0, block.indexOf('"'));
+  check(`  project has at least one link: ${id}`, /href: "/.test(block));
+}
 
 /* Sections that live in ResumeDocument rather than in a data module. If the
    resume ever becomes data too, read them from there instead. */
