@@ -1,0 +1,146 @@
+/* ============================================================
+   The site, for a visitor with no JavaScript
+   ============================================================
+   Loaded by a <link> inside a <noscript> in app/layout.tsx, so the
+   browser fetches it only when scripting is disabled. Everything here is
+   the promoted state of the .sitedoc mirror plus the one rule that takes
+   the desktop away.
+
+   It is a separate FILE rather than a <style> block in the markup for one
+   reason: a <noscript> cannot add a class and CSS has no @extend, so
+   inlining the promoted state would mean maintaining a second copy of
+   every rule below and hoping the two never drift. A stylesheet has no
+   such problem — this is the only copy.
+
+   Custom properties still resolve: :root in globals.css is loaded
+   normally, and var() is looked up on the element at computed-value time,
+   so every token below is the same colour the desktop uses.
+
+   Selectors are prefixed with `html` to reach (0,1,1). That beats the
+   single-class rules in globals.css on specificity rather than on load
+   order, so nothing here depends on which stylesheet the browser finishes
+   first.
+   ============================================================ */
+
+/* Without scripting there is no window manager, no dock and no clock, so
+   the desktop is a wallpaper with three undraggable icons sitting on top
+   of the only readable copy of the site. `display: none` is correct here
+   and only here: this subtree duplicates nothing a crawler needs, and the
+   mirror below carries every word of it.
+
+   Keyed to `.desktop-mirrored`, never to `.desktop`. not-found.tsx renders
+   its own `.desktop` with the 404 alert inside it and no mirror
+   underneath, so a rule on the bare class would hide the entire 404 page
+   from exactly the visitor who most needs to read it. */
+html .desktop-mirrored {
+  display: none;
+}
+
+/* The mirror stops being a mirror and becomes the site. Every line of the
+   clip idiom in globals.css is undone explicitly — a half-undone clip
+   (say, `position: static` without `clip-path: none`) renders a perfectly
+   laid-out element that is still invisible, which is a miserable thing to
+   debug. */
+html .sitedoc {
+  position: static;
+  width: auto;
+  height: auto;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 56px 24px 88px;
+  overflow: visible;
+  clip-path: none;
+  white-space: normal;
+
+  background: var(--surface-window);
+  color: var(--ink-soft);
+  font-size: 15px;
+  line-height: 1.65;
+
+  /* DOIs and repo URLs are single unbreakable tokens and the measure here
+     is deliberately narrow; without this one of them widens the article
+     past the viewport on a phone and takes the whole page with it */
+  overflow-wrap: break-word;
+}
+
+/* The tag half of every rule below is wrapped in :where(), pinning the
+   typography at one-class specificity so anything carrying a class
+   outranks it. That alone is not enough, which is the subtle part:
+   specificity only arbitrates properties two rules BOTH declare.
+   `.doc-page h3` beats these on `font-size` because it declares it — but
+   it never declares `color`, it inherits #26221d from `.doc-page`, and a
+   declared value beats an inherited one at any specificity. `color:
+   var(--ink)` would therefore win anyway and paint near-white text onto
+   the resume's paper-white sheet. Hence the `.doc-page` exclusion: the
+   resume brings a complete stylesheet of its own and is left alone. */
+.sitedoc :where(h1):not(:where(.doc-page *)) {
+  margin: 0 0 6px;
+  font-size: 28px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+/* Section rules read as an amber hairline caption rather than a big bold
+   heading: at this measure a 20px h2 every few paragraphs chops the page
+   into fragments, while the rule alone is enough to say "new section". */
+.sitedoc :where(h2):not(:where(.doc-page *)) {
+  margin: 36px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--hairline);
+  font-size: 12.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--accent);
+}
+
+/* Job and degree titles. Tight bottom margin on purpose, an h3 here owns
+   the line under it (employer, dates) and should not float away from it. */
+.sitedoc :where(h3):not(:where(.doc-page *)) {
+  margin: 20px 0 2px;
+  font-size: 15.5px;
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+.sitedoc :where(p):not(:where(.doc-page *)) {
+  /* ~68ch is the readable measure; the 720px frame is wider than that on a
+     desktop, so the constraint has to live on the text, not the container */
+  max-width: 68ch;
+  margin: 0 0 12px;
+}
+
+.sitedoc :where(ul, ol):not(:where(.doc-page *)) {
+  max-width: 68ch;
+  margin: 0 0 16px;
+  /* markers sit inside the measure rather than hanging into the page
+     padding, which keeps every left edge in the document on one line */
+  padding-left: 22px;
+}
+
+.sitedoc :where(li):not(:where(.doc-page *)) {
+  margin-bottom: 5px;
+}
+
+/* Amber plus an underline, both. Color alone as a link affordance fails
+   for anyone who cannot separate amber from cream, and this page is the
+   copy that gets read under the worst conditions. */
+.sitedoc :where(a):not(:where(.doc-page *)) {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+/* Journal names, dates, and other trailing metadata the document sets in
+   <small>: quieter, but still above the contrast floor. */
+.sitedoc :where(small):not(:where(.doc-page *)) {
+  font-size: 13px;
+  color: var(--ink-faint);
+}
+
+/* Whatever opens the document, usually the h1, should not inherit a top
+   margin from these rules and push a hole into the page padding. */
+.sitedoc > :first-child {
+  margin-top: 0;
+}

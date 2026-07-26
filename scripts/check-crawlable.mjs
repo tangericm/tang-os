@@ -94,8 +94,20 @@ check("stylesheet linked", Boolean(cssHref));
 
 const css = cssHref ? must(`.next${cssHref.replace("/_next", "")}`) : "";
 
-check("mirror clipped only under html.js", /html\.js\s+\.sitedoc\{[^}]*clip-path:inset\(50%\)/.test(css));
-check("desktop hidden without js", css.includes("html:not(.js) .desktop-mirrored{display:none}"));
+/* Clipped by DEFAULT, with no `html.js` or any other script-set hook in the
+   selector. This is the check that would have caught the phone bug: a design
+   where a script decides which of the two documents is visible serves the
+   fallback forever to anyone whose browser did not run it. */
+check("mirror clipped by default", /(^|})\.sitedoc\{[^}]*clip-path:inset\(50%\)/.test(css));
+check("clip does not depend on a script-set class", !/html\.js\s+\.sitedoc/.test(css));
+
+/* The promoted state lives in one file, loaded from a <noscript> link. If it
+   ever moves back into the markup there will be two copies of it. */
+check("noscript loads the fallback stylesheet", /<noscript><link rel="stylesheet" href="\/no-js\.css"\/><\/noscript>/.test(html));
+
+const noJs = must("public/no-js.css");
+check("fallback sheet hides the desktop", /html\s+\.desktop-mirrored\s*\{[^}]*display:\s*none/.test(noJs));
+check("fallback sheet promotes the mirror", /html\s+\.sitedoc\s*\{[^}]*clip-path:\s*none/.test(noJs));
 
 /* The cloaking failure mode. display:none text is discounted by search
    engines and dropped from the accessibility tree, which is the entire reason
