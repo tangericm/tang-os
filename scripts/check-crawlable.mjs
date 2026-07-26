@@ -255,6 +255,11 @@ const ROUTES = [
   })),
 ];
 
+/* Read from the home page rather than hardcoded, so rewording the site's
+   tagline does not silently disable the comparison below. */
+const HOME_OG_TITLE = readFileSync(`${OUT}/index.html`, "utf8")
+  .match(/<meta property="og:title" content="([^"]+)"/)?.[1];
+
 const bodies = new Map();
 
 for (const route of ROUTES) {
@@ -266,6 +271,21 @@ for (const route of ROUTES) {
   const routeHtml = readFileSync(path, "utf8");
   const canonical = routeHtml.match(/<link rel="canonical" href="([^"]+)"/)?.[1];
   check(`canonical is self-referential: ${route.url}`, canonical === route.url, `got ${canonical}`);
+
+  /* Next merges metadata by top-level KEY. A route that sets `title` and
+     `description` but not `openGraph` inherits the ROOT's card wholesale,
+     including its url — so the page reads correctly everywhere except in a
+     link pasted into LinkedIn, which is the one surface deep links exist for.
+     This shipped that way and only a review caught it. */
+  const ogUrl = routeHtml.match(/<meta property="og:url" content="([^"]+)"/)?.[1];
+  check(`og:url matches canonical: ${route.url}`, ogUrl === route.url, `got ${ogUrl}`);
+
+  const ogTitle = routeHtml.match(/<meta property="og:title" content="([^"]+)"/)?.[1];
+  check(
+    `og:title is route-specific: ${route.url}`,
+    route.url === "https://ericmtang.com" || ogTitle !== HOME_OG_TITLE,
+    `got ${ogTitle}`
+  );
 
   const noindex = /<meta name="robots" content="[^"]*noindex/.test(routeHtml);
   check(

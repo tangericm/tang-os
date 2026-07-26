@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import SiteDocument from "../../../components/SiteDocument";
+import { routeMetadata } from "../../../lib/metadata";
 import { PROJECTS } from "../../../data/projects";
 
 /**
@@ -38,21 +39,11 @@ export async function generateMetadata({
   const project = PROJECTS.find((p) => p.id === id);
   if (!project) return {};
 
-  const description = summarize(project.blurb);
-
-  return {
-    /* Resolves through the template in app/layout.tsx to
-       "<name> · Eric M. Tang", so a shared link names the work and the person. */
+  return routeMetadata({
     title: project.name,
-    description,
-    alternates: { canonical: `/projects/${project.id}` },
-    openGraph: {
-      title: project.name,
-      description,
-      url: `/projects/${project.id}`,
-    },
-    twitter: { title: project.name, description },
-  };
+    description: summarize(project.blurb),
+    path: `/projects/${project.id}`,
+  });
 }
 
 export default async function ProjectRoute({
