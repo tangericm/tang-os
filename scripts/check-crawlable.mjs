@@ -75,6 +75,18 @@ for (const name of projectNames) {
   check(`  project in mirror: ${name}`, mirrorText.includes(name));
 }
 
+/* Every project link must point at something specific. The simulator shipped
+   for weeks linking to the bare GitHub profile because its repo was still
+   private — a featured project whose "GitHub" link lands on a profile page
+   reads as vapour, and it was live on an indexable route by the time anyone
+   noticed. A string compare is enough to stop it recurring. */
+const projectLinks = [...projectsSrc.matchAll(/href: "([^"]+)"/g)].map((m) => m[1]);
+const bareProfile = projectLinks.filter((href) =>
+  /^https:\/\/github\.com\/[^/]+\/?$/.test(href)
+);
+check("no project links to a bare profile", bareProfile.length === 0, bareProfile.join(", "));
+check("every project has a link", projectLinks.length >= projectIds.length, `${projectLinks.length} links / ${projectIds.length} projects`);
+
 /* Sections that live in ResumeDocument rather than in a data module. If the
    resume ever becomes data too, read them from there instead. */
 for (const section of [

@@ -118,7 +118,7 @@ export const PROJECTS: Project[] = [
       "PySide6",
       "Python",
     ],
-    links: [{ label: "GitHub", href: "https://github.com/tangericm" }],
+    links: [{ label: "GitHub", href: "https://github.com/tangericm/OCT-Simulator" }],
   },
   {
     id: "tangos",
