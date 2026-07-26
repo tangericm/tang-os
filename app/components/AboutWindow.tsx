@@ -93,6 +93,8 @@ type Passthrough = {
   minimizeTarget?: string;
   zIndex?: number;
   onFocus?: () => void;
+  /** true while minimized; the window stays mounted but is display:none */
+  hidden?: boolean;
 };
 
 export default function AboutWindow({ onClose, onMinimize, ...rest }: Passthrough) {

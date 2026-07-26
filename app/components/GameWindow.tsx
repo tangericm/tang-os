@@ -39,13 +39,19 @@ type Obstacle = {
 
 type Phase = "ready" | "running" | "over";
 
-export default function GameWindow(props: {
+export default function GameWindow({
+  active = true,
+  ...props
+}: {
+  /** false while minimized: the window stays mounted, the loop must not run */
+  active?: boolean;
   onClose: () => void;
   onMinimize: () => void;
   motion?: "minimizing" | "closing";
   minimizeTarget?: string;
   zIndex?: number;
   onFocus?: () => void;
+  hidden?: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [phase, setPhase] = useState<Phase>("ready");
@@ -228,7 +234,12 @@ export default function GameWindow(props: {
 
   /* ---- loop ---- */
   useEffect(() => {
-    if (phase !== "running") return;
+    /* `active` is the minimize guard. display:none removes the canvas from the
+       paint tree but does NOT stop requestAnimationFrame, so without this the
+       dino keeps stepping physics and drawing at 60Hz into a window nobody can
+       see. Resume needs no special handling: the loop reassigns s.last on
+       start and clamps dt, so it picks up mid-jump instead of catching up. */
+    if (phase !== "running" || !active) return;
     const ctx = canvasRef.current?.getContext("2d");
     if (!ctx) return;
     const s = g.current;
@@ -256,7 +267,7 @@ export default function GameWindow(props: {
     s.raf = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(s.raf);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, step, draw]);
+  }, [phase, active, step, draw]);
 
   /* idle frame so the canvas is never blank */
   useEffect(() => {
