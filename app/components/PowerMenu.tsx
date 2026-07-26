@@ -90,15 +90,24 @@ export default function PowerMenu() {
     };
   }, [mode]);
 
-  function restart() {
-    // drop the flag so the boot sequence actually replays
-    try {
-      sessionStorage.removeItem("tangos-booted");
-    } catch {}
-    window.location.reload();
-  }
+  /* Restart and power-on are the same act — drop the once-per-session boot
+     flag so the sequence genuinely replays, then reload.
 
-  function powerOn() {
+     The latch is not defensive programming, it fixes a real bug. Every one of
+     these buttons carries onPointerUp AND onClick, because a menu item that
+     unmounts on pointerup never receives the click (see the comment on the
+     menu below). On touch both fire, so a single tap called reload() twice,
+     and the second call aborts the navigation the first one started. A browser
+     part-way through parsing an aborted document can paint what it has — head
+     parsed, stylesheet request cancelled — which renders the page with no CSS
+     at all: the desktop and the plain-document mirror stacked on top of each
+     other as raw HTML. That is reachable only here, and only on a tap, which
+     is why it read as a mobile-only glitch on power-on. */
+  const reloading = useRef(false);
+
+  function reboot() {
+    if (reloading.current) return;
+    reloading.current = true;
     try {
       sessionStorage.removeItem("tangos-booted");
     } catch {}
@@ -133,7 +142,7 @@ export default function PowerMenu() {
             >
               Sleep
             </button>
-            <button role="menuitem" onPointerUp={restart} onClick={restart}>
+            <button role="menuitem" onPointerUp={reboot} onClick={reboot}>
               Restart
             </button>
             <button
@@ -163,7 +172,7 @@ export default function PowerMenu() {
         createPortal(
           <div className="power-off" role="dialog" aria-label="Powered off">
             <p className="power-off-line">It is now safe to close this tab.</p>
-            <button className="power-on" onPointerUp={powerOn} onClick={powerOn} aria-label="Power on">
+            <button className="power-on" onPointerUp={reboot} onClick={reboot} aria-label="Power on">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
                 <path d="M12 3v8" />
                 <path d="M6.2 6.2a8.2 8.2 0 1 0 11.6 0" />
