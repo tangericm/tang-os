@@ -1,0 +1,48 @@
+# Guards the one thing about this site that breaks silently.
+#
+# The desktop is self-checking: if a window stops opening you see it the next
+# time you load the page. The plain-document mirror is not. It is clipped to
+# 1x1 and inert, so it can empty out completely and every browser will keep
+# showing a flawless site while the HTML a crawler receives goes back to one
+# tagline and six spec rows. Search Console would tell you months later.
+#
+# So this runs on pull requests and does what a human cannot do reliably:
+# builds the site and reads the prerendered bytes.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A second push to a PR makes the first run's answer irrelevant.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # ci, not install: installs exactly what package-lock pins, and fails
+      # instead of silently rewriting the lockfile the way `npm install` will.
+      - run: npm ci
+
+      # Before the build, so a type error reports as a type error rather than
+      # as whatever the bundler makes of it.
+      - run: npm run typecheck
+
+      - run: npm run build
+
+      # Reads .next/server/app/*, which is why it has to follow the build in
+      # the same job rather than running as a parallel one.
+      - run: npm run check:crawlable
