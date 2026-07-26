@@ -39,22 +39,23 @@ export const viewport: Viewport = {
   themeColor: "#000000",
 };
 
-/* Two decisions that must be made before the first paint, so both run
-   synchronously here rather than from a React effect, which would let the
-   wrong state flash first.
+/* Boot once per session.
+   The boot sequence is a nice first impression and a two-and-a-half second
+   toll on every visit after that. This runs synchronously in <head>, before
+   the first paint, so a returning visitor never sees the overlay at all
+   rather than seeing it flash and disappear, which is what a React effect
+   would have given us. The overlay itself stays server-rendered, so a
+   first-time visitor gets it with no JS round-trip.
 
-   `js` swaps which of the page's two documents is visible: the desktop, or
-   the plain .sitedoc mirror that carries the same content for crawlers and
-   for anyone with scripting off (see globals.css and page.tsx). It is added
-   first and outside the try, because if sessionStorage throws — Safari in
-   private mode has historically done exactly that — the desktop must still
-   appear. Getting this backwards shows every visitor the fallback document.
-
-   `booted` skips the boot sequence, a nice first impression and a
-   two-and-a-half second toll on every visit after that. The overlay itself
-   stays server-rendered, so a first-time visitor gets it with no JS
-   round-trip. */
-const HEAD_ONCE = `document.documentElement.classList.add('js');try{if(sessionStorage.getItem('tangos-booted')){document.documentElement.classList.add('booted')}else{sessionStorage.setItem('tangos-booted','1')}}catch(e){}`;
+   Nothing about WHICH document is visible depends on this script, and that
+   is deliberate. A previous revision added a `js` class here that decided
+   between the desktop and the plain .sitedoc mirror. On a phone where the
+   inline script never ran — a content blocker is enough — the class never
+   landed, and the visitor was served the fallback document permanently with
+   no desktop at all. Correct rendering must not be contingent on a script
+   executing; it is a stylesheet's job, and stylesheets are what decide it
+   now. */
+const BOOT_ONCE = `try{if(sessionStorage.getItem('tangos-booted')){document.documentElement.classList.add('booted')}else{sessionStorage.setItem('tangos-booted','1')}}catch(e){}`;
 
 export default function RootLayout({
   children,
@@ -64,7 +65,19 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <script dangerouslySetInnerHTML={{ __html: HEAD_ONCE }} />
+        <script dangerouslySetInnerHTML={{ __html: BOOT_ONCE }} />
+        {/* Fetched only when scripting is disabled — a browser does not
+            parse <noscript> contents otherwise, so this costs a scripted
+            visitor nothing, not even a request. It promotes the mirror to
+            the whole page and hides the desktop.
+
+            A <link> rather than an inline <style> so the promoted rules
+            exist in exactly one place. Inlining them would mean a second
+            copy of every rule in public/no-js.css, and the copy nobody
+            loads is the one that rots. */}
+        <noscript>
+          <link rel="stylesheet" href="/no-js.css" />
+        </noscript>
       </head>
       <body>
         {children}
