@@ -825,6 +825,7 @@ html.booted .boot-overlay {
   display: flex;
   flex: 1 1 auto;
   min-height: 0;
+  min-width: 0;
   /* a shade below the window, the way a terminal always is */
   background: #14100c;
   cursor: text;
@@ -833,7 +834,14 @@ html.booted .boot-overlay {
 .term-scroll {
   flex: 1 1 auto;
   min-height: 0;
+  /* A flex item defaults to `min-width: auto`, meaning it refuses to shrink
+     below its max-content width. For a terminal, max-content is the longest
+     unbroken line, so a single long URL from `contact` can push this wider
+     than the window that contains it. Explicit min-width: 0 is what lets it
+     actually obey its parent. */
+  min-width: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 14px 16px 16px;
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
     "Liberation Mono", monospace;
@@ -846,7 +854,11 @@ html.booted .boot-overlay {
 
 .term-line {
   white-space: pre-wrap;
-  word-break: break-word;
+  /* `anywhere` rather than `word-break: break-word`: only this one reliably
+     breaks a long unbroken token such as a URL, which is exactly what the
+     `contact` command prints. */
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .term-in {
@@ -874,10 +886,15 @@ html.booted .boot-overlay {
 .term-entry {
   display: flex;
   align-items: baseline;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .term-input {
   flex: 1 1 auto;
+  /* an <input> carries an intrinsic width of about 20 characters; without
+     min-width: 0 that becomes a floor the flex row cannot go below */
+  min-width: 0;
   min-width: 0;
   border: 0;
   padding: 0;
@@ -3028,4 +3045,22 @@ html.booted .boot-overlay {
    matching their geometry alone does not. */
 .dock-button .dock-brand {
   opacity: 0.88;
+}
+
+/* Terminal on a phone. The prompt plus a usable input is the widest thing in
+   the window, so drop the type a step and let the entry row wrap rather than
+   forcing the window past the viewport. */
+@media (max-width: 640px) {
+  .term-scroll {
+    padding: 12px 12px 14px;
+    font-size: 11.5px;
+  }
+
+  .term-prompt {
+    margin-right: 6px;
+  }
+
+  .term-input {
+    flex: 1 1 10ch;
+  }
 }
