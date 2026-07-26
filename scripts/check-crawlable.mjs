@@ -111,7 +111,16 @@ check(
  * ------------------------------------------------------------------ */
 
 const mains = (dom.match(/<main[\s>]/g) || []).length;
-check("exactly one <main>", mains === 1, `${mains} found`);
+check("exactly one <main> element", mains === 1, `${mains} found`);
+
+/* The landmark invariant, which is the kind that regresses in silence.
+   Exactly one main landmark is EXPOSED in each state — the desktop's <main>
+   while scripting is on and the mirror is inert, and the mirror's role="main"
+   while scripting is off and the desktop is display:none. Drop the role and
+   a no-JS screen-reader user gets the entire site with no landmark; promote
+   the mirror to a real <main> element instead and the markup is invalid. */
+const mirrorTag = dom.match(/<div[^>]*class="sitedoc"[^>]*>/)?.[0] ?? "";
+check("mirror exposes a main landmark", /role="main"/.test(mirrorTag), mirrorTag.slice(0, 70));
 
 const h1s = (dom.match(/<h1[\s>]/g) || []).length;
 check("h1 present", h1s >= 1, `${h1s} found`);
