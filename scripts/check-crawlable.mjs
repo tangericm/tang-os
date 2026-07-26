@@ -280,6 +280,28 @@ for (const route of ROUTES) {
   const ogUrl = routeHtml.match(/<meta property="og:url" content="([^"]+)"/)?.[1];
   check(`og:url matches canonical: ${route.url}`, ogUrl === route.url, `got ${ogUrl}`);
 
+  /* Next REPLACES nested metadata objects instead of deep-merging them, so a
+     route that declares openGraph silently drops every field the root layout
+     set. That is how og:type and og:site_name disappeared and twitter:card
+     fell back from summary_large_image to the small card — invisible in the
+     HTML unless you go looking for absence. */
+  for (const [label, pattern] of [
+    ["og:type", /<meta property="og:type" content="website"/],
+    ["og:site_name", /<meta property="og:site_name" content="[^"]+"/],
+    ["twitter:card", /<meta name="twitter:card" content="summary_large_image"/],
+  ]) {
+    check(`  ${label} survives: ${route.url}`, pattern.test(routeHtml));
+  }
+
+  /* The template appends " · Eric M. Tang" to descendant titles, so a title
+     that already ends in the name gets it twice unless it opts out. */
+  const pageTitle = routeHtml.match(/<title>([^<]*)<\/title>/)?.[1] ?? "";
+  const suffix = " · Eric M. Tang";
+  check(
+    `  title not doubled: ${route.url}`,
+    !pageTitle.replace(new RegExp(`${suffix}$`), "").includes(suffix)
+  );
+
   const ogTitle = routeHtml.match(/<meta property="og:title" content="([^"]+)"/)?.[1];
   check(
     `og:title is route-specific: ${route.url}`,
