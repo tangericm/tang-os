@@ -3076,198 +3076,51 @@ html.booted .boot-overlay {
    Everything above this line paints an operating system: windows a
    crawler cannot open, panes that do not exist until hydration. The
    mirror is the same content rendered once as a linear HTML document,
-   always in the markup.
+   always in the markup, and clipped here.
 
-   The default here is the READABLE state, and JavaScript hides it. That
-   is the inversion of what you would write first, and it is deliberate:
-   the visitor with scripting off is the one who cannot recover, so the
-   stylesheet serves them without being asked. The head script in
-   layout.tsx puts `js` on <html> before first paint, and the clip block
-   further down takes the document away again for everyone else.
-
-   The alternative — clip by default, promote from a <noscript> <style>
-   — needs the promoted rules written twice, because a <noscript> cannot
-   add a class and CSS has no @extend. The copy in the markup wins on
-   source order, so the copy in this file becomes dead text that still
-   ships, and the next person edits the dead one. Ask how it fails, not
-   how it reads.
-
-   Nothing here paints for a scripted visitor, so the cost of the
-   fallback typography is bytes, not frames. */
-.sitedoc {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 56px 24px 88px;
-
-  background: var(--surface-window);
-  color: var(--ink-soft);
-  font-size: 15px;
-  line-height: 1.65;
-
-  /* DOIs and repo URLs are single unbreakable tokens and the measure here
-     is deliberately narrow; without this one of them widens the article
-     past the viewport on a phone and takes the whole page with it */
-  overflow-wrap: break-word;
-}
-
-/* `body` sets `user-select: none` so the desktop feels like an OS rather
-   than a web page, and that inherits into everything, including the one
-   subtree whose entire purpose is being read and copied out.
-
-   The zero specificity is deliberate, not an oversight: a declared value
-   always beats an inherited one regardless of how weak the selector is,
-   so :where() is sufficient to break the inheritance while refusing to
-   win any argument with a future rule that genuinely wants to lock
-   selection down in here. Descendants pick the value up by inheritance
-   and need no selector of their own. */
-:where(.sitedoc) {
-  user-select: text;
-}
-
-/* Scripting is on, so the desktop is the site and the mirror steps out
-   of the way. `html.js` is two selectors' worth of specificity against
-   the single class above, so this wins wherever it sits in the file and
-   the cascade does not depend on source order — unlike the trap that
-   quietly disabled the zoom button (see `.window.window-zoomed` above).
+   It is clipped by DEFAULT, and public/no-js.css un-clips it. An earlier
+   revision had this backwards: the mirror was readable by default and an
+   inline script added a `js` class to <html> that clipped it. That put the
+   correct rendering of the site behind a script executing, and it failed
+   exactly the way that design always fails — a phone with a content
+   blocker never ran the script, never got the class, and was served the
+   plain fallback document permanently with no desktop at all. A stylesheet
+   cannot be blocked by a script blocker, and <noscript> needs no scripting
+   by definition, so neither state depends on JS now.
 
    Why clip rather than `display: none`. Text inside a `display: none`
    subtree is discounted by search engines (hiding keyword-dense text is
    the oldest cloaking pattern there is) and is dropped from the
-   accessibility tree outright; `visibility: hidden` is the same story
-   for assistive tech. Clipped text keeps its box and is indexed at full
-   weight. It merely happens to be painted through a 1px hole. Googlebot
-   runs this script and sees the clipped state, which is exactly the
-   state that still indexes.
+   accessibility tree outright; `visibility: hidden` is the same story for
+   assistive tech. Clipped text keeps its box and is indexed at full
+   weight. It merely happens to be painted through a 1px hole.
 
    `white-space: nowrap` is load-bearing, not decoration. A 1px-wide box
    wraps its text to roughly one line box per word, so a CV's worth of
    prose becomes a several-thousand-pixel column inside a 1px frame, and
    that overflow escapes as a stray scrollbar (on iOS, as a page that
    drags sideways). Forcing a single long line keeps the box honestly
-   1x1 no matter how much content lands in it.
-
-   Every inherited paint property is reset too, not just the geometry: a
-   1x1 box still gets a background and still costs a composited layer. */
-html.js .sitedoc {
+   1x1 no matter how much content lands in it. */
+.sitedoc {
   position: absolute;
   width: 1px;
   height: 1px;
-  max-width: none;
   margin: -1px;
   padding: 0;
   border: 0;
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
-  background: none;
 }
 
-/* The other half of the same switch. Without scripting there is no window
-   manager, no dock and no clock, so the desktop is a wallpaper with three
-   undraggable icons on it sitting above the only readable copy of the
-   site. `display: none` is correct here and only here: this subtree
-   duplicates nothing a crawler needs, and the mirror below it carries
-   every word of it.
+/* `body` sets `user-select: none` so the desktop feels like an OS rather
+   than a web page, and that inherits into everything, including the one
+   subtree whose entire purpose is being read and copied out.
 
-   It keys off `.desktop-mirrored`, not `.desktop`, and the distinction is
-   load-bearing rather than pedantic. not-found.tsx renders its own
-   `.desktop` with the 404 alert inside it and no mirror underneath, so a
-   rule on the bare class hides the entire 404 page from exactly the
-   visitor who most needs to read it. Any future route that hides its
-   desktop has to ship a fallback document to earn the modifier. */
-html:not(.js) .desktop-mirrored {
-  display: none;
-}
-
-/* Fallback typography for bare tags, and every rule below carries the
-   same two guards.
-
-   `:where(tag)` pins the block at one-class specificity so anything with
-   a class outranks it. That alone is NOT enough, which is the subtle part
-   and worth spelling out: specificity only arbitrates properties that two
-   rules both declare. `.doc-page h3` (0,1,1) beats `.sitedoc :where(h3)`
-   (0,1,0) on `font-size` and `margin` because it declares them — but it
-   never declares `color`, it inherits #26221d from `.doc-page`, and a
-   declared value beats an inherited one at any specificity. So
-   `color: var(--ink)` would win regardless and paint near-white text onto
-   the resume's paper-white sheet. Same story for `max-width` on the
-   sheet's paragraphs and `padding-left` on its lists.
-
-   Hence `:not(:where(.doc-page *))`: the resume brings a complete
-   stylesheet of its own and must be left entirely alone. Wrapping the
-   argument in :where() keeps the negation itself weightless, so the rules
-   stay at (0,1,0) and the paragraph above still holds.
-
-   None of this is visible with scripting on — the mirror is clipped — so
-   it only ever breaks for the one visitor who has nothing else. */
-.sitedoc :where(h1):not(:where(.doc-page *)) {
-  margin: 0 0 6px;
-  font-size: 28px;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-  color: var(--ink);
-}
-
-/* Section rules read as an amber hairline caption rather than a big bold
-   heading: at this measure a 20px h2 every few paragraphs chops the page
-   into fragments, while the rule alone is enough to say "new section". */
-.sitedoc :where(h2):not(:where(.doc-page *)) {
-  margin: 36px 0 12px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--hairline);
-  font-size: 12.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: var(--accent);
-}
-
-/* Job and degree titles. Tight bottom margin on purpose, an h3 here owns
-   the line under it (employer, dates) and should not float away from it. */
-.sitedoc :where(h3):not(:where(.doc-page *)) {
-  margin: 20px 0 2px;
-  font-size: 15.5px;
-  line-height: 1.35;
-  color: var(--ink);
-}
-
-.sitedoc :where(p):not(:where(.doc-page *)) {
-  /* ~68ch is the readable measure; the 720px frame is wider than that on a
-     desktop, so the constraint has to live on the text, not the container */
-  max-width: 68ch;
-  margin: 0 0 12px;
-}
-
-.sitedoc :where(ul, ol):not(:where(.doc-page *)) {
-  max-width: 68ch;
-  margin: 0 0 16px;
-  /* markers sit inside the measure rather than hanging into the page
-     padding, which keeps every left edge in the document on one line */
-  padding-left: 22px;
-}
-
-.sitedoc :where(li):not(:where(.doc-page *)) {
-  margin-bottom: 5px;
-}
-
-/* Amber plus an underline, both. Color alone as a link affordance fails
-   for anyone who cannot separate amber from cream, and this page is the
-   copy that gets read under the worst conditions. */
-.sitedoc :where(a):not(:where(.doc-page *)) {
-  color: var(--accent);
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 2px;
-}
-
-/* Journal names, dates, and other trailing metadata the document sets in
-   <small>: quieter, but still above the contrast floor. */
-.sitedoc :where(small):not(:where(.doc-page *)) {
-  font-size: 13px;
-  color: var(--ink-faint);
-}
-
-/* Whatever opens the document, usually the h1, should not inherit a top
-   margin from these rules and push a hole into the page padding. */
-.sitedoc > :first-child {
-  margin-top: 0;
+   The zero specificity is deliberate: a declared value always beats an
+   inherited one regardless of how weak the selector is, so :where() is
+   enough to break the inheritance while refusing to win any argument with
+   a future rule that genuinely wants to lock selection down in here. */
+:where(.sitedoc) {
+  user-select: text;
 }
