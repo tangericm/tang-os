@@ -32,7 +32,11 @@ export const metadata: Metadata = {
     description:
       "High-speed imaging, machine learning and computer vision, presented as a desktop you can click around.",
   },
-  alternates: { canonical: "/" },
+  /* NO canonical here. Metadata is inherited by every descendant route, so a
+     `canonical: "/"` at the root would have made /resume and all six project
+     pages declare themselves duplicates of the home page — Google drops them
+     from the index and the routing produces nothing while appearing to work.
+     Each route sets its own; see app/(desktop)/page.tsx. */
 };
 
 export const viewport: Viewport = {

@@ -69,6 +69,7 @@ check("mirror carries real prose", mirrorText.length > 10000, `${mirrorText.leng
    it off the `name: string` in the type declaration above the data. */
 const projectsSrc = must("app/data/projects.ts");
 const projectNames = [...projectsSrc.matchAll(/^\s+name: "([^"]+)"/gm)].map((m) => m[1]);
+const projectIds = [...projectsSrc.matchAll(/^\s+id: "([^"]+)"/gm)].map((m) => m[1]);
 check("found projects in data module", projectNames.length >= 6, `${projectNames.length} projects`);
 for (const name of projectNames) {
   check(`  project in mirror: ${name}`, mirrorText.includes(name));
@@ -211,15 +212,98 @@ if (existsSync(sitemapPath)) {
   const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
   check("sitemap lists at least one URL", locs.length > 0, locs.join(", "));
 
-  /* Only "/" is a real route today. When routing ships, this needs to learn
-     about the new URLs — deliberately, so that a sitemap listing 404s cannot
-     pass quietly. */
-  const known = new Set(["https://ericmtang.com", "https://ericmtang.com/"]);
-  const unknown = locs.filter((l) => !known.has(l));
+  /* Derived from the same data the routes are, so this cannot drift: every
+     indexable route must appear exactly once, and nothing else may. A sitemap
+     listing a 404, or quietly omitting a page, both pass a "does it parse"
+     check and both cost real indexing. */
+  const expected = new Set([
+    "https://ericmtang.com",
+    "https://ericmtang.com/resume",
+    "https://ericmtang.com/projects",
+    ...projectIds.map((id) => `https://ericmtang.com/projects/${id}`),
+  ]);
+  const unknown = locs.filter((l) => !expected.has(l));
+  const missing = [...expected].filter((u) => !locs.includes(u));
   check("sitemap lists only routes we serve", unknown.length === 0, unknown.join(", "));
+  check("sitemap lists every indexable route", missing.length === 0, missing.join(", "));
+  /* noindex routes must never be advertised for indexing. */
+  const noindexed = locs.filter((l) => /\/(terminal|play)$/.test(l));
+  check("sitemap omits noindex routes", noindexed.length === 0, noindexed.join(", "));
 } else {
   check("sitemap.xml built", false, sitemapPath);
 }
+
+/* ------------------------------------------------------------------ *
+ * Every route, not just the home page
+ * ------------------------------------------------------------------ */
+
+/* The routing phase's whole point is that each URL is its own document. Two
+   ways that silently fails: a canonical inherited from the root layout makes
+   every page declare itself a copy of "/", and a shared document body makes
+   them near-duplicates of each other. Both look completely fine in a browser. */
+const ROUTES = [
+  { file: "index.html", url: "https://ericmtang.com", indexed: true },
+  { file: "projects.html", url: "https://ericmtang.com/projects", indexed: true },
+  { file: "resume.html", url: "https://ericmtang.com/resume", indexed: true },
+  { file: "terminal.html", url: "https://ericmtang.com/terminal", indexed: false },
+  { file: "play.html", url: "https://ericmtang.com/play", indexed: false },
+  ...projectIds.map((id) => ({
+    file: `projects/${id}.html`,
+    url: `https://ericmtang.com/projects/${id}`,
+    indexed: true,
+    projectId: id,
+  })),
+];
+
+const bodies = new Map();
+
+for (const route of ROUTES) {
+  const path = `${OUT}/${route.file}`;
+  if (!existsSync(path)) {
+    check(`route built: ${route.url}`, false, path);
+    continue;
+  }
+  const routeHtml = readFileSync(path, "utf8");
+  const canonical = routeHtml.match(/<link rel="canonical" href="([^"]+)"/)?.[1];
+  check(`canonical is self-referential: ${route.url}`, canonical === route.url, `got ${canonical}`);
+
+  const noindex = /<meta name="robots" content="[^"]*noindex/.test(routeHtml);
+  check(
+    `robots ${route.indexed ? "indexable" : "noindex"}: ${route.url}`,
+    noindex === !route.indexed
+  );
+
+  const rsc = routeHtml.indexOf("self.__next_f");
+  const routeDom = rsc === -1 ? routeHtml : routeHtml.slice(0, rsc);
+  const start = routeDom.indexOf('class="sitedoc"');
+  /* Entities must be decoded before matching. Two project names contain "&",
+     which serialises as &amp;, and comparing against the raw data module would
+     fail on those two alone — a test that reports a bug the site does not have
+     is worse than no test. */
+  const body =
+    start === -1
+      ? ""
+      : routeDom
+          .slice(start)
+          .replace(/<[^>]+>/g, " ")
+          .replace(/&amp;/g, "&")
+          .replace(/&#x27;/g, "'")
+          .replace(/\s+/g, " ")
+          .trim();
+  bodies.set(route.url, body);
+
+  if (route.projectId) {
+    const name = projectNames[projectIds.indexOf(route.projectId)];
+    check(`  project page leads with its own work: ${route.projectId}`, body.includes(name));
+  }
+}
+
+/* No two indexable documents may be byte-identical. This is the check that
+   catches "every route renders the same SiteDocument", which would ship nine
+   URLs competing with each other for the same query. */
+const indexedBodies = ROUTES.filter((r) => r.indexed).map((r) => bodies.get(r.url) ?? "");
+const duplicates = indexedBodies.length - new Set(indexedBodies).size;
+check("indexable routes are not duplicates of each other", duplicates === 0, `${duplicates} repeated`);
 
 /* ------------------------------------------------------------------ *
  * Report
