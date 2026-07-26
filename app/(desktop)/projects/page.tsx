@@ -1,12 +1,12 @@
-import type { Metadata } from "next";
 import SiteDocument from "../../components/SiteDocument";
+import { routeMetadata } from "../../lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata = routeMetadata({
   title: "Projects",
   description:
-    "Research and independent engineering: real-time instrument tracking, galvanometer modelling, self-supervised OCT denoising, a physics-based OCT simulator.",
-  alternates: { canonical: "/projects" },
-};
+    "Research and independent engineering: real-time instrument tracking, galvanometer modelling, self-supervised OCT denoising, and a physics-based OCT simulator.",
+  path: "/projects",
+});
 
 export default function ProjectsIndex() {
   return <SiteDocument scope="projects" />;
