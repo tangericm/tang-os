@@ -39,14 +39,22 @@ export const viewport: Viewport = {
   themeColor: "#000000",
 };
 
-/* Boot once per session.
-   The boot sequence is a nice first impression and a two-and-a-half second
-   toll on every visit after that. This runs synchronously in <head>, before
-   the first paint, so a returning visitor never sees the overlay at all
-   rather than seeing it flash and disappear, which is what a React effect
-   would have given us. The overlay itself stays server-rendered, so a
-   first-time visitor gets it with no JS round-trip. */
-const BOOT_ONCE = `try{if(sessionStorage.getItem('tangos-booted')){document.documentElement.classList.add('booted')}else{sessionStorage.setItem('tangos-booted','1')}}catch(e){}`;
+/* Two decisions that must be made before the first paint, so both run
+   synchronously here rather than from a React effect, which would let the
+   wrong state flash first.
+
+   `js` swaps which of the page's two documents is visible: the desktop, or
+   the plain .sitedoc mirror that carries the same content for crawlers and
+   for anyone with scripting off (see globals.css and page.tsx). It is added
+   first and outside the try, because if sessionStorage throws — Safari in
+   private mode has historically done exactly that — the desktop must still
+   appear. Getting this backwards shows every visitor the fallback document.
+
+   `booted` skips the boot sequence, a nice first impression and a
+   two-and-a-half second toll on every visit after that. The overlay itself
+   stays server-rendered, so a first-time visitor gets it with no JS
+   round-trip. */
+const HEAD_ONCE = `document.documentElement.classList.add('js');try{if(sessionStorage.getItem('tangos-booted')){document.documentElement.classList.add('booted')}else{sessionStorage.setItem('tangos-booted','1')}}catch(e){}`;
 
 export default function RootLayout({
   children,
@@ -56,7 +64,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <script dangerouslySetInnerHTML={{ __html: BOOT_ONCE }} />
+        <script dangerouslySetInnerHTML={{ __html: HEAD_ONCE }} />
       </head>
       <body>
         {children}
