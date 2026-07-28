@@ -14,7 +14,7 @@ export type Group = "First-author research" | "Built independently" | "Co-author
 export type Visual =
   | "tracking"
   | "scanner"
-  | "speckle"
+  | "denoiser"
   | "denoise"
   | "simulator"
   | "tangos";
@@ -85,18 +85,18 @@ export const PROJECTS: Project[] = [
     ],
   },
   {
-    id: "speckle",
-    name: "Self-Supervised Speckle Reduction",
+    id: "denoiser",
+    name: "Self-Supervised Image Denoiser",
     kind: "NAFNet · frame-pair supervision",
     group: "Built independently",
-    visual: "speckle",
+    visual: "denoiser",
     blurb:
-      "Self-supervised speckle reduction with no clean reference anywhere in training. Supervision is a frame pair — two full-bandwidth reconstructions of one retinal position, taken from adjacent frames of an ordinary volume scan — so the structure is shared (0.958) while the speckle is independent (+0.017), and neither view is contained in the other. That last property is what an earlier spectral-split design lacked, and measuring it is what replaced it. NAFNet at base width 64, 27.11M parameters, 22.4 ms per frame. Trained on 9 volumes / 4416 frames, dispersion compensated, split into contiguous blocks, with early stopping and checkpoint selection driven by validation and never by the reported metric. Scored against five registered 64-frame averages on the same instrument over three seeds: PSNR 29.518 ± 0.035, SSIM 0.7323, against 12.059 and 0.1205 for the noisy input. Speckle contrast falls 19-22% with choroidal texture intact, so the gain is not blur.",
+      "Self-supervised image denoising with no clean reference anywhere in training. Supervision is a frame pair — two full-bandwidth reconstructions of one retinal position, taken from adjacent frames of an ordinary volume scan — so the structure is shared (0.958) while the speckle is independent (+0.017), and neither view is contained in the other. That last property is what an earlier spectral-split design lacked, and measuring it is what replaced it. NAFNet at base width 64, 27.11M parameters, 22.4 ms per frame. Trained on 9 volumes / 4416 frames, dispersion compensated, split into contiguous blocks, with early stopping and checkpoint selection driven by validation and never by the reported metric. Scored against five registered 64-frame averages on the same instrument over three seeds: PSNR 29.518 ± 0.035, SSIM 0.7323, against 12.059 and 0.1205 for the noisy input. Speckle contrast falls 19-22% with choroidal texture intact, so the gain is not blur.",
     tags: [
       "PyTorch",
       "NAFNet",
       "Self-supervised learning",
-      "Speckle reduction",
+      "Image denoising",
       "Image registration",
       "Fourier-domain processing",
     ],

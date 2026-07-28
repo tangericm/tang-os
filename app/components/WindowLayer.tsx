@@ -35,7 +35,7 @@ import { DEFAULT_PROJECT, hrefFor, parseRoute, type AppId } from "../lib/routes"
  *
  * The initial value comes from the path through a lazy initializer, which
  * touches no browser API — that is the whole hydration story. The server
- * renders /projects/speckle with the Projects window already open on that
+ * renders /projects/denoiser with the Projects window already open on that
  * project, and the client's first render computes the same thing from the
  * same string.
  *
@@ -77,7 +77,7 @@ export default function WindowLayer() {
      this backwards and every open immediately closes itself. */
   const routedApp = useRef<AppId>(route.app);
 
-  /* Remembered separately from the URL. Opening Resume from /projects/speckle
+  /* Remembered separately from the URL. Opening Resume from /projects/denoiser
      moves the path to /resume and nulls route.project, and without this the
      still-mounted Projects window would silently snap back to the default. */
   const [lastProject, setLastProject] = useState(route.project ?? DEFAULT_PROJECT);
