@@ -129,6 +129,12 @@ function TrackingHero() {
        --col0 130 --col1 910 --row0 60 --row1 560
        --out-prefix <tang-os>/public/denoiser
 
+   The committed JPEGs then get a light display pass (same geometry on both):
+   trim ~8% from the top and ~16% from the bottom to clear vitreous-edge
+   noise and empty floor, then raise the black point off the vitreous strip
+   and apply a mild gamma so the background reads darker without retouching
+   the tissue window separately on each frame.
+
    Two rules govern the display, and both are measured rather than assumed:
 
    1. ONE shared window for both frames. Windowing them separately would
