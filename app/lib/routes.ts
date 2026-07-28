@@ -45,17 +45,19 @@ export function isProjectId(id: string): boolean {
 /**
  * Project ids that were once public and have since been renamed.
  *
- * `/projects/spectral` was a live URL before the denoising project was renamed
- * to `speckle`, and it is in the previously-published sitemap. Without this it
- * does not 404 -- `parseRoute` falls back to the desktop -- which is worse than
- * a 404, because the visitor silently lands on the wrong thing with no sign
- * anything went wrong. Resolving it keeps the old link working.
+ * `/projects/spectral` and `/projects/speckle` were live URLs before the
+ * denoising project was renamed to `denoiser`, and both are in the
+ * previously-published sitemap. Without this it does not 404 -- `parseRoute`
+ * falls back to the desktop -- which is worse than a 404, because the visitor
+ * silently lands on the wrong thing with no sign anything went wrong.
+ * Resolving them keeps the old links working.
  *
  * Add an entry whenever a project id changes; never remove one, since the old
  * URL stays indexed long after the rename.
  */
 const LEGACY_PROJECT_IDS: Record<string, string> = {
-  spectral: "speckle",
+  spectral: "denoiser",
+  speckle: "denoiser",
 };
 
 /** The current id for a possibly-legacy one, or null if it is neither. */

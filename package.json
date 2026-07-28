@@ -8,6 +8,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "check:crawlable": "node scripts/check-crawlable.mjs",
+    "export:denoiser-hero": "python3 scripts/export-denoiser-hero.py",
+    "extract:denoiser-hero": "python3 scripts/extract-denoiser-hero-from-result.py",
     "verify": "npm run typecheck && npm run build && npm run check:crawlable"
   },
   "dependencies": {

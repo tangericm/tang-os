@@ -121,11 +121,11 @@ function TrackingHero() {
    the caption states them as the separate measurement they are rather than
    letting them read as scores for this one image.
 
-   BOTH JPEGs predate the current production checkpoint and were not
-   regenerated when the supervision scheme changed. Nothing in them is
-   contradicted by the caption, which no longer attributes any number to this
-   volume, but they should be re-exported from the production run so the
-   picture and the metric come from the same model.
+   Regenerate with ``npm run export:denoiser-hero`` (production NAFNet
+   checkpoint + device A stacks; shared-window export matching the rules
+   below). ``npm run extract:denoiser-hero`` can pull frames from
+   ``docs/result.jpg`` when inference data is unavailable, but the README
+   composite uses different subplot heights so the wipe is only approximate.
 
    Two rules govern the display, and both matter:
 
@@ -147,7 +147,7 @@ function TrackingHero() {
    the same height and scale) so the two denoising results read as directly
    comparable. A shared gamma of 1.5 rides on top of the shared window; it is
    applied identically to both frames. */
-function SpeckleHero() {
+function DenoiserHero() {
   return (
     <figure className="denoise-figure">
       <div className="denoise-tags" aria-hidden="true">
@@ -156,9 +156,9 @@ function SpeckleHero() {
       </div>
       <div className="denoise" aria-label="A raw frame resolving into the network prediction">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="denoise-img" src="/spectral-ref.jpg" alt="Raw single-frame reconstruction of a retinal cross-section, speckle throughout and layer boundaries barely separable" loading="lazy" decoding="async" width={1100} height={455} />
+        <img className="denoise-img" src="/denoiser-raw.jpg" alt="Raw single-frame reconstruction of a retinal cross-section, speckle throughout and layer boundaries barely separable" loading="lazy" decoding="async" width={1100} height={455} />
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="denoise-img denoise-clean" src="/spectral-pred.jpg" alt="Network prediction of the same frame, speckle suppressed with retinal layers resolved and choroidal vessels visible" loading="lazy" decoding="async" width={1100} height={455} />
+        <img className="denoise-img denoise-clean" src="/denoiser-pred.jpg" alt="Network prediction of the same frame, speckle suppressed with retinal layers resolved and choroidal vessels visible" loading="lazy" decoding="async" width={1100} height={455} />
         <span className="denoise-scan" aria-hidden="true" />
       </div>
       <figcaption>
@@ -225,10 +225,10 @@ function Visual({ kind }: { kind: NonNullable<Project["visual"]> }) {
       </>
     );
   if (kind === "scanner") return <ScannerSchematic />;
-  if (kind === "speckle")
+  if (kind === "denoiser")
     return (
       <>
-        <SpeckleHero />
+        <DenoiserHero />
         <SpeckleSchematic />
       </>
     );
@@ -257,7 +257,7 @@ function Visual({ kind }: { kind: NonNullable<Project["visual"]> }) {
 }
 
 /* Controlled by WindowLayer, because the selected project IS the URL now
-   (/projects/speckle). Holding it in local state as well would give two
+   (/projects/denoiser). Holding it in local state as well would give two
    sources of truth for one fact, and the one that loses is the one a shared
    link restores. */
 export default function ProjectsWindow({

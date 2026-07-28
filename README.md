@@ -56,7 +56,7 @@ the whole reason these exist.
 - [x] Terminal: a working shell over the same project data (`ls`, `cat`, `open`, and some jokes)
 - [x] Runner: a dinosaur game on `<canvas>`
 - [x] Power menu: sleep, restart, shut down
-- [x] Real routes and deep links — `/projects/speckle` opens that project
+- [x] Real routes and deep links — `/projects/denoiser` opens that project
 - [x] Crawlable document mirror, JSON-LD, sitemap
 - [x] Mobile support
 - [ ] Menu bar dropdowns
