@@ -130,7 +130,7 @@ function TrackingHero() {
        --out-prefix <tang-os>/public/denoiser
 
    The committed JPEGs then get a light display pass (same geometry on both):
-   trim ~13% from the top and ~16% from the bottom to clear vitreous-edge
+   trim ~8% from the top and ~16% from the bottom to clear vitreous-edge
    noise and empty floor, then raise the black point off the vitreous strip
    and apply a mild gamma so the background reads darker without retouching
    the tissue window separately on each frame.
