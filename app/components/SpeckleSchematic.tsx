@@ -306,7 +306,7 @@ function NetPanel() {
       <text className="spc-io-label" x={87} y={47} textAnchor="middle" dominantBaseline="middle">
         3×3
       </text>
-      <text className="sfs-sub" x={87} y={68} textAnchor="middle">
+      <text className="sfs-sub" x={87} y={72} textAnchor="middle">
         intro
       </text>
       <path className="spc-flow" d={`M106 47 H${ENC_R - encW[0] - 4}`} markerEnd="url(#spc-arrowhead)" />
