@@ -103,7 +103,7 @@ function PairPanel() {
 
       <path className="sfs-arrow" d="M212 58 l6 5 l-6 5" />
       <text className="sfs-sub" x={236} y={40}>
-        dispersion compensated
+        adjacent B-scans
       </text>
 
       <rect className="trk-frame spc-view-1" x={236} y={48} width={132} height={54} rx={3} />
@@ -496,7 +496,7 @@ export default function SpeckleSchematic() {
           <PairPanel />
         </div>
         <p className="sfs-note">
-          Speckle is coherent interference, not additive noise, so the realization is fixed by which scatterers the beam illuminates. Two B-scans one position apart resolve the same structure from a different scatterer distribution: the structure repeats and the speckle does not. Neither frame is derived from the other, which is the property a self-supervised pair lives or dies on.
+          OCT speckle is interference from scatterers in the beam, not ordinary camera noise. Two frames one position apart show the same anatomy with different speckle — and neither is derived from the other — which is what makes them a usable self-supervised pair.
         </p>
       </section>
 
@@ -515,7 +515,7 @@ export default function SpeckleSchematic() {
           <NetPanel />
         </div>
         <p className="sfs-note">
-          One raw frame in, one denoised frame out; the paired frame is only ever a target, never an input. NAFNet at base width 64: a 3×3 intro, four encoder stages of NAFBlocks (1 / 1 / 1 / 2) at 64→128→256→512, a middle of two blocks at 1024, then four PixelShuffle decoder stages (1 each) with additive skips and a 3×3 ending — 27.11M parameters, 22.4 ms per frame. Each NAFBlock gets its nonlinearity from SimpleGate (split channels and multiply) plus a simplified channel attention, not from ReLU or GELU. Volumes are split into contiguous blocks rather than shuffled, because a shuffled split puts a frame&rsquo;s own neighbour on the other side of it.
+          One raw frame in, one denoised frame out; the paired frame is only the training target. NAFNet (27.11M parameters, 22.4 ms per frame) uses gated NAF blocks instead of ReLU-style activations, keeping the reconstruction fast enough for interactive review.
         </p>
       </section>
     </div>
