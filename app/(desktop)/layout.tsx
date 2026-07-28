@@ -10,7 +10,7 @@ import { siteJsonLd } from "../lib/jsonld";
  *
  * The OS chrome lives HERE rather than in a page, and that placement is the
  * whole reason the routing works. App Router preserves a layout's subtree
- * across navigations within it, so moving from / to /projects/speckle
+ * across navigations within it, so moving from / to /projects/denoiser
  * re-renders only {children} — the document beneath. Not one window remounts,
  * so a dragged window keeps its position, the terminal keeps its scrollback,
  * and the runner keeps its score while the URL changes underneath them.

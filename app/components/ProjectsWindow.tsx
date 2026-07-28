@@ -121,33 +121,33 @@ function TrackingHero() {
    the caption states them as the separate measurement they are rather than
    letting them read as scores for this one image.
 
-   BOTH JPEGs predate the current production checkpoint and were not
-   regenerated when the supervision scheme changed. Nothing in them is
-   contradicted by the caption, which no longer attributes any number to this
-   volume, but they should be re-exported from the production run so the
-   picture and the metric come from the same model.
+   Regenerate from the OCT-Denoiser checkout, which owns the one renderer:
 
-   Two rules govern the display, and both matter:
+     python -m octdenoiser.experiments.render_web_figure
+       --ckpt runs/production_nafnet/base64_seed0/nafnet.pt
+       --device-b-root <dir> --folder 9mm_1024Aline --base 64
+       --col0 130 --col1 910 --row0 60 --row1 560
+       --out-prefix <tang-os>/public/denoiser
+
+   Two rules govern the display, and both are measured rather than assumed:
 
    1. ONE shared window for both frames. Windowing them separately would
       flatter the prediction and make the comparison worthless.
-   2. The black point is anchored to the PREDICTION's 1st percentile, not the
-      reference's. Anchoring it to the reference put the floor above the
-      prediction's noise, crushing 39% of it to pure black. A denoised B-scan
-      with no speckle floor at all does not read as an image, it reads as a
-      mask, and the earlier version of this figure looked fake for exactly
-      that reason. At this anchor the prediction retains its floor (1.0% at
-      zero) and, counter-intuitively, reference-to-prediction separation is
-      almost unchanged: crushing harder pushes both toward the same black and
-      makes the improvement LESS visible, not more.
+   2. The window is anchored to the RAW frame's 1st and 99.5th percentiles, not
+      the prediction's. Anchoring on the prediction is the tempting choice --
+      it guarantees the prediction keeps a visible noise floor -- but on this
+      crop it clips 23% of the RAW frame to pure black, which flatters the
+      model by destroying the very detail the comparison is about. Measured on
+      this exact frame: anchored to the raw, 0.0% of the prediction is crushed
+      and 1.0% of the raw is; anchored to the prediction, 1.0% and 23.0%. The
+      raw anchor costs nothing here and cannot be accused of favouring the
+      output.
 
-   Volume is the 2048 A-line line scan, chosen because at 1024 columns the
-   crop was already at maximum field for this aspect, so zooming out required
-   a wider source. Framing is matched to the self-fusion hero (retina band at
-   the same height and scale) so the two denoising results read as directly
-   comparable. A shared gamma of 1.5 rides on top of the shared window; it is
-   applied identically to both frames. */
-function SpeckleHero() {
+   Source is a held-out repeat stack at 1024 A-lines, cropped to centre the
+   fovea and stop short of the optic disc. It is held out of training entirely,
+   so the figure shows generalisation rather than recall -- a hero frame cut
+   from training data would look identical and mean nothing. */
+function DenoiserHero() {
   return (
     <figure className="denoise-figure">
       <div className="denoise-tags" aria-hidden="true">
@@ -156,17 +156,20 @@ function SpeckleHero() {
       </div>
       <div className="denoise" aria-label="A raw frame resolving into the network prediction">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="denoise-img" src="/spectral-ref.jpg" alt="Raw single-frame reconstruction of a retinal cross-section, speckle throughout and layer boundaries barely separable" loading="lazy" decoding="async" width={1100} height={455} />
+        <img className="denoise-img" src="/denoiser-raw.jpg" alt="Raw single-frame reconstruction of a retinal cross-section, speckle throughout and layer boundaries barely separable" loading="lazy" decoding="async" width={1100} height={455} />
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="denoise-img denoise-clean" src="/spectral-pred.jpg" alt="Network prediction of the same frame, speckle suppressed with retinal layers resolved and choroidal vessels visible" loading="lazy" decoding="async" width={1100} height={455} />
+        <img className="denoise-img denoise-clean" src="/denoiser-pred.jpg" alt="Network prediction of the same frame, speckle suppressed with retinal layers resolved and choroidal vessels visible" loading="lazy" decoding="async" width={1100} height={455} />
         <span className="denoise-scan" aria-hidden="true" />
       </div>
       <figcaption>
         A raw frame against the prediction under a{" "}
-        <strong>single shared display window</strong>, anchored so the prediction
-        keeps its own noise floor: the difference is the model, not the contrast
-        setting. Measured against five registered 64-frame averages held out on
-        the same instrument, over three seeds, the model scores{" "}
+        <strong>single shared display window</strong> — taken from the raw frame
+        and applied unchanged to both, so the difference is the model and not the
+        contrast setting. The frame is from a stack{" "}
+        <strong>held out of training entirely</strong>; speckle contrast falls
+        18.2% on it while the vessel shadows survive. Measured against five
+        registered 64-frame averages held out on the same instrument, over three
+        seeds, the model scores{" "}
         <strong>29.518 &plusmn; 0.035 dB PSNR</strong> and{" "}
         <strong>0.7323 SSIM</strong>, against 12.059 dB and 0.1205 for the noisy
         input.
@@ -225,10 +228,10 @@ function Visual({ kind }: { kind: NonNullable<Project["visual"]> }) {
       </>
     );
   if (kind === "scanner") return <ScannerSchematic />;
-  if (kind === "speckle")
+  if (kind === "denoiser")
     return (
       <>
-        <SpeckleHero />
+        <DenoiserHero />
         <SpeckleSchematic />
       </>
     );
@@ -257,7 +260,7 @@ function Visual({ kind }: { kind: NonNullable<Project["visual"]> }) {
 }
 
 /* Controlled by WindowLayer, because the selected project IS the URL now
-   (/projects/speckle). Holding it in local state as well would give two
+   (/projects/denoiser). Holding it in local state as well would give two
    sources of truth for one fact, and the one that loses is the one a shared
    link restores. */
 export default function ProjectsWindow({
