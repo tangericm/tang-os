@@ -1615,6 +1615,15 @@ html.booted .boot-overlay {
   margin-top: 4px;
 }
 
+/* Dense schematics (NAFNet) scroll sideways before their labels crush. */
+.sfs-canvas:has(.sfs-svg-dense) {
+  overflow-x: auto;
+}
+
+.sfs-svg-dense {
+  min-width: 560px;
+}
+
 .sfs-note {
   margin-top: 6px;
   font-size: 11.5px;
@@ -2110,6 +2119,66 @@ html.booted .boot-overlay {
   stroke-width: 1;
 }
 
+.spc-unit {
+  fill: url(#spc-unit);
+  stroke: rgba(255, 244, 230, 0.18);
+  stroke-width: 0.6;
+}
+
+.spc-ch {
+  fill: #f7f2ea;
+  font-size: 9px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  paint-order: stroke fill;
+  stroke: rgba(40, 32, 24, 0.55);
+  stroke-width: 2.4px;
+}
+
+.spc-io {
+  fill: rgba(226, 170, 99, 0.14);
+  stroke: rgba(226, 170, 99, 0.5);
+  stroke-width: 1;
+}
+
+.spc-io-label {
+  fill: var(--accent);
+  font-size: 9px;
+  font-weight: 500;
+}
+
+.spc-flow {
+  fill: none;
+  stroke: rgba(226, 170, 99, 0.55);
+  stroke-width: 1.2;
+}
+
+.spc-marker {
+  fill: rgba(226, 170, 99, 0.75);
+}
+
+.spc-callout {
+  fill: rgba(255, 244, 230, 0.04);
+  stroke: rgba(255, 244, 230, 0.14);
+  stroke-width: 1;
+}
+
+.spc-call-step {
+  fill: rgba(150, 133, 112, 0.28);
+  stroke: rgba(255, 244, 230, 0.22);
+  stroke-width: 1;
+}
+
+.spc-call-key {
+  fill: rgba(226, 170, 99, 0.2);
+  stroke: rgba(226, 170, 99, 0.5);
+}
+
+.spc-call-label {
+  fill: var(--ink-soft);
+  font-size: 9px;
+}
+
 .spc-latent {
   stroke: rgba(226, 170, 99, 0.55);
 }
@@ -2455,6 +2524,11 @@ html.booted .boot-overlay {
   }
   .sfs-svg {
     min-width: 470px;
+  }
+  /* The NAFNet panel is denser than the other schematics; keep a higher
+     floor so its stage labels and callout chips stay readable. */
+  .sfs-svg-dense {
+    min-width: 560px;
   }
 }
 
