@@ -3,10 +3,9 @@
  * the Projects window and the terminal's `ls` / `cat`. One copy means they
  * cannot drift apart.
  *
- * Register is deliberately technical. Every entry front-loads the
- * frameworks, architectures, methods and validation metrics a reader (or a
- * keyword filter) would look for, and states numbers rather than
- * describing them.
+ * Register aims at a mixed audience: enough method and metric for a technical
+ * reader, enough plain language and keywords for a recruiter skimming. Prefer
+ * one clear claim and a few numbers over a full methods dump.
  */
 
 export type Group = "First-author research" | "Built independently" | "Co-authored research";
@@ -45,7 +44,7 @@ export const PROJECTS: Project[] = [
     group: "First-author research",
     visual: "tracking",
     blurb:
-      "Closed-loop instrument tracking for video-rate 4D imaging. A GPU YOLOv4 detector (OpenCV DNN, CUDA) localizes instruments in en face frames co-registered with cross-sectional OCT and drives galvanometer offsets that re-center the field at 16 Hz volumes over 25 x 25 mm. Packing the current frame with a 5-frame running mean and variance into three channels: 99.98% mAP, F1 0.98, 23 Hz. Localization holds to the 2.95 px resolution limit through 9 mm defocus and 10 mm/s. Multithreaded C++ acquisition, inference and scan generation.",
+      "Closed-loop instrument tracking for video-rate 4D OCT imaging. A GPU YOLOv4 detector (OpenCV DNN, CUDA) finds instruments in en face frames and steers the scanners to keep them centered — 16 Hz volumes over a 25 × 25 mm field. Feeding the network a raw frame plus a short-window mean and variance reaches 99.98% mAP at 23 Hz, with localization holding through defocus and motion. Built as a multithreaded C++ pipeline for acquisition, inference, and scan control.",
     tags: [
       "YOLOv4",
       "CUDA",
@@ -68,7 +67,7 @@ export const PROJECTS: Project[] = [
     group: "First-author research",
     visual: "scanner",
     blurb:
-      "Bayesian optimization of galvanometer tuning to recover scan dead time. Settling time is modeled against closed-loop PID parameters by Gaussian process regression, whose posterior variance directs sampling instead of an exhaustive sweep. Optimized tunings cut settling time by over 50%, and the recovered budget extends the linear scan region, raising field of view, SNR and CNR (p < 0.001) at fixed rate. Stock controller firmware throughout.",
+      "Bayesian optimization of galvanometer PID tuning to cut scan dead time. Settling time is modeled with Gaussian process regression so each measurement goes where the model is least certain, instead of sweeping a full grid. Optimized tunings cut settling time by more than 50%, reclaiming budget for a wider usable field of view and higher SNR and CNR at the same scan rate — on stock controller firmware.",
     tags: [
       "Gaussian process regression",
       "Bayesian optimization",
@@ -91,14 +90,14 @@ export const PROJECTS: Project[] = [
     group: "Built independently",
     visual: "denoiser",
     blurb:
-      "Self-supervised image denoising with no clean reference anywhere in training. Supervision is a frame pair — two full-bandwidth reconstructions of one retinal position, taken from adjacent frames of an ordinary volume scan — so the structure is shared (0.958) while the speckle is independent (+0.017), and neither view is contained in the other. That last property is what an earlier spectral-split design lacked, and measuring it is what replaced it. NAFNet at base width 64, 27.11M parameters, 22.4 ms per frame. Trained on 9 volumes / 4416 frames, dispersion compensated, split into contiguous blocks, with early stopping and checkpoint selection driven by validation and never by the reported metric. Scored against five registered 64-frame averages on the same instrument over three seeds: PSNR 29.518 ± 0.035, SSIM 0.7323, against 12.059 and 0.1205 for the noisy input. Speckle contrast falls 19-22% with choroidal texture intact, so the gain is not blur.",
+      "Self-supervised OCT denoising that never sees a clean image during training. Adjacent frames from a normal volume scan form the supervision pair: same anatomy, different speckle — so the network learns to keep structure and suppress noise. Built on NAFNet (27.11M parameters, 22.4 ms per frame) and trained on 9 volumes / 4416 frames. Against registered multi-frame averages: PSNR 29.5 and SSIM 0.73, up from 12.1 and 0.12 on the noisy input, with speckle contrast down ~20% and fine texture preserved.",
     tags: [
       "PyTorch",
       "NAFNet",
       "Self-supervised learning",
       "Image denoising",
+      "Speckle reduction",
       "Image registration",
-      "Fourier-domain processing",
     ],
     links: [{ label: "GitHub", href: "https://github.com/tangericm/OCT-Denoiser" }],
   },
@@ -109,11 +108,11 @@ export const PROJECTS: Project[] = [
     group: "Built independently",
     visual: "simulator",
     blurb:
-      "A forward model that generates OCT from physics rather than augmenting existing scans, built as the data backbone for training in sparse-data regimes. Each A-scan is synthesized as an interferometric spectrum, I(k) = P(k)·|a_ref + sum r·exp(i2kz)|², then DC-removed, windowed and inverse-transformed exactly as real hardware reconstructs it. Source bandwidth, sensitivity falloff, dispersion, integration time, correlated eye motion, shot/RIN/read noise and wavelength-dependent tissue optics are all modeled, so the speed-versus-SNR tradeoff emerges rather than being scripted. Every sample ships a per-pixel layer map, giving free ground truth for segmentation and denoising.",
+      "A physics-based OCT simulator for training models when real labeled data is scarce. Each A-scan is synthesized as an interferometric spectrum and reconstructed the same way real hardware does — including source bandwidth, noise, eye motion, and tissue optics — so imaging tradeoffs emerge from the model rather than being hand-tuned. Every sample includes a per-pixel layer map, giving free ground truth for segmentation and denoising.",
     tags: [
       "Forward modeling",
-      "Fourier optics",
       "Synthetic data",
+      "Fourier optics",
       "NumPy",
       "PySide6",
       "Python",
@@ -127,7 +126,7 @@ export const PROJECTS: Project[] = [
     group: "Built independently",
     visual: "tangos",
     blurb:
-      "Desktop-metaphor portfolio with no UI framework or component library. Window manager with a per-application lifecycle state machine, pointer-capture drag and resize, true maximize and restore, focus-order z-indexing, a magnifying dock, a document viewer, an interactive terminal, a dinosaur runner, and the animated SVG explainers on this page. Next.js App Router, React, TypeScript; centralized design tokens and full prefers-reduced-motion support.",
+      "Desktop-metaphor portfolio built without a UI component library. Custom window manager with open, minimize, and maximize lifecycles, drag and resize, focus stacking, a dock, document viewer, terminal, and animated SVG explainers. Next.js App Router, React, and TypeScript, with shared design tokens and prefers-reduced-motion support.",
     tags: [
       "Next.js",
       "React",
@@ -145,7 +144,7 @@ export const PROJECTS: Project[] = [
     group: "Co-authored research",
     visual: "denoise",
     blurb:
-      "Neural acceleration of self-fusion, a registration-based speckle-reduction method adapted from multi-atlas label fusion. Deformable registration caps the original at 0.42 fps, so a convolutional encoder-decoder was trained to regress its 7-frame fused output from three raw frames, serialized with TorchScript and run from C++ via LibTorch in a GPU acquisition pipeline. Inference reaches 22 fps, a 50x speedup, roughly doubling contrast-to-noise over a raw frame and beating frame averaging on CNR and PSNR.",
+      "Speeding up self-fusion — a registration-based speckle-reduction method — for real-time use. Deformable registration limited the original to 0.42 fps, so a convolutional network was trained to reproduce the fused result from three raw frames and deployed with TorchScript / LibTorch in a C++ GPU pipeline. Inference hits 22 fps (~50× faster), roughly doubling contrast-to-noise over a raw frame and beating simple averaging on CNR and PSNR.",
     tags: [
       "PyTorch",
       "LibTorch",

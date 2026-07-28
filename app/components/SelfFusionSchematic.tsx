@@ -339,7 +339,7 @@ export default function SelfFusionSchematic() {
           <TargetPanel />
         </div>
         <p className="sfs-note">
-          Adapted from multi-atlas label fusion: a frame&rsquo;s own neighbours act as atlases. Deformable registration brings a &plusmn;3-frame window onto the target, and a weighted vote keeps structure that recurs across frames while speckle, which does not recur, cancels. Registration is what makes it work and also what makes it slow.
+          Inspired by multi-atlas label fusion: a frame&rsquo;s neighbors act as atlases. Deformable registration aligns a short window, and a weighted vote keeps structure that recurs while speckle cancels. Registration is why it works — and why it is slow (0.42 fps).
         </p>
       </section>
 
@@ -358,7 +358,7 @@ export default function SelfFusionSchematic() {
           <NetworkPanel />
         </div>
         <p className="sfs-note">
-          No registration at inference. Three raw adjacent frames map straight to the fused estimate, so the cost of the deformable step is paid once in building training targets rather than on every frame. That is the whole 50x: the same output, without the registration.
+          No registration at inference. Three raw adjacent frames map straight to the fused estimate, so the expensive deformable step is paid once when building training targets. Same output, about 50× faster.
         </p>
       </section>
     </div>
