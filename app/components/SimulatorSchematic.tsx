@@ -269,10 +269,7 @@ export default function SimulatorSchematic() {
           <ForwardPanel />
         </div>
         <p className="sfs-note">
-          The image is the output of the measurement equation, not a filter applied
-          to an existing scan. A scene of scatterers becomes an interferometric
-          spectrum, which is then DC-removed, windowed and inverse-transformed by the
-          same reconstruction the instrument runs. Single-scattering throughout.
+          The image comes from a measurement equation, not a filter on an existing scan. A scene of scatterers becomes an interferometric spectrum, then is reconstructed with the same steps the instrument runs — so synthetic data stays physically grounded.
         </p>
       </section>
 
@@ -285,11 +282,7 @@ export default function SimulatorSchematic() {
           <EffectsPanel />
         </div>
         <p className="sfs-note">
-          Acquisition speed sets integration time, which raises SNR and worsens
-          fringe washout at once, so the tradeoff is emergent rather than scripted.
-          Motion is one continuous trajectory sampled along the acquisition axis, so
-          artifacts stay correlated across A-scans and across frames. Because the
-          scene is known before it is measured, the layer map is free.
+          Faster acquisition shortens integration time: noise rises, and motion washout changes with it, so speed-versus-SNR tradeoffs emerge from the physics. Because the scene is known before it is measured, every sample ships a free layer map for training.
         </p>
       </section>
     </div>
