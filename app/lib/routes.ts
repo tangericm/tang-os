@@ -43,6 +43,29 @@ export function isProjectId(id: string): boolean {
 }
 
 /**
+ * Project ids that were once public and have since been renamed.
+ *
+ * `/projects/spectral` was a live URL before the denoising project was renamed
+ * to `speckle`, and it is in the previously-published sitemap. Without this it
+ * does not 404 -- `parseRoute` falls back to the desktop -- which is worse than
+ * a 404, because the visitor silently lands on the wrong thing with no sign
+ * anything went wrong. Resolving it keeps the old link working.
+ *
+ * Add an entry whenever a project id changes; never remove one, since the old
+ * URL stays indexed long after the rename.
+ */
+const LEGACY_PROJECT_IDS: Record<string, string> = {
+  spectral: "speckle",
+};
+
+/** The current id for a possibly-legacy one, or null if it is neither. */
+export function canonicalProjectId(id: string): string | null {
+  if (isProjectId(id)) return id;
+  const renamed = LEGACY_PROJECT_IDS[id];
+  return renamed && isProjectId(renamed) ? renamed : null;
+}
+
+/**
  * Path → which app is open. Anything unrecognised falls back to the desktop
  * rather than throwing: this runs during render on both sides, and a URL that
  * 404s is the router's problem to report, not this function's.
@@ -58,7 +81,10 @@ export function parseRoute(pathname: string): Route {
   if (path === "/projects") return { app: "projects", project: null };
 
   const project = path.startsWith("/projects/") ? path.slice("/projects/".length) : null;
-  if (project && isProjectId(project)) return { app: "projects", project };
+  if (project) {
+    const canonical = canonicalProjectId(project);
+    if (canonical) return { app: "projects", project: canonical };
+  }
 
   return HOME;
 }

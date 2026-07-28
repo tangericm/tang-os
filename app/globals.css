@@ -2070,31 +2070,14 @@ html.booted .boot-overlay {
   stroke-linejoin: round;
 }
 
-/* ---- the spectral-split schematic (SpectralSchematic.tsx) ---- */
-.spc-envelope {
-  fill: none;
-  stroke: rgba(244, 241, 236, 0.3);
-  stroke-width: 1.4;
-  stroke-dasharray: 3 3;
-}
+/* ---- the self-supervised speckle schematic (SpeckleSchematic.tsx) ---- */
 
-.spc-win {
-  stroke-width: 1.2;
-}
-
-.spc-win-1 {
-  fill: rgba(126, 160, 222, 0.16);
-  stroke: rgba(126, 160, 222, 0.6);
-}
-
-.spc-win-2 {
-  fill: rgba(228, 136, 124, 0.16);
-  stroke: rgba(228, 136, 124, 0.6);
-}
-
-.spc-axis {
-  stroke: rgba(244, 241, 236, 0.22);
-  stroke-width: 1;
+/* the two adjacent B-scans that form the training pair, picked out of the
+   stack of slabs that .sfs-slab draws */
+.spc-pair {
+  fill: rgba(226, 170, 99, 0.55);
+  stroke: rgba(226, 170, 99, 0.7);
+  animation: none;
 }
 
 .spc-gap,
@@ -2332,25 +2315,7 @@ html.booted .boot-overlay {
   animation: sfs-flow 1s linear infinite;
 }
 
-/* ---- spectral: pseudo-3D stem and the objective ---- */
-.spc-stem {
-  fill: rgba(226, 170, 99, 0.14);
-  stroke: rgba(226, 170, 99, 0.55);
-  stroke-width: 1.2;
-}
-
-.spc-stem-label {
-  fill: var(--accent);
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.spc-ch {
-  fill: var(--ink-faint);
-  font-size: 8.5px;
-  font-variant-numeric: tabular-nums;
-}
-
+/* ---- speckle schematic: the objective between prediction and target ---- */
 .spc-loss-pill {
   fill: rgba(226, 170, 99, 0.12);
   stroke: rgba(226, 170, 99, 0.5);

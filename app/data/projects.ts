@@ -14,7 +14,7 @@ export type Group = "First-author research" | "Built independently" | "Co-author
 export type Visual =
   | "tracking"
   | "scanner"
-  | "spectral"
+  | "speckle"
   | "denoise"
   | "simulator"
   | "tangos";
@@ -85,19 +85,19 @@ export const PROJECTS: Project[] = [
     ],
   },
   {
-    id: "spectral",
-    name: "Spectral-Split Self-Supervised Denoising",
-    kind: "ResUNet · physics-informed learning",
+    id: "speckle",
+    name: "Self-Supervised Speckle Reduction",
+    kind: "NAFNet · frame-pair supervision",
     group: "Built independently",
-    visual: "spectral",
+    visual: "speckle",
     blurb:
-      "Self-supervised speckle reduction supervised by image-formation physics: no clean reference, no repeat acquisition. The raw interferogram is split into two Gaussian sub-bands separated by a tunable gap, each reconstructed independently to give two views with identical structure but uncorrelated speckle, against the full-bandwidth reconstruction as target. ResUNet with a pseudo-3D stem convolving across the sub-band axis, 64 to 512 channels over four scales. AdamW, Charbonnier plus gradient-L1, Optuna over window width and gap. One model across four acquisitions holds +9.5 to +13.8 dB SNR; a single-volume run reaches +16.5 dB. Mirror-phantom PSF confirms resolution is preserved.",
+      "Self-supervised speckle reduction with no clean reference anywhere in training. Supervision is a frame pair — two full-bandwidth reconstructions of one retinal position, taken from adjacent frames of an ordinary volume scan — so the structure is shared (0.958) while the speckle is independent (+0.017), and neither view is contained in the other. That last property is what an earlier spectral-split design lacked, and measuring it is what replaced it. NAFNet at base width 64, 27.11M parameters, 22.4 ms per frame. Trained on 9 volumes / 4416 frames, dispersion compensated, split into contiguous blocks, with early stopping and checkpoint selection driven by validation and never by the reported metric. Scored against five registered 64-frame averages on the same instrument over three seeds: PSNR 29.518 ± 0.035, SSIM 0.7323, against 12.059 and 0.1205 for the noisy input. Speckle contrast falls 19-22% with choroidal texture intact, so the gain is not blur.",
     tags: [
       "PyTorch",
-      "ResUNet",
+      "NAFNet",
       "Self-supervised learning",
-      "Optuna",
-      "Mixed precision",
+      "Speckle reduction",
+      "Image registration",
       "Fourier-domain processing",
     ],
     links: [{ label: "GitHub", href: "https://github.com/tangericm/OCT-Denoiser" }],
