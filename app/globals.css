@@ -2110,6 +2110,62 @@ html.booted .boot-overlay {
   stroke-width: 1;
 }
 
+.spc-unit {
+  fill: url(#spc-unit);
+  stroke: rgba(255, 244, 230, 0.18);
+  stroke-width: 0.6;
+}
+
+.spc-ch {
+  fill: var(--ink-faint);
+  font-size: 8.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.spc-io {
+  fill: rgba(226, 170, 99, 0.14);
+  stroke: rgba(226, 170, 99, 0.5);
+  stroke-width: 1;
+}
+
+.spc-io-label {
+  fill: var(--accent);
+  font-size: 9px;
+  font-weight: 500;
+}
+
+.spc-flow {
+  fill: none;
+  stroke: rgba(226, 170, 99, 0.55);
+  stroke-width: 1.2;
+}
+
+.spc-marker {
+  fill: rgba(226, 170, 99, 0.75);
+}
+
+.spc-callout {
+  fill: rgba(255, 244, 230, 0.04);
+  stroke: rgba(255, 244, 230, 0.14);
+  stroke-width: 1;
+}
+
+.spc-call-step {
+  fill: rgba(150, 133, 112, 0.28);
+  stroke: rgba(255, 244, 230, 0.22);
+  stroke-width: 1;
+}
+
+.spc-call-key {
+  fill: rgba(226, 170, 99, 0.2);
+  stroke: rgba(226, 170, 99, 0.5);
+}
+
+.spc-call-label {
+  fill: var(--ink-soft);
+  font-size: 8.5px;
+}
+
 .spc-latent {
   stroke: rgba(226, 170, 99, 0.55);
 }
