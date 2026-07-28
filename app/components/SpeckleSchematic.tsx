@@ -160,14 +160,15 @@ const UNIT_GAP = 2;
 const STAGE_PAD = 4;
 const stageH = (blocks: number) => STAGE_PAD * 2 + blocks * UNIT_H + Math.max(0, blocks - 1) * UNIT_GAP;
 
-const NC = 250;
-const GAP = 58;
+const NC = 248;
+const GAP = 60;
 const ENC_R = NC - GAP;
 const DEC_L = NC + GAP;
 
-/* Generous vertical rhythm so arrows have clear runway between stages. */
-const SCALE_Y = [42, 88, 134, 180];
-const MID_Y = 236;
+/* Enough runway between stages, and a real gap above the middle so E4→middle
+   is a visible link into the block rather than a stub into empty space. */
+const SCALE_Y = [40, 86, 132, 178];
+const MID_Y = 248;
 
 function StageStack({
   x,
@@ -200,7 +201,7 @@ function StageStack({
     <g>
       <rect className="spc-block" x={left} y={y} width={w} height={h} rx={3} />
       {units}
-      <text className="spc-ch" x={cx} y={y + h / 2 + 3.5} textAnchor="middle">
+      <text className="spc-ch" x={cx} y={y + h / 2} textAnchor="middle" dominantBaseline="middle">
         {stage.blocks > 1 ? `${stage.ch}×${stage.blocks}` : stage.ch}
       </text>
     </g>
@@ -224,7 +225,7 @@ function CalloutRow({ y, steps, trail }: { y: number; steps: CallStep[]; trail: 
         height={18}
         rx={3}
       />,
-      <text key={`t${i}`} className="spc-call-label" x={x + s.w / 2} y={y + 12.5} textAnchor="middle">
+      <text key={`t${i}`} className="spc-call-label" x={x + s.w / 2} y={y + 9} textAnchor="middle" dominantBaseline="middle">
         {s.label}
       </text>,
     );
@@ -242,7 +243,7 @@ function CalloutRow({ y, steps, trail }: { y: number; steps: CallStep[]; trail: 
     }
   }
   nodes.push(
-    <text key="trail" className="sfs-sub sfs-sub-accent" x={x + 8} y={y + 12.5}>
+    <text key="trail" className="sfs-sub sfs-sub-accent" x={x + 14} y={y + 9} dominantBaseline="middle">
       {trail}
     </text>,
   );
@@ -250,17 +251,30 @@ function CalloutRow({ y, steps, trail }: { y: number; steps: CallStep[]; trail: 
 }
 
 function NetPanel() {
-  const encW = [72, 62, 52, 46];
+  const encW = [70, 60, 50, 44];
   const decW = [...encW];
-  const midW = 56;
-  const outX = 438;
-  const outW = 108;
+  const midW = 58;
+  const midH = stageH(MID.blocks);
+  const outX = 448;
+  const outW = 100;
   const outMid = outX + outW / 2;
+
+  const e4Cx = ENC_R - encW[3] / 2;
+  const e4Bottom = SCALE_Y[3] + stageH(ENC[3].blocks);
+  const d4Cx = DEC_L + decW[3] / 2;
+  const d4Bottom = SCALE_Y[3] + stageH(DEC[3].blocks);
+  const d1Right = DEC_L + decW[0];
+  const d1MidY = SCALE_Y[0] + stageH(DEC[0].blocks) / 2;
+  const midRight = NC + midW / 2;
+  const endChipX = d1Right + 14;
+  const endChipW = 46;
+  const endChipR = endChipX + endChipW;
+  const gutterY = (SCALE_Y[0] + stageH(ENC[0].blocks) + SCALE_Y[1]) / 2 + 3;
 
   return (
     <svg
       className="sfs-svg sfs-svg-dense"
-      viewBox="0 0 560 360"
+      viewBox="0 0 560 388"
       role="img"
       aria-label="One raw B-scan enters a NAFNet: a 3 by 3 intro convolution, four encoder stages of NAF blocks at 64, 128, 256 and 512 channels, a middle of two NAF blocks at 1024, four PixelShuffle decoder stages with additive skip connections, and a 3 by 3 ending convolution that leaves as a denoised prediction scored against the adjacent frame."
     >
@@ -278,40 +292,44 @@ function NetPanel() {
         </marker>
       </defs>
 
-      <rect className="trk-frame spc-view-1" x={10} y={36} width={44} height={28} rx={2.5} />
-      <Speckle x={12} y={38} w={40} h={24} n={10} seed={5} />
-      <text className="sfs-cap" x={32} y={80} textAnchor="middle">
+      <rect className="trk-frame spc-view-1" x={8} y={34} width={42} height={26} rx={2.5} />
+      <Speckle x={10} y={36} w={38} h={22} n={10} seed={5} />
+      <text className="sfs-cap" x={29} y={76} textAnchor="middle">
         frame p
       </text>
-      <text className="sfs-sub" x={32} y={92} textAnchor="middle">
+      <text className="sfs-sub" x={29} y={88} textAnchor="middle">
         1 ch
       </text>
 
-      <path className="spc-flow" d="M56 50 H74" markerEnd="url(#spc-arrowhead)" />
-      <rect className="spc-io" x={76} y={41} width={34} height={18} rx={3} />
-      <text className="spc-io-label" x={93} y={53} textAnchor="middle">
+      <path className="spc-flow" d="M52 47 H68" markerEnd="url(#spc-arrowhead)" />
+      <rect className="spc-io" x={70} y={38} width={34} height={18} rx={3} />
+      <text className="spc-io-label" x={87} y={47} textAnchor="middle" dominantBaseline="middle">
         3×3
       </text>
-      <text className="sfs-sub" x={93} y={72} textAnchor="middle">
+      <text className="sfs-sub" x={87} y={68} textAnchor="middle">
         intro
       </text>
-      <path className="spc-flow" d={`M112 50 H${ENC_R - encW[0] - 4}`} markerEnd="url(#spc-arrowhead)" />
+      <path className="spc-flow" d={`M106 47 H${ENC_R - encW[0] - 4}`} markerEnd="url(#spc-arrowhead)" />
 
-      <text className="sfs-tower" x={ENC_R - 36} y={24} textAnchor="middle">
+      <text className="sfs-tower" x={ENC_R - 34} y={18} textAnchor="middle">
         encoder
       </text>
-      <text className="sfs-tower" x={DEC_L + 36} y={24} textAnchor="middle">
+      <text className="sfs-tower" x={DEC_L + 34} y={18} textAnchor="middle">
         decoder
       </text>
-      <text className="sfs-sub sfs-sub-accent" x={NC} y={24} textAnchor="middle">
+      <text className="sfs-sub" x={DEC_L + 34} y={30} textAnchor="middle">
+        PixelShuffle
+      </text>
+      <text className="sfs-sub sfs-sub-accent" x={NC} y={18} textAnchor="middle">
         skip +
       </text>
 
-      <text className="sfs-sub" x={ENC_R - encW[0] - 10} y={SCALE_Y[0] + stageH(ENC[0].blocks) + 14} textAnchor="end">
-        ↓ stride 2
+      {/* Gutter scale labels — clear of intro, stages, and the exit run. */}
+      <text className="sfs-sub" x={e4Cx - 18} y={gutterY} textAnchor="end">
+        ↓ ×2
       </text>
-      <text className="sfs-sub" x={DEC_L + decW[0] + 10} y={SCALE_Y[0] + stageH(DEC[0].blocks) + 14}>
-        ↑ PixelShuffle
+      <text className="sfs-sub" x={d4Cx + 18} y={gutterY}>
+        ↑ ×2
       </text>
 
       {ENC.map((stage, i) => {
@@ -321,26 +339,26 @@ function NetPanel() {
         const dh = stageH(DEC[i].blocks);
         const ey = y + eh / 2;
         const dy = y + dh / 2;
-        const downGap = (SCALE_Y[i + 1] ?? MID_Y) - (y + eh);
         return (
           <g key={stage.label}>
             <StageStack x={ENC_R} y={y} w={encW[i]} stage={stage} align="right" />
             <StageStack x={DEC_L} y={y} w={dw} stage={DEC[i]} align="left" />
             <path
               className="sfs-skip"
-              d={`M${ENC_R} ${ey} C${ENC_R + 20} ${ey - 14} ${DEC_L - 20} ${dy - 14} ${DEC_L} ${dy}`}
+              d={`M${ENC_R} ${ey} C${ENC_R + 24} ${ey - 14} ${DEC_L - 24} ${dy - 14} ${DEC_L} ${dy}`}
+              markerEnd="url(#spc-arrowhead)"
               style={{ animationDelay: `${i * 0.18}s` }}
             />
-            {i < ENC.length - 1 && downGap > 8 && (
+            {i < ENC.length - 1 && (
               <>
                 <path
                   className="spc-flow"
-                  d={`M${ENC_R - encW[i] / 2} ${y + eh + 2} V${SCALE_Y[i + 1] - 2}`}
+                  d={`M${ENC_R - encW[i] / 2} ${y + eh + 1} V${SCALE_Y[i + 1] - 1}`}
                   markerEnd="url(#spc-arrowhead)"
                 />
                 <path
                   className="spc-flow"
-                  d={`M${DEC_L + decW[i + 1] / 2} ${SCALE_Y[i + 1] - 2} V${y + dh + 2}`}
+                  d={`M${DEC_L + decW[i + 1] / 2} ${SCALE_Y[i + 1] - 1} V${y + dh + 1}`}
                   markerEnd="url(#spc-arrowhead)"
                 />
               </>
@@ -349,89 +367,98 @@ function NetPanel() {
         );
       })}
 
+      {/* E4 drops, then doglegs into the middle block (centered under the U). */}
       <path
         className="spc-flow"
-        d={`M${ENC_R - encW[3] / 2} ${SCALE_Y[3] + stageH(ENC[3].blocks) + 2} V${MID_Y - 3}`}
+        d={`M${e4Cx} ${e4Bottom + 1} V${e4Bottom + 14} H${NC} V${MID_Y - 1}`}
         markerEnd="url(#spc-arrowhead)"
       />
       <StageStack x={NC} y={MID_Y} w={midW} stage={MID} align="center" />
-      <text className="sfs-sub sfs-sub-accent" x={NC + midW / 2 + 8} y={MID_Y + stageH(MID.blocks) / 2 + 3}>
+      <text className="sfs-sub sfs-sub-accent" x={NC} y={MID_Y + midH + 12} textAnchor="middle">
         middle
       </text>
+
+      {/* Middle exits right, then climbs into D4 from below — never a dangling stub. */}
       <path
         className="spc-flow"
-        d={`M${NC + midW / 2 + 2} ${MID_Y + stageH(MID.blocks) / 2} H${DEC_L + decW[3] / 2} V${SCALE_Y[3] + stageH(DEC[3].blocks) + 3}`}
+        d={`M${midRight + 1} ${MID_Y + midH / 2} H${d4Cx} V${d4Bottom}`}
         markerEnd="url(#spc-arrowhead)"
       />
 
-      {/* Ending sits ABOVE the exit arrow so it cannot collide with PixelShuffle. */}
-      <path
-        className="spc-flow"
-        d={`M${DEC_L + decW[0]} ${SCALE_Y[0] + stageH(DEC[0].blocks) / 2} H${outX - 8}`}
-        markerEnd="url(#spc-arrowhead)"
-      />
-      <rect className="spc-io" x={outX - 78} y={SCALE_Y[0] - 22} width={52} height={18} rx={3} />
-      <text className="spc-io-label" x={outX - 52} y={SCALE_Y[0] - 10} textAnchor="middle">
-        3×3 ending
+      {/* D1 → ending chip → prediction. Chip sits on the run; its caption is below. */}
+      <path className="spc-flow" d={`M${d1Right + 1} ${d1MidY} H${endChipX - 1}`} />
+      <rect className="spc-io" x={endChipX} y={d1MidY - 9} width={endChipW} height={18} rx={3} />
+      <text className="spc-io-label" x={endChipX + endChipW / 2} y={d1MidY} textAnchor="middle" dominantBaseline="middle">
+        3×3
+      </text>
+      <text className="sfs-sub" x={endChipX + endChipW / 2} y={d1MidY + 20} textAnchor="middle">
+        ending
       </text>
       <path
         className="spc-flow"
-        d={`M${outX - 52} ${SCALE_Y[0] - 4} V${SCALE_Y[0] + stageH(DEC[0].blocks) / 2 - 2}`}
+        d={`M${endChipR + 1} ${d1MidY} H${outX - 1}`}
+        markerEnd="url(#spc-arrowhead)"
       />
 
-      <rect className="trk-frame spc-out" x={outX} y={28} width={outW} height={38} rx={3} />
-      <Structure x={outX + 10} y={40} w={outW - 20} />
-      <text className="sfs-cap sfs-cap-accent" x={outMid} y={80} textAnchor="middle">
+      <rect className="trk-frame spc-out" x={outX} y={d1MidY - 18} width={outW} height={36} rx={3} />
+      <Structure x={outX + 10} y={d1MidY - 6} w={outW - 20} />
+      <text className="sfs-cap sfs-cap-accent" x={outMid} y={d1MidY + 30} textAnchor="middle">
         prediction
       </text>
-      <text className="sfs-sub" x={outMid} y={92} textAnchor="middle">
+      <text className="sfs-sub" x={outMid} y={d1MidY + 42} textAnchor="middle">
         22.4 ms · 27.11M
       </text>
 
-      <line className="spc-loss" x1={outMid} y1={96} x2={outMid} y2={108} />
-      <rect className="spc-loss-pill" x={outX + 10} y={108} width={outW - 20} height={18} rx={9} />
-      <text className="spc-loss-label" x={outMid} y={120} textAnchor="middle">
+      <line className="spc-loss" x1={outMid} y1={d1MidY + 46} x2={outMid} y2={d1MidY + 56} />
+      <rect className="spc-loss-pill" x={outX + 12} y={d1MidY + 56} width={outW - 24} height={18} rx={9} />
+      <text
+        className="spc-loss-label"
+        x={outMid}
+        y={d1MidY + 65}
+        textAnchor="middle"
+        dominantBaseline="middle"
+      >
         loss
       </text>
-      <line className="spc-loss" x1={outMid} y1={126} x2={outMid} y2={138} />
+      <line className="spc-loss" x1={outMid} y1={d1MidY + 74} x2={outMid} y2={d1MidY + 86} />
 
-      <rect className="trk-frame spc-target" x={outX} y={138} width={outW} height={38} rx={3} />
-      <Speckle x={outX + 3} y={140} w={outW - 6} h={34} n={12} seed={41} />
-      <Structure x={outX + 10} y={150} w={outW - 20} />
-      <text className="sfs-cap" x={outMid} y={192} textAnchor="middle">
+      <rect className="trk-frame spc-target" x={outX} y={d1MidY + 86} width={outW} height={36} rx={3} />
+      <Speckle x={outX + 3} y={d1MidY + 88} w={outW - 6} h={32} n={12} seed={41} />
+      <Structure x={outX + 10} y={d1MidY + 98} w={outW - 20} />
+      <text className="sfs-cap" x={outMid} y={d1MidY + 138} textAnchor="middle">
         frame p + 1
       </text>
-      <text className="sfs-sub" x={outMid} y={204} textAnchor="middle">
+      <text className="sfs-sub" x={outMid} y={d1MidY + 150} textAnchor="middle">
         as target
       </text>
 
-      <rect className="spc-callout" x={8} y={278} width={544} height={72} rx={6} />
-      <text className="sfs-cap sfs-cap-accent" x={20} y={296}>
+      <rect className="spc-callout" x={8} y={306} width={544} height={72} rx={6} />
+      <text className="sfs-cap sfs-cap-accent" x={20} y={324}>
         one NAFBlock
       </text>
-      <text className="sfs-sub" x={118} y={296}>
+      <text className="sfs-sub" x={118} y={324}>
         nonlinearity is a gate, not an activation · SimpleGate = split × multiply
       </text>
 
       <CalloutRow
-        y={306}
+        y={334}
         steps={[
-          { label: "LN", w: 32 },
-          { label: "1×1 ↑", w: 42 },
-          { label: "DW 3×3", w: 52 },
-          { label: "Gate", w: 44, key: true },
-          { label: "SCA", w: 40, key: true },
-          { label: "1×1 ↓", w: 42 },
+          { label: "LN", w: 34 },
+          { label: "1×1 ↑", w: 44 },
+          { label: "DW 3×3", w: 54 },
+          { label: "Gate", w: 46, key: true },
+          { label: "SCA", w: 42, key: true },
+          { label: "1×1 ↓", w: 44 },
         ]}
         trail="+ β residual"
       />
       <CalloutRow
-        y={328}
+        y={356}
         steps={[
-          { label: "LN", w: 32 },
-          { label: "1×1 ↑", w: 42 },
-          { label: "Gate", w: 44, key: true },
-          { label: "1×1 ↓", w: 42 },
+          { label: "LN", w: 34 },
+          { label: "1×1 ↑", w: 44 },
+          { label: "Gate", w: 46, key: true },
+          { label: "1×1 ↓", w: 44 },
         ]}
         trail="+ γ residual"
       />
