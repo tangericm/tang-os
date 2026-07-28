@@ -4,7 +4,7 @@ import Window from "./Window";
 import SelfFusionSchematic from "./SelfFusionSchematic";
 import TrackingSchematic from "./TrackingSchematic";
 import ScannerSchematic from "./ScannerSchematic";
-import SpectralSchematic from "./SpectralSchematic";
+import SpeckleSchematic from "./SpeckleSchematic";
 import SimulatorSchematic from "./SimulatorSchematic";
 import { TangosSchematic } from "./MiniSchematics";
 import { GROUPS, PROJECTS, type Project } from "../data/projects";
@@ -111,13 +111,21 @@ function TrackingHero() {
   );
 }
 
-/* The spectral denoiser's own before and after, deliberately built in the
-   same frame and with the same wipe as the self-fusion hero so the two
+/* The self-supervised denoiser's own before and after, deliberately built in
+   the same frame and with the same wipe as the self-fusion hero so the two
    denoising projects are visually comparable.
 
-   This is the full-bandwidth reference against the prediction, which is the
-   comparison the reported metrics are actually computed over, so figure and
-   number describe the same thing.
+   A raw single frame against the model's output on that frame. It is the
+   qualitative claim only: the reported PSNR and SSIM are measured elsewhere,
+   against registered 64-frame averages held out on the same instrument, and
+   the caption states them as the separate measurement they are rather than
+   letting them read as scores for this one image.
+
+   BOTH JPEGs predate the current production checkpoint and were not
+   regenerated when the supervision scheme changed. Nothing in them is
+   contradicted by the caption, which no longer attributes any number to this
+   volume, but they should be re-exported from the production run so the
+   picture and the metric come from the same model.
 
    Two rules govern the display, and both matter:
 
@@ -139,28 +147,29 @@ function TrackingHero() {
    the same height and scale) so the two denoising results read as directly
    comparable. A shared gamma of 1.5 rides on top of the shared window; it is
    applied identically to both frames. */
-function SpectralHero() {
+function SpeckleHero() {
   return (
     <figure className="denoise-figure">
       <div className="denoise-tags" aria-hidden="true">
-        <span>full-bandwidth reference</span>
+        <span>raw frame</span>
         <span className="denoise-tag-clean">prediction</span>
       </div>
-      <div className="denoise" aria-label="Full-bandwidth reference resolving into the network prediction">
+      <div className="denoise" aria-label="A raw frame resolving into the network prediction">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="denoise-img" src="/spectral-ref.jpg" alt="Full-bandwidth reference reconstruction of a retinal cross-section, speckle throughout and layer boundaries barely separable" loading="lazy" decoding="async" width={1100} height={455} />
+        <img className="denoise-img" src="/spectral-ref.jpg" alt="Raw single-frame reconstruction of a retinal cross-section, speckle throughout and layer boundaries barely separable" loading="lazy" decoding="async" width={1100} height={455} />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className="denoise-img denoise-clean" src="/spectral-pred.jpg" alt="Network prediction of the same frame, speckle suppressed with retinal layers resolved and choroidal vessels visible" loading="lazy" decoding="async" width={1100} height={455} />
         <span className="denoise-scan" aria-hidden="true" />
       </div>
       <figcaption>
-        Reference against prediction under a{" "}
+        A raw frame against the prediction under a{" "}
         <strong>single shared display window</strong>, anchored so the prediction
         keeps its own noise floor: the difference is the model, not the contrast
-        setting. <strong>+13.7 dB SNR</strong> and <strong>+8.3 dB CNR</strong> on
-        this volume. One model spanning four acquisitions holds{" "}
-        <strong>+9.5 to +13.8 dB SNR</strong> across all of them, and a run
-        dedicated to a single volume reaches <strong>+16.5 dB</strong>.
+        setting. Measured against five registered 64-frame averages held out on
+        the same instrument, over three seeds, the model scores{" "}
+        <strong>29.518 &plusmn; 0.035 dB PSNR</strong> and{" "}
+        <strong>0.7323 SSIM</strong>, against 12.059 dB and 0.1205 for the noisy
+        input.
       </figcaption>
     </figure>
   );
@@ -216,11 +225,11 @@ function Visual({ kind }: { kind: NonNullable<Project["visual"]> }) {
       </>
     );
   if (kind === "scanner") return <ScannerSchematic />;
-  if (kind === "spectral")
+  if (kind === "speckle")
     return (
       <>
-        <SpectralHero />
-        <SpectralSchematic />
+        <SpeckleHero />
+        <SpeckleSchematic />
       </>
     );
   if (kind === "simulator")
@@ -248,7 +257,7 @@ function Visual({ kind }: { kind: NonNullable<Project["visual"]> }) {
 }
 
 /* Controlled by WindowLayer, because the selected project IS the URL now
-   (/projects/spectral). Holding it in local state as well would give two
+   (/projects/speckle). Holding it in local state as well would give two
    sources of truth for one fact, and the one that loses is the one a shared
    link restores. */
 export default function ProjectsWindow({
