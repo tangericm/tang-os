@@ -176,22 +176,27 @@ function StageStack({
   w,
   stage,
   align,
+  boxH,
 }: {
   x: number;
   y: number;
   w: number;
   stage: Stage;
   align: "right" | "left" | "center";
+  /** Outer frame height; content is vertically centered when taller than the units. */
+  boxH?: number;
 }) {
-  const h = stageH(stage.blocks);
+  const contentH = stageH(stage.blocks);
+  const h = boxH ?? contentH;
   const left = align === "right" ? x - w : align === "center" ? x - w / 2 : x;
   const cx = left + w / 2;
+  const unitTop = y + (h - contentH) / 2 + STAGE_PAD;
   const units = Array.from({ length: stage.blocks }, (_, i) => (
     <rect
       key={i}
       className="spc-unit"
       x={left + STAGE_PAD}
-      y={y + STAGE_PAD + i * (UNIT_H + UNIT_GAP)}
+      y={unitTop + i * (UNIT_H + UNIT_GAP)}
       width={w - STAGE_PAD * 2}
       height={UNIT_H}
       rx={1.5}
@@ -259,13 +264,16 @@ function NetPanel() {
   const outW = 100;
   const outMid = outX + outW / 2;
 
+  /* Deepest scale shares one frame height so E4/D4 sit as mirrors despite 2 vs 1 blocks. */
+  const deepH = Math.max(stageH(ENC[3].blocks), stageH(DEC[3].blocks));
+  const deepBottom = SCALE_Y[3] + deepH;
   const e4Cx = ENC_R - encW[3] / 2;
-  const e4Bottom = SCALE_Y[3] + stageH(ENC[3].blocks);
   const d4Cx = DEC_L + decW[3] / 2;
-  const d4Bottom = SCALE_Y[3] + stageH(DEC[3].blocks);
   const d1Right = DEC_L + decW[0];
   const d1MidY = SCALE_Y[0] + stageH(DEC[0].blocks) / 2;
+  const midLeft = NC - midW / 2;
   const midRight = NC + midW / 2;
+  const midMidY = MID_Y + midH / 2;
   const endChipX = d1Right + 14;
   const endChipW = 46;
   const endChipR = endChipX + endChipW;
@@ -324,7 +332,6 @@ function NetPanel() {
         skip +
       </text>
 
-      {/* Gutter scale labels — clear of intro, stages, and the exit run. */}
       <text className="sfs-sub" x={e4Cx - 18} y={gutterY} textAnchor="end">
         ↓ ×2
       </text>
@@ -334,15 +341,29 @@ function NetPanel() {
 
       {ENC.map((stage, i) => {
         const y = SCALE_Y[i];
-        const eh = stageH(stage.blocks);
+        const eh = i === 3 ? deepH : stageH(stage.blocks);
         const dw = decW[i];
-        const dh = stageH(DEC[i].blocks);
+        const dh = i === 3 ? deepH : stageH(DEC[i].blocks);
         const ey = y + eh / 2;
         const dy = y + dh / 2;
         return (
           <g key={stage.label}>
-            <StageStack x={ENC_R} y={y} w={encW[i]} stage={stage} align="right" />
-            <StageStack x={DEC_L} y={y} w={dw} stage={DEC[i]} align="left" />
+            <StageStack
+              x={ENC_R}
+              y={y}
+              w={encW[i]}
+              stage={stage}
+              align="right"
+              boxH={i === 3 ? deepH : undefined}
+            />
+            <StageStack
+              x={DEC_L}
+              y={y}
+              w={dw}
+              stage={DEC[i]}
+              align="left"
+              boxH={i === 3 ? deepH : undefined}
+            />
             <path
               className="sfs-skip"
               d={`M${ENC_R} ${ey} C${ENC_R + 24} ${ey - 14} ${DEC_L - 24} ${dy - 14} ${DEC_L} ${dy}`}
@@ -367,25 +388,22 @@ function NetPanel() {
         );
       })}
 
-      {/* E4 drops, then doglegs into the middle block (centered under the U). */}
+      {/* Symmetric bottleneck: drop to middle height, in left / out right, climb back. */}
       <path
         className="spc-flow"
-        d={`M${e4Cx} ${e4Bottom + 1} V${e4Bottom + 14} H${NC} V${MID_Y - 1}`}
+        d={`M${e4Cx} ${deepBottom + 1} V${midMidY} H${midLeft - 1}`}
         markerEnd="url(#spc-arrowhead)"
       />
       <StageStack x={NC} y={MID_Y} w={midW} stage={MID} align="center" />
       <text className="sfs-sub sfs-sub-accent" x={NC} y={MID_Y + midH + 12} textAnchor="middle">
         middle
       </text>
-
-      {/* Middle exits right, then climbs into D4 from below — never a dangling stub. */}
       <path
         className="spc-flow"
-        d={`M${midRight + 1} ${MID_Y + midH / 2} H${d4Cx} V${d4Bottom}`}
+        d={`M${midRight + 1} ${midMidY} H${d4Cx} V${deepBottom}`}
         markerEnd="url(#spc-arrowhead)"
       />
 
-      {/* D1 → ending chip → prediction. Chip sits on the run; its caption is below. */}
       <path className="spc-flow" d={`M${d1Right + 1} ${d1MidY} H${endChipX - 1}`} />
       <rect className="spc-io" x={endChipX} y={d1MidY - 9} width={endChipW} height={18} rx={3} />
       <text className="spc-io-label" x={endChipX + endChipW / 2} y={d1MidY} textAnchor="middle" dominantBaseline="middle">
