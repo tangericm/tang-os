@@ -87,7 +87,7 @@ export function TangosSchematic() {
           </svg>
         </div>
         <p className="sfs-note">
-          Animating an unmount means the parent must keep the child mounted while the exit animation plays, so every window carries an explicit phase rather than a boolean. Minimize and close animate to different places and must stay distinguishable, focus reorders z-index, and maximize has to remember the geometry it replaced.
+          Exit animations need the window to stay mounted until they finish, so each app tracks an explicit lifecycle phase instead of a simple open/closed flag. Minimize and close animate to different places, focus reorders stacking, and maximize remembers the geometry it replaced.
         </p>
       </section>
     </div>

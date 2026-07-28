@@ -238,7 +238,7 @@ export default function TrackingSchematic() {
           <DetectPanel />
         </div>
         <p className="sfs-note">
-          Source frames are single-channel, so the detector&rsquo;s other two input channels are free. Filling them with a 5-frame running mean and variance hands the network motion evidence directly: the variance channel lights up exactly where something moved. Same architecture, same cost, better separation of instrument from tissue.
+          Source frames are single-channel, so the detector&rsquo;s other two inputs are free. Filling them with a short-window mean and variance gives the network motion evidence directly — the variance channel lights up where something moved — without changing the architecture or the cost.
         </p>
       </section>
 
@@ -257,7 +257,7 @@ export default function TrackingSchematic() {
           <SteerPanel />
         </div>
         <p className="sfs-note">
-          Box coordinates map to galvanometer drive voltages, the fast axis needing a calibrated offset rather than a raw pixel shift. A non-regenerative DAQ lets the waveform be rewritten mid-scan, so a correction lands on the next volume instead of the next buffer. Sampling densifies toward the centre, where the instrument is.
+          Bounding boxes map to galvanometer drive voltages, with a calibrated offset on the fast axis. A writable DAQ lets the scan waveform update mid-acquisition, so corrections land on the next volume. Sampling densifies toward the center, where the instrument is.
         </p>
       </section>
     </div>
