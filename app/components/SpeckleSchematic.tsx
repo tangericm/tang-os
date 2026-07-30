@@ -424,7 +424,7 @@ function NetPanel() {
         prediction
       </text>
       <text className="sfs-sub" x={outMid} y={d1MidY + 42} textAnchor="middle">
-        22.4 ms · 27.11M
+        77 ms · 27.11M
       </text>
 
       <line className="spc-loss" x1={outMid} y1={d1MidY + 46} x2={outMid} y2={d1MidY + 56} />
@@ -515,7 +515,7 @@ export default function SpeckleSchematic() {
           <NetPanel />
         </div>
         <p className="sfs-note">
-          One raw frame in, one denoised frame out; the paired frame is only the training target. NAFNet (27.11M parameters, 22.4 ms per frame) uses gated NAF blocks instead of ReLU-style activations, keeping the reconstruction fast enough for interactive review.
+          One raw frame in, one denoised frame out; the paired frame is only the training target. NAFNet (27.11M parameters, 77 ms per frame on a native 660 × 1024 B-scan) uses gated NAF blocks instead of ReLU-style activations, keeping the reconstruction fast enough for interactive review.
         </p>
       </section>
     </div>
