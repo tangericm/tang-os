@@ -90,7 +90,7 @@ export const PROJECTS: Project[] = [
     group: "Built independently",
     visual: "denoiser",
     blurb:
-      "Self-supervised OCT denoising that never sees a clean image during training. Adjacent frames from a normal volume scan form the supervision pair: same anatomy, different speckle — so the network learns to keep structure and suppress noise. Built on NAFNet (27.11M parameters, 22.4 ms per frame) and trained on 9 volumes / 4416 frames. Against registered multi-frame averages: PSNR 29.5 and SSIM 0.73, up from 12.1 and 0.12 on the noisy input, with speckle contrast down ~20% and fine texture preserved.",
+      "Self-supervised OCT denoising that never sees a clean image during training. Adjacent frames from a normal volume scan form the supervision pair: same anatomy, different speckle — so the network learns to keep structure and suppress noise. Built on NAFNet (27.11M parameters, 77 ms per frame on a native 660 × 1024 B-scan) and trained on 9 volumes / 4416 frames. Against registered multi-frame averages: PSNR 29.5 and SSIM 0.73, up from 12.1 and 0.12 on the noisy input, with speckle contrast down ~20% and fine texture preserved.",
     tags: [
       "PyTorch",
       "NAFNet",
