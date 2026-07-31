@@ -200,6 +200,14 @@ function DenoiserHero() {
    than physics: measured, the sim background sat at 40-55 where the device sat
    at 0-24.
 
+   One geometric parameter IS calibrated to this frame: scan_distortion_correction,
+   the fraction of geometric sag surviving the vendor's distortion correction. The
+   simulator treats it as device-specific scan geometry rather than anatomy and its
+   own config says to calibrate it per corpus. Its Maestro3 default of 0.86 is a
+   corpus average and bows the sim to a 476 um sag; this eye's RPE measures 269 um
+   over the 6 mm field, which 0.53 reproduces to 269.5 um — inside one pixel.
+   Nothing else is fitted.
+
    Two other fields were tried and dropped: a 12x9 mm wide field, because the
    fitted shape model only spans +-2.6 mm eccentricity and the macula scene draws
    no disc, so the sim cannot represent that frame at all; and the optic disc,
@@ -219,7 +227,7 @@ function SimulatorHero() {
           src="/sim-real.jpg"
           alt="A real device B-scan on the left beside a simulated one on the right, both a 6 mm foveal cross-section at 1024 A-lines, on the same pixel grid at matched display contrast."
           width={1280}
-          height={457}
+          height={313}
           loading="lazy"
           decoding="async"
         />
@@ -231,9 +239,11 @@ function SimulatorHero() {
         A-line count, and the same 3.870 µm axial pixel, so the panels share a
         pixel grid rather than merely a subject. The two pipelines apply different
         display processing, so the simulated panel is shown through a{" "}
-        <strong>display window matched to the device&rsquo;s</strong>; the underlying
-        layer ordering, speckle statistics and depth falloff come out of the forward
-        model rather than being tuned to match, which is the only test a physics
+        <strong>display window matched to the device&rsquo;s</strong>, and the scan
+        curvature is calibrated to this eye — a device-specific distortion term the
+        simulator asks to be set per corpus, here 269.5 µm of sag against a measured
+        269 µm. The layer ordering, speckle statistics and depth falloff are not
+        fitted: they come out of the forward model, which is the only test a physics
         simulator can meaningfully pass.
       </figcaption>
     </figure>
