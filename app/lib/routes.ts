@@ -30,8 +30,10 @@ export type Route = {
 };
 
 /** Matches ProjectsWindow's own default, so a bare /projects and a cold open
- *  of the app land on the same thing. */
-export const DEFAULT_PROJECT = "tracking";
+ *  of the app land on the same thing. Derived rather than restated: the window
+ *  selects PROJECTS[0], so reordering the list used to leave this pointing at
+ *  whatever project happened to lead before. */
+export const DEFAULT_PROJECT = PROJECTS[0].id;
 
 export const HOME: Route = { app: "about", project: null };
 
