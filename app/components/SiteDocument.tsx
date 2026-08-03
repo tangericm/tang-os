@@ -296,7 +296,7 @@ export default function SiteDocument({
       </h1>
       {scope === "project" && project ? (
         <p>
-          {project.kind} — work by <strong>{PROFILE.name}</strong>, {PROFILE.jobTitle} at{" "}
+          {project.kind}, work by <strong>{PROFILE.name}</strong>, {PROFILE.jobTitle} at{" "}
           {PROFILE.employer}.
         </p>
       ) : (

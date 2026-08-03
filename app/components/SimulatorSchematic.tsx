@@ -369,7 +369,7 @@ export default function SimulatorSchematic() {
           <ForwardPanel />
         </div>
         <p className="sfs-note">
-          The image is computed from optics, not filtered from an existing scan — and it is
+          The image is computed from optics, not filtered from an existing scan, and it is
           reconstructed with the same steps the instrument runs, so synthetic data behaves like
           measured data.
         </p>

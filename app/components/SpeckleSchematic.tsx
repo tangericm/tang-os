@@ -496,7 +496,7 @@ export default function SpeckleSchematic() {
           <PairPanel />
         </div>
         <p className="sfs-note">
-          OCT speckle is interference from scatterers in the beam, not ordinary camera noise. Two frames one position apart show the same anatomy with different speckle — and neither is derived from the other — which is what makes them a usable self-supervised pair.
+          OCT speckle is interference from scatterers in the beam, not ordinary camera noise. Two frames one position apart show the same anatomy with different speckle, and neither is derived from the other, which is what makes them a usable self-supervised pair.
         </p>
       </section>
 

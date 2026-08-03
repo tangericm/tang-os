@@ -175,7 +175,7 @@ export default function ScannerSchematic() {
           <SettlePanel />
         </div>
         <p className="sfs-note">
-          A commanded step overshoots and rings before the mirror settles. Samples taken during that window are not at a trusted position, so settling time is dead time on every line — it directly limits usable field of view and frame rate.
+          A commanded step overshoots and rings before the mirror settles. Samples taken during that window are not at a trusted position, so settling time is dead time on every line, and it directly limits usable field of view and frame rate.
         </p>
       </section>
 
@@ -194,7 +194,7 @@ export default function ScannerSchematic() {
           <TunePanel />
         </div>
         <p className="sfs-note">
-          Settling time is modeled against PID parameters with Gaussian process regression. The posterior predicts both the value and the uncertainty, so the next measurement goes where the model knows least — making hardware search affordable without a full grid sweep.
+          Settling time is modeled against PID parameters with Gaussian process regression. The posterior predicts both the value and the uncertainty, so the next measurement goes where the model knows least, making hardware search affordable without a full grid sweep.
         </p>
       </section>
 
