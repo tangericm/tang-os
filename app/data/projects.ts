@@ -60,7 +60,7 @@ export const PROJECTS: Project[] = [
     group: "Built independently",
     visual: "denoiser",
     blurb:
-      "Self-supervised OCT denoising that never sees a clean image during training. Adjacent frames from a normal volume scan form the supervision pair: same anatomy, different speckle — so the network learns to keep structure and suppress noise. Built on NAFNet (27.11M parameters, 77 ms per frame on a native 660 × 1024 B-scan) and trained on 9 volumes / 4416 frames. Against registered multi-frame averages: PSNR 29.5 and SSIM 0.73, up from 12.1 and 0.12 on the noisy input, with speckle contrast down ~20% and fine texture preserved.",
+      "Self-supervised OCT denoising that never sees a clean image during training. Adjacent frames from a normal volume scan form the supervision pair: same anatomy, different speckle, so the network learns to keep structure and suppress noise. Built on NAFNet (27.11M parameters, 77 ms per frame on a native 660 × 1024 B-scan) and trained on 9 volumes / 4416 frames. Against registered multi-frame averages: PSNR 29.5 and SSIM 0.73, up from 12.1 and 0.12 on the noisy input, with speckle contrast down ~20% and fine texture preserved.",
     tags: [
       "Deep learning",
       "PyTorch",
@@ -78,7 +78,7 @@ export const PROJECTS: Project[] = [
     group: "Built independently",
     visual: "simulator",
     blurb:
-      "Generates realistic retinal scans from optics, so models can be trained where real labeled data is scarce. Each image is built the way the hardware builds it — light source, noise, eye motion, tissue optics — so imaging tradeoffs emerge from the physics instead of being hand-tuned. Every image ships with a pixel-exact map of 13 retinal layers: training-ready ground truth that would otherwise cost an expert hours per scan. Validated against real clinical scans on a matched pixel grid.",
+      "Generates realistic retinal scans from optics, so models can be trained where real labeled data is scarce. Each image is built the way the hardware builds it (light source, noise, eye motion, tissue optics), so imaging tradeoffs emerge from the physics instead of being hand-tuned. Every image ships with a pixel-exact map of 13 retinal layers: training-ready ground truth that would otherwise cost an expert hours per scan. Validated against real clinical scans on a matched pixel grid.",
     tags: [
       "Python",
       "Scientific computing",
@@ -114,7 +114,7 @@ export const PROJECTS: Project[] = [
     group: "First-author research",
     visual: "tracking",
     blurb:
-      "Closed-loop instrument tracking for video-rate 4D OCT imaging. A GPU YOLOv4 detector (OpenCV DNN, CUDA) finds instruments in en face frames and steers the scanners to keep them centered — 16 Hz volumes over a 25 × 25 mm field. Feeding the network a raw frame plus a short-window mean and variance reaches 99.98% mAP at 23 Hz, with localization holding through defocus and motion. Built as a multithreaded C++ pipeline for acquisition, inference, and scan control.",
+      "Closed-loop instrument tracking for video-rate 4D OCT imaging. A GPU YOLOv4 detector (OpenCV DNN, CUDA) finds instruments in en face frames and steers the scanners to keep them centered: 16 Hz volumes over a 25 × 25 mm field. Feeding the network a raw frame plus a short-window mean and variance reaches 99.98% mAP at 23 Hz, with localization holding through defocus and motion. Built as a multithreaded C++ pipeline for acquisition, inference, and scan control.",
     tags: [
       "Computer vision",
       "Object detection (YOLO)",
@@ -137,7 +137,7 @@ export const PROJECTS: Project[] = [
     group: "First-author research",
     visual: "scanner",
     blurb:
-      "Bayesian optimization of galvanometer PID tuning to cut scan dead time. Settling time is modeled with Gaussian process regression so each measurement goes where the model is least certain, instead of sweeping a full grid. Optimized tunings cut settling time by more than 50%, reclaiming budget for a wider usable field of view and higher SNR and CNR at the same scan rate — on stock controller firmware.",
+      "Bayesian optimization of galvanometer PID tuning to cut scan dead time. Settling time is modeled with Gaussian process regression so each measurement goes where the model is least certain, instead of sweeping a full grid. Optimized tunings cut settling time by more than 50%, reclaiming budget for a wider usable field of view and higher SNR and CNR at the same scan rate, on stock controller firmware.",
     tags: [
       "Machine learning",
       "Bayesian optimization",
@@ -160,7 +160,7 @@ export const PROJECTS: Project[] = [
     group: "Co-authored research",
     visual: "denoise",
     blurb:
-      "Speeding up self-fusion — a registration-based speckle-reduction method — for real-time use. Deformable registration limited the original to 0.42 fps, so a convolutional network was trained to reproduce the fused result from three raw frames and deployed with TorchScript / LibTorch in a C++ GPU pipeline. Inference hits 22 fps (~50× faster), roughly doubling contrast-to-noise over a raw frame and beating simple averaging on CNR and PSNR.",
+      "Speeding up self-fusion, a registration-based speckle-reduction method, for real-time use. Deformable registration limited the original to 0.42 fps, so a convolutional network was trained to reproduce the fused result from three raw frames and deployed with TorchScript / LibTorch in a C++ GPU pipeline. Inference hits 22 fps (~50× faster), roughly doubling contrast-to-noise over a raw frame and beating simple averaging on CNR and PSNR.",
     tags: [
       "Deep learning",
       "PyTorch",

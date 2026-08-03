@@ -169,7 +169,7 @@ function DenoiserHero() {
       </div>
       <figcaption>
         A raw frame against the prediction under a{" "}
-        <strong>single shared display window</strong> — taken from the raw frame
+        <strong>single shared display window</strong>, taken from the raw frame
         and applied unchanged to both, so the difference is the model and not the
         contrast setting. The frame is from a stack{" "}
         <strong>held out of training entirely</strong>; speckle contrast falls
@@ -301,7 +301,7 @@ function SimulatorHero() {
       <figcaption>
         A real clinical scan beside a simulated one, on the{" "}
         <strong>same pixel grid at matched contrast</strong>. The colour over the
-        right panel is the layer map the simulator already knows —{" "}
+        right panel is the layer map the simulator already knows:{" "}
         <strong>13 layers, pixel-exact, free with every image</strong>, where
         labelling the real scan takes an expert hours.
         <span className="simreal-fine">

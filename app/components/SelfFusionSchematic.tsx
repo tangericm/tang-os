@@ -339,7 +339,7 @@ export default function SelfFusionSchematic() {
           <TargetPanel />
         </div>
         <p className="sfs-note">
-          Inspired by multi-atlas label fusion: a frame&rsquo;s neighbors act as atlases. Deformable registration aligns a short window, and a weighted vote keeps structure that recurs while speckle cancels. Registration is why it works — and why it is slow (0.42 fps).
+          Inspired by multi-atlas label fusion: a frame&rsquo;s neighbors act as atlases. Deformable registration aligns a short window, and a weighted vote keeps structure that recurs while speckle cancels. Registration is why it works, and why it is slow (0.42 fps).
         </p>
       </section>
 

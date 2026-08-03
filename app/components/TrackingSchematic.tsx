@@ -238,7 +238,7 @@ export default function TrackingSchematic() {
           <DetectPanel />
         </div>
         <p className="sfs-note">
-          Source frames are single-channel, so the detector&rsquo;s other two inputs are free. Filling them with a short-window mean and variance gives the network motion evidence directly — the variance channel lights up where something moved — without changing the architecture or the cost.
+          Source frames are single-channel, so the detector&rsquo;s other two inputs are free. Filling them with a short-window mean and variance gives the network motion evidence directly (the variance channel lights up where something moved) without changing the architecture or the cost.
         </p>
       </section>
 
