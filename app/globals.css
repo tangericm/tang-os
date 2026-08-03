@@ -2530,6 +2530,7 @@ html.booted .boot-overlay {
   .sfs-svg-dense {
     min-width: 560px;
   }
+
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2574,6 +2575,31 @@ html.booted .boot-overlay {
      animation, so without it they need no transform at all */
   .sfs-weight {
     transform: none;
+  }
+
+  /* The simulator's label overlay is a wipe, so with motion off it has to be
+     shown already applied — clip-path:none, not just animation:none, or the
+     overlay stays clipped to zero width and the panel silently loses its
+     whole point. Same for the B-scan's clip rect. */
+  .simreal-labels {
+    clip-path: none;
+    animation: none;
+  }
+  .sim-sweep-clip {
+    animation: none;
+    transform: none;
+  }
+  /* The packet is a moving dot and nothing else — parked at the start of its
+     connector it just reads as a stray bullet, so it goes rather than freezes. */
+  .simreal-edge,
+  .sim-sweep,
+  .sim-packet {
+    display: none;
+  }
+  .sim-scat circle,
+  .sim-bscan,
+  .sim-layers path {
+    animation: none;
   }
 }
 
@@ -2951,37 +2977,168 @@ html.booted .boot-overlay {
 /* ============================================================
    OCT Simulator: real device beside simulated
    ============================================================ */
+/* Two panels, separately sourced from one crop rather than one fused image, so
+   a phone can stack them and the right one can carry the label overlay. */
 .simreal {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* min-width:0 or a grid child refuses to shrink below its image's intrinsic
+   width and the pair overflows the detail pane at narrow window sizes. */
+.simreal-cell {
+  min-width: 0;
+}
+
+/* Labels above the frame, same rule as the denoising tags: never over the image. */
+.simreal-tag {
+  display: block;
+  padding: 0 0 5px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.simreal-tag-accent {
+  color: var(--accent);
+}
+
+.simreal-tag-plus {
+  color: rgba(226, 170, 99, 0.62);
+}
+
+.simreal-frame {
+  position: relative;
   border-radius: 10px;
   overflow: hidden;
   border: 1px solid var(--hairline);
   background: #080706;
+  line-height: 0;
 }
 
-.simreal img {
+.simreal-frame img {
   display: block;
   width: 100%;
   height: auto;
 }
 
-/* Labels above the frame, same rule as the denoising tags: never over the image. */
-.simreal-tags {
+/* The label map, laid over the frame it labels rather than shown beside it:
+   the claim is that the labels sit on the structures, and a separate panel can
+   only ever look similar. Alpha is kept off 1 so the speckle stays visible
+   underneath — a solid overlay reads as a drawing of the retina instead. */
+.simreal-labels {
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: screen;
+  opacity: 0.72;
+  clip-path: inset(0 100% 0 0);
+  animation: sim-reveal 9s ease-in-out infinite;
+}
+
+@keyframes sim-reveal {
+  0%,
+  5% {
+    clip-path: inset(0 100% 0 0);
+  }
+  40%,
+  72% {
+    clip-path: inset(0 0 0 0);
+  }
+  95%,
+  100% {
+    clip-path: inset(0 0 0 100%);
+  }
+}
+
+/* the leading edge of that wipe, so the eye follows the reveal */
+.simreal-edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(255, 238, 214, 0.8) 25%,
+    rgba(255, 238, 214, 0.8) 75%,
+    transparent
+  );
+  animation: sim-edge 9s ease-in-out infinite;
+}
+
+@keyframes sim-edge {
+  0%,
+  5% {
+    left: 0;
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.9;
+  }
+  40% {
+    left: 100%;
+    opacity: 0.9;
+  }
+  46%,
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+/* The layer vocabulary is not decoration: thirteen named classes is the
+   quantity claim the caption makes, so the reader gets to count them. */
+.simreal-legend {
   display: flex;
-  font-size: 10px;
-  letter-spacing: 0.06em;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 10px;
+  margin: 9px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--ink-faint);
-  padding: 7px 0 6px;
-  background: var(--panel);
 }
 
-.simreal-tags span {
-  flex: 1 1 0;
-  text-align: center;
+.simreal-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.simreal-tag-accent {
-  color: var(--accent);
+.simreal-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+/* Side by side, each B-scan is ~150px wide on a phone and the thin outer-retinal
+   bands go sub-pixel. Stack instead: the comparison survives being read top to
+   bottom, the panels do not survive being that small.
+
+   This media query lives HERE, after the base rule, and not up with the other
+   mobile overrides several hundred lines earlier — same specificity means the
+   later rule wins, and up there `grid-template-columns: 1fr 1fr` silently won. */
+@media (max-width: 640px) {
+  .simreal {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+/* The measurement detail a technical reader wants, kept out of the sentence a
+   non-specialist reads first. */
+.simreal-fine {
+  display: block;
+  margin-top: 7px;
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: rgba(244, 241, 236, 0.42);
 }
 
 /* ---- simulator schematic ---- */
@@ -2994,6 +3151,44 @@ html.booted .boot-overlay {
 
 .sim-scat circle {
   fill: rgba(244, 241, 236, 0.75);
+  animation: sim-twinkle 2.8s ease-in-out infinite;
+}
+
+@keyframes sim-twinkle {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+/* The dot that walks the chain. It is staggered per connector (inline
+   animation-delay in the component), so the four stages read as one pass of a
+   measurement rather than four unrelated boxes. */
+.sim-packet {
+  fill: var(--accent);
+  animation: sim-packet 2.4s ease-in-out infinite;
+}
+
+@keyframes sim-packet {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  55% {
+    transform: translateX(12px);
+    opacity: 0.9;
+  }
+  70%,
+  100% {
+    transform: translateX(12px);
+    opacity: 0;
+  }
 }
 
 .sim-fringe {
@@ -3020,6 +3215,84 @@ html.booted .boot-overlay {
 .sim-axis {
   stroke: var(--hairline);
   stroke-width: 1;
+}
+
+/* The B-scan the A-scans stack into: greys, never the label palette, because
+   this is the measured image and colour here would read as ground truth.
+   Band 4 is the RPE, the landmark the eye lands on first. */
+.sim-bscan path {
+  stroke: none;
+}
+.sim-bscan path:nth-child(1) { fill: rgba(244, 241, 236, 0.3); }
+.sim-bscan path:nth-child(2) { fill: rgba(244, 241, 236, 0.16); }
+.sim-bscan path:nth-child(3) { fill: rgba(244, 241, 236, 0.24); }
+.sim-bscan path:nth-child(4) { fill: rgba(244, 241, 236, 0.6); }
+.sim-bscan path:nth-child(5) { fill: rgba(244, 241, 236, 0.2); }
+
+/* The scan writing itself out, column by column. The clip rect scales from its
+   left edge, and the group fades before the rect snaps back to zero, so the
+   reset is never seen as an eraser running backwards. */
+.sim-bscan {
+  animation: sim-bscan-hold 3.4s ease-in-out infinite;
+}
+
+.sim-sweep-clip {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: sim-fill 3.4s ease-in-out infinite;
+}
+
+@keyframes sim-fill {
+  0% {
+    transform: scaleX(0);
+  }
+  60%,
+  95% {
+    transform: scaleX(1);
+  }
+  96%,
+  100% {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes sim-bscan-hold {
+  0%,
+  88% {
+    opacity: 1;
+  }
+  95%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.sim-sweep {
+  stroke: rgba(255, 238, 214, 0.85);
+  stroke-width: 1.2;
+  animation: sim-sweep 3.4s ease-in-out infinite;
+}
+
+/* The travel distance is the B-scan's own width, handed over from the component
+   as --sim-sweep-x so the line cannot drift out of the frame when the layout
+   numbers change. */
+@keyframes sim-sweep {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  6% {
+    opacity: 0.85;
+  }
+  60% {
+    transform: translateX(var(--sim-sweep-x, 90px));
+    opacity: 0.85;
+  }
+  68%,
+  100% {
+    transform: translateX(var(--sim-sweep-x, 90px));
+    opacity: 0;
+  }
 }
 
 .sim-chip {
@@ -3063,12 +3336,33 @@ html.booted .boot-overlay {
   letter-spacing: 0.03em;
 }
 
-/* Label-map bands. Retinal contour, not bars: see LAYER_BANDS. */
-.sim-layers path { stroke: none; }
+.sim-out {
+  fill: rgba(126, 160, 222, 0.07);
+  stroke: rgba(126, 160, 222, 0.45);
+  stroke-width: 1;
+}
+
+/* Label-map bands. Retinal contour, not bars: see bands(). They pulse in depth
+   order, which is the one thing a still drawing cannot say — that the label is
+   per pixel and per layer, not one mask over the tissue. */
+.sim-layers path {
+  stroke: none;
+  animation: sim-layer 4.5s ease-in-out infinite;
+}
 .sim-layers path:nth-child(1) { fill: rgba(226, 170, 99, 0.62); }
 .sim-layers path:nth-child(2) { fill: rgba(126, 160, 222, 0.55); }
 .sim-layers path:nth-child(3) { fill: rgba(228, 136, 124, 0.5); }
 .sim-layers path:nth-child(4) { fill: rgba(104, 168, 112, 0.5); }
+
+@keyframes sim-layer {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+  10% {
+    opacity: 1;
+  }
+}
 
 /* Filled brand marks (GitHub, LinkedIn) read heavier than stroke icons at the
    same size, because a silhouette covers more area than an outline. Trimming

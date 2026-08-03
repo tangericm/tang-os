@@ -10,7 +10,7 @@
  * Bump this IN THE SAME COMMIT as the release, so the running site always
  * reports the version it actually is.
  */
-export const TANGOS_VERSION = "0.30.3";
+export const TANGOS_VERSION = "0.30.4";
 
 /** Codename stays put unless the palette changes. */
 export const TANGOS_CODENAME = "warm graphite";
