@@ -78,7 +78,7 @@ export const PROJECTS: Project[] = [
     group: "Built independently",
     visual: "simulator",
     blurb:
-      "A physics-based OCT simulator for training models when real labeled data is scarce. Each A-scan is synthesized as an interferometric spectrum and reconstructed the same way real hardware does — including source bandwidth, noise, eye motion, and tissue optics — so imaging tradeoffs emerge from the model rather than being hand-tuned. Every sample includes a per-pixel layer map, giving free ground truth for segmentation and denoising.",
+      "Generates realistic retinal scans from optics, so models can be trained where real labeled data is scarce. Each image is built the way the hardware builds it — light source, noise, eye motion, tissue optics — so imaging tradeoffs emerge from the physics instead of being hand-tuned. Every image ships with a pixel-exact map of 13 retinal layers: training-ready ground truth that would otherwise cost an expert hours per scan. Validated against real clinical scans on a matched pixel grid.",
     tags: [
       "Python",
       "Scientific computing",
