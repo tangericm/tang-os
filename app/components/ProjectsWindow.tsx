@@ -273,6 +273,8 @@ function SimulatorHero() {
               loading="lazy"
               decoding="async"
             />
+            {/* Initially clipped to zero width: lazy loading can leave this
+                unrequested even while the wipe moves across the scan. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               className="simreal-labels"
@@ -281,7 +283,7 @@ function SimulatorHero() {
               aria-hidden="true"
               width={720}
               height={353}
-              loading="lazy"
+              loading="eager"
               decoding="async"
             />
             <span className="simreal-edge" aria-hidden="true" />

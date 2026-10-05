@@ -19,6 +19,10 @@ npm run dev      # http://localhost:3000
 npm run verify   # typecheck, build, then assert the built HTML
 ```
 
+Browser regression tests cover the simulator layer reveal on desktop and mobile,
+including reduced motion. Run `npx playwright install chromium` once, then
+`npm run test:browser` (the test runner starts the dev server if needed).
+
 ## Deploy
 
 Pushing to `main` deploys automatically via Vercel. CI runs `verify` on every

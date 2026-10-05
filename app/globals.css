@@ -2581,7 +2581,9 @@ html.booted .boot-overlay {
      shown already applied — clip-path:none, not just animation:none, or the
      overlay stays clipped to zero width and the panel silently loses its
      whole point. Same for the B-scan's clip rect. */
-  .simreal-labels {
+  /* Keep this fallback above the later base rule in specificity as well as
+     intent: otherwise that rule restarts the wipe and clips the labels. */
+  html .simreal-labels {
     clip-path: none;
     animation: none;
   }
