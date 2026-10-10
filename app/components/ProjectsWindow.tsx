@@ -372,14 +372,35 @@ export default function ProjectsWindow({
      a hand-edited URL can still miss; fall back rather than crash the window. */
   const project = PROJECTS.find((p) => p.id === sel) ?? PROJECTS[0];
 
+  const personal = project.group === "Personal projects";
+  const visibleProjects = PROJECTS.filter((p) => (p.group === "Personal projects") === personal);
+
   return (
     <Window title="Projects" frameClassName="window-projects" {...props}>
+      <div className="proj-toolbar">
+        <div className="proj-collections" role="group" aria-label="Project collections">
+          <button aria-pressed={!personal} onClick={() => onSelect(PROJECTS.find((p) => p.group !== "Personal projects")!.id)}>
+            Professional work
+          </button>
+          <button aria-pressed={personal} onClick={() => onSelect(PROJECTS.find((p) => p.group === "Personal projects")!.id)}>
+            Personal projects
+          </button>
+        </div>
+        <span className="proj-count">{visibleProjects.length} projects</span>
+        <select className="proj-picker" aria-label="Choose a project" value={project.id} onChange={(event) => onSelect(event.target.value)}>
+          {GROUPS.filter((g) => (g === "Personal projects") === personal).map((group) => (
+            <optgroup label={group} key={group}>
+              {visibleProjects.filter((p) => p.group === group).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </optgroup>
+          ))}
+        </select>
+      </div>
       <div className="projects">
         <nav className="proj-sidebar" aria-label="Projects">
-          {GROUPS.map((g) => (
+          {GROUPS.filter((g) => (g === "Personal projects") === personal).map((g) => (
             <div className="proj-group" key={g}>
               <h2 className="proj-group-title">{g}</h2>
-              {PROJECTS.filter((p) => p.group === g).map((p) => (
+              {visibleProjects.filter((p) => p.group === g).map((p) => (
                 <button
                   key={p.id}
                   className={p.id === sel ? "proj-item proj-item-active" : "proj-item"}
@@ -388,7 +409,6 @@ export default function ProjectsWindow({
                 >
                   <span className="proj-item-name">{p.name}</span>
                   <span className="proj-item-kind">{p.kind}</span>
-                  {p.visual && <span className="proj-item-dot" aria-hidden="true" />}
                 </button>
               ))}
             </div>
@@ -396,27 +416,47 @@ export default function ProjectsWindow({
         </nav>
 
         <div className="proj-detail" key={project.id}>
-          {project.visual && (
-            <div className="proj-hero">
-              <Visual kind={project.visual} />
+          <header className="proj-heading">
+            <h2 className="proj-title">{project.name}</h2>
+            <p className="proj-kind">{project.kind}</p>
+            <div className="proj-links">
+              {project.links.map((link) => (
+                <a className="pill-link" key={link.href} href={link.href} target="_blank" rel="noreferrer">{link.label}</a>
+              ))}
             </div>
+          </header>
+          {project.visual && <div className="proj-hero"><Visual kind={project.visual} /></div>}
+          {project.id === "optical-design" && (
+            <figure className="proj-artifact">
+              <img src="/optical-design-cooke.webp" width={1440} height={1216} alt="Reproducible Cooke triplet ray layout and spot diagrams from Optical Design's bundled lens example" loading="lazy" decoding="async" />
+              <figcaption>A real ray trace of the bundled Cooke triplet, with field-dependent spot diagrams against the Airy disk. Reproduce it with the repository's render-example.py script.</figcaption>
+            </figure>
           )}
+          {project.id === "skillcrit" && (
+            <figure className="proj-artifact">
+              <pre className="proj-code"><code>{`$ skillcrit lint fixtures/repos/stacked
 
-          <h2 className="proj-title">{project.name}</h2>
+warning SC1002 spec
+  name "Bad_Name" does not match folder "bad-name"
+  at .agents/skills/bad-name/SKILL.md:2
+
+warning SC3005 duplicate-command
+  /status is registered by alpha-pack and beta-pack
+
+7 unique / 7 scanned
+0 errors  7 warnings  2 info`}</code></pre>
+              <figcaption>Abbreviated output from Skillcrit 0.6.0 on its controlled fixture. Findings name the rule and source; heuristics call for human review.</figcaption>
+            </figure>
+          )}
+          {project.id === "recipe-book" && (
+            <figure className="proj-artifact">
+              <img src="/recipe-book.webp" width={1200} height={900} alt="Eric's Recipe Book: bilingual recipe order card with cooked and draft states, and a meal-planning panel" loading="lazy" decoding="async" />
+              <figcaption>My own cooking notebook. Pick dishes on the order card, make a shopping list, and open a recipe to cook one step at a time.</figcaption>
+            </figure>
+          )}
           <p className="proj-blurb">{project.blurb}</p>
-
           <div className="proj-tags">
-            {project.tags.map((t) => (
-              <span className="proj-tag" key={t}>{t}</span>
-            ))}
-          </div>
-
-          <div className="proj-links">
-            {project.links.map((l) => (
-              <a className="pill-link" key={l.label} href={l.href} target="_blank" rel="noreferrer">
-                {l.label} ↗
-              </a>
-            ))}
+            {project.tags.map((tag) => <span className="proj-tag" key={tag}>{tag}</span>)}
           </div>
         </div>
       </div>

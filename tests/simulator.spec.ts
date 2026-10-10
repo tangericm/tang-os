@@ -12,7 +12,11 @@ for (const [name, viewport] of [
         await page.emulateMedia({ reducedMotion });
         await page.goto("/projects/denoiser");
         await expect(page.locator(".proj-title")).toBeVisible();
-        await page.locator(".proj-sidebar button").filter({ hasText: "Physics-Based OCT Simulator" }).click();
+        if (viewport.width <= 640) {
+          await page.getByRole("combobox", { name: "Choose a project" }).selectOption("simulator");
+        } else {
+          await page.locator(".proj-sidebar button").filter({ hasText: "Physics-Based OCT Simulator" }).click();
+        }
 
         const labels = page.locator(".simreal-labels");
         // The map begins completely clipped. Lazy loading can leave it

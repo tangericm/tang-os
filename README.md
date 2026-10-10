@@ -14,13 +14,14 @@ More of Eric's work: [github.com/tangericm](https://github.com/tangericm)
 ## Develop
 
 ```bash
-npm install
+npm ci
 npm run dev      # http://localhost:3000
 npm run verify   # typecheck, build, then assert the built HTML
 ```
 
-Browser regression tests cover the simulator layer reveal on desktop and mobile,
-including reduced motion. Run `npx playwright install chromium` once, then
+Browser regression tests cover project collections, deep links, the no-JavaScript
+catalog, and the simulator layer reveal on desktop and mobile, including reduced
+motion. Run `npx playwright install chromium` once, then
 `npm run test:browser` (the test runner starts the dev server if needed).
 
 ## Deploy
@@ -55,7 +56,8 @@ the whole reason these exist.
 - [x] Draggable, resizable windows with working traffic lights and life-cycle animations
 - [x] Dock with magnification, tooltips, and running indicators
 - [x] About Me (About This Mac parody) with a keyboard-navigable tab bar
-- [x] Projects app: master/detail over six projects, each with a bespoke animated SVG explainer
+- [x] Projects app: nine projects in Professional Work and Personal Projects collections, with a mobile picker and readable detail pane
+- [x] Original scientific explainers alongside reproducible optical-design figures, a Skillcrit CLI example, and Eric's Recipe Book
 - [x] Resume: desktop file → document viewer + PDF download
 - [x] Terminal: a working shell over the same project data (`ls`, `cat`, `open`, and some jokes)
 - [x] Runner: a dinosaur game on `<canvas>`

@@ -1296,7 +1296,7 @@ html.booted .boot-overlay {
    Projects app, master/detail showcase with live visuals
    ============================================================ */
 .window-projects {
-  width: min(820px, 96vw);
+  width: min(1020px, 96vw);
 }
 
 /* The second, and real, reason the Projects pane would not scroll until it
@@ -1355,7 +1355,7 @@ html.booted .boot-overlay {
   font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: rgba(244, 241, 236, 0.36);
+  color: var(--ink-soft);
 }
 
 .proj-item {
@@ -1430,7 +1430,7 @@ html.booted .boot-overlay {
 }
 
 .proj-title {
-  font-size: 19px;
+  font-size: clamp(24px, 3vw, 32px);
   font-weight: 700;
   color: var(--ink);
 }
@@ -1461,6 +1461,7 @@ html.booted .boot-overlay {
 
 .proj-links {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   margin-top: 18px;
 }
@@ -3489,4 +3490,106 @@ html.booted .boot-overlay {
   .window-restoring {
     animation: none;
   }
+}
+
+/* Light editorial project pages inside the existing desktop shell. */
+.proj-toolbar {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--hairline);
+}
+.proj-collections { display: flex; gap: 4px; }
+.proj-collections button {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--ink-soft);
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.proj-collections button[aria-pressed="true"] {
+  background: rgba(255, 244, 230, 0.1);
+  border-color: var(--hairline);
+  color: var(--ink);
+}
+.proj-collections button:hover { background: rgba(255, 244, 230, 0.08); }
+.proj-count { margin-left: auto; color: var(--ink-soft); font-size: 12px; }
+.proj-picker { display: none; }
+.proj-detail {
+  --ink: #202630;
+  --ink-soft: #4b5563;
+  --ink-faint: #626c79;
+  --hairline: #d8dde4;
+  --accent: #2451a4;
+  background: #f7f8fa;
+  color: var(--ink);
+  user-select: text;
+  scrollbar-color: #9ba5b4 #edf0f4;
+}
+.proj-detail::selection, .proj-detail ::selection { background: #c9d9f5; color: #122c56; }
+.proj-heading { margin-bottom: 24px; }
+.proj-kind { margin-top: 7px; color: var(--ink-soft); font-size: 13px; }
+.proj-heading .proj-links { margin-top: 15px; gap: 8px; }
+.proj-heading .pill-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--accent);
+}
+.proj-heading .pill-link:first-child { background: var(--accent); border-color: var(--accent); color: #fff; }
+.proj-heading .pill-link:hover { background: #e5ebf5; }
+.proj-heading .pill-link:first-child:hover { background: #173b7d; }
+.proj-blurb { font-size: 14px; line-height: 1.75; max-width: 70ch; }
+.proj-tag { background: #edf0f4; }
+.proj-sidebar .proj-item { min-height: 58px; }
+.proj-sidebar .proj-item-kind { text-transform: none; letter-spacing: 0; line-height: 1.4; }
+.proj-hero {
+  --ink: #f4f1ec;
+  --ink-soft: rgba(244, 241, 236, 0.8);
+  --ink-faint: rgba(244, 241, 236, 0.65);
+  --accent: #e2aa63;
+  --hairline: rgba(255, 244, 230, 0.1);
+  background: #221d18;
+  color: var(--ink);
+  padding: 16px;
+  border-radius: 10px;
+}
+.proj-artifact { margin-bottom: 24px; }
+.proj-artifact img { display: block; width: 100%; height: auto; border: 1px solid var(--hairline); border-radius: 8px; background: #fff; }
+.proj-artifact figcaption { margin-top: 12px; max-width: 70ch; font-size: 12px; line-height: 1.65; color: var(--ink-soft); }
+.proj-code { padding: 24px; overflow-x: auto; background: #172332; color: #e6eef9; border-radius: 8px; font-size: 12px; line-height: 1.8; tab-size: 2; }
+.proj-collections button:focus-visible, .proj-picker:focus-visible, .proj-sidebar button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.proj-heading a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (max-width: 640px) {
+  .proj-toolbar { padding: 8px 12px 12px; gap: 8px; }
+  .proj-collections { width: 100%; }
+  .proj-collections button { flex: 1; padding-inline: 8px; }
+  .proj-count, .proj-sidebar { display: none; }
+  .proj-picker {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 8px;
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    background: var(--surface-window);
+    color: var(--ink);
+    font: inherit;
+    font-size: 13px;
+    color-scheme: dark;
+  }
+  .proj-detail { padding: 20px 16px 28px; }
+  .proj-hero { padding: 10px; }
+  .proj-code { padding: 16px; font-size: 11px; }
 }

@@ -13,7 +13,7 @@
  * Named tools stay only where the name is the skill — PyTorch, React, MATLAB.
  */
 
-export type Group = "First-author research" | "Built independently" | "Co-authored research";
+export type Group = "First-author research" | "Built independently" | "Co-authored research" | "Personal projects";
 
 export type Visual =
   | "tracking"
@@ -45,6 +45,7 @@ export const GROUPS: Group[] = [
   "Built independently",
   "First-author research",
   "Co-authored research",
+  "Personal projects",
 ];
 
 /**
@@ -88,24 +89,6 @@ export const PROJECTS: Project[] = [
       "Desktop GUI (Qt)",
     ],
     links: [{ label: "GitHub", href: "https://github.com/tangericm/OCT-Simulator" }],
-  },
-  {
-    id: "tangos",
-    name: "TangOS",
-    kind: "Next.js · this site",
-    group: "Built independently",
-    visual: "tangos",
-    blurb:
-      "Desktop-metaphor portfolio built without a UI component library. Custom window manager with open, minimize, and maximize lifecycles, drag and resize, focus stacking, a dock, document viewer, terminal, and animated SVG explainers. Next.js App Router, React, and TypeScript, with shared design tokens and prefers-reduced-motion support.",
-    tags: [
-      "TypeScript",
-      "React",
-      "Next.js",
-      "Frontend engineering",
-      "UI animation",
-      "Web accessibility",
-    ],
-    links: [{ label: "Source", href: "https://github.com/tangericm/tang-os" }],
   },
   {
     id: "tracking",
@@ -175,5 +158,63 @@ export const PROJECTS: Project[] = [
         href: "https://pmc.ncbi.nlm.nih.gov/articles/PMC8973187",
       },
     ],
+  },
+  {
+    id: "optical-design",
+    name: "Optical Design",
+    kind: "Optiland · tools for AI agents",
+    group: "Built independently",
+    blurb:
+      "An installable optical-design toolkit for AI coding agents. Inspect a lens prescription, calculate imaging limits, optimize supported designs, and generate a visual review with reproducible measurements. Includes a bundled Cooke triplet example, eleven starting lens forms, and workflows for Claude Code, Codex, and Cursor. Portable work uses Optiland; a licensed OpticStudio adapter is optional. Scalar, centered analyses and nominal optimization have explicit limits: a better simulated lens is not proof of manufacturing yield.",
+    tags: ["Optical design", "Scientific computing", "Python", "AI agent tools", "Ray tracing"],
+    links: [
+      { label: "GitHub", href: "https://github.com/tangericm/optical-design" },
+      { label: "Install from npm", href: "https://www.npmjs.com/package/optical-design" },
+      { label: "Try the walkthrough", href: "https://github.com/tangericm/optical-design/blob/main/docs/quickstart.md" },
+    ],
+  },
+  {
+    id: "skillcrit",
+    name: "Skillcrit",
+    kind: "TypeScript · local CLI",
+    group: "Built independently",
+    blurb:
+      "A local auditor for the instructions AI agents load. Finds structural problems, duplicate instructions, possible conflicts, risky commands, and estimated context costs across skill collections. Reports actionable source locations and supports baselines, recorded dismissals, GitHub annotations, and SARIF. Audits run without an API key, telemetry, or executing discovered scripts. Risk checks are heuristics and context figures are estimates; a clean report is not a safety certification.",
+    tags: ["TypeScript", "Developer tools", "Static analysis", "AI agent tools", "CLI design"],
+    links: [
+      { label: "GitHub", href: "https://github.com/tangericm/skillcrit" },
+      { label: "Install from npm", href: "https://www.npmjs.com/package/skillcrit" },
+    ],
+  },
+  {
+    id: "recipe-book",
+    name: "Eric's Recipe Book",
+    kind: "Astro · a personal cooking notebook",
+    group: "Personal projects",
+    blurb:
+      "My cooking notebook, built as a dim sum order card. Browse recipes in English, Chinese, and pinyin; select dishes for a shopping list; then use a guided cooking mode with ingredient checklists, step timers, and saved progress. Recipes live in schema-validated YAML, with source credit and separate cooked, saved, and draft states. A static Astro site with browser-local state, self-hosted fonts, and no account or backend. Mostly Chinese home cooking, with braises, buns, breads, and a cake worked out over time.",
+    tags: ["Astro", "TypeScript", "Interaction design", "Accessibility", "Cooking"],
+    links: [
+      { label: "Open the recipe book", href: "https://erics-kitchen.vercel.app" },
+      { label: "GitHub", href: "https://github.com/tangericm/recipe-book" },
+    ],
+  },
+  {
+    id: "tangos",
+    name: "TangOS",
+    kind: "Next.js · this site",
+    group: "Personal projects",
+    visual: "tangos",
+    blurb:
+      "Desktop-metaphor portfolio built without a UI component library. Custom window manager with open, minimize, and maximize lifecycles, drag and resize, focus stacking, a dock, document viewer, terminal, and animated SVG explainers. Next.js App Router, React, and TypeScript, with shared design tokens and prefers-reduced-motion support.",
+    tags: [
+      "TypeScript",
+      "React",
+      "Next.js",
+      "Frontend engineering",
+      "UI animation",
+      "Web accessibility",
+    ],
+    links: [{ label: "Source", href: "https://github.com/tangericm/tang-os" }],
   },
 ];

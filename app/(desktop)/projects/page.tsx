@@ -4,7 +4,7 @@ import { routeMetadata } from "../../lib/metadata";
 export const metadata = routeMetadata({
   title: "Projects",
   description:
-    "Research and independent engineering: real-time instrument tracking, galvanometer modelling, self-supervised OCT denoising, and a physics-based OCT simulator.",
+    "Research and independent engineering in imaging, optical design, and AI tools, alongside personal projects including Eric's Recipe Book and TangOS.",
   path: "/projects",
 });
 
