@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import Window from "./Window";
 import { EDUCATION, EXPERIENCE, PROFILE, SPECS, TAGLINE } from "../data/profile";
 
@@ -93,6 +94,7 @@ type Passthrough = {
   minimizeTarget?: string;
   zIndex?: number;
   onFocus?: () => void;
+  frontmost?: boolean;
   /** true while minimized; the window stays mounted but is display:none */
   hidden?: boolean;
 };
@@ -149,6 +151,7 @@ export default function AboutWindow({ onClose, onMinimize, ...rest }: Passthroug
           {PROFILE.name}, {PROFILE.honorific}
         </h1>
         <p className="about-tagline">{TAGLINE}</p>
+        <Link className="about-project-link" href="/projects">Explore projects</Link>
 
         <div className="tabs" role="tablist" aria-label="About sections" onKeyDown={onTabKeys}>
           {TABS.map((t) => (

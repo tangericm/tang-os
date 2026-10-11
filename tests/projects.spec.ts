@@ -9,6 +9,11 @@ for (const width of [1440, 768, 390]) {
     await expect(page.locator(".proj-detail")).toHaveCSS("background-color", "rgb(34, 29, 24)");
     await page.getByRole("button", { name: "Engineering", exact: true }).click();
     await expect(page).toHaveURL(/\/projects\/denoiser$/);
+    await page.goBack();
+    await expect(page).toHaveURL(/\/projects$/);
+    await expect(page.locator(".proj-title")).toHaveText("Real-Time Instrument Tracking & 4D Imaging");
+    await page.goForward();
+    await expect(page.locator(".proj-title")).toHaveText("Self-Supervised Image Denoiser");
     const choose = async (id: string, name: string) => {
       if (width <= 640) await page.getByRole("combobox", { name: "Choose a project" }).selectOption(id);
       else await page.locator(".proj-sidebar button").filter({ hasText: name }).click();
@@ -43,6 +48,27 @@ for (const width of [1440, 768, 390]) {
     expect((await page.request.get("/projects/skillcrit")).status()).toBe(404);
   });
 }
+
+test("keyboard focus raises an obscured window and motion preferences keep the dock still", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/projects");
+  const about = page.getByRole("region", { name: "About Me", exact: true });
+  const projects = page.getByRole("region", { name: "Projects", exact: true });
+  await about.getByRole("button", { name: "Close window", exact: true }).focus();
+  await expect(about).toHaveCSS("z-index", "12");
+  await expect(projects).toHaveCSS("z-index", "10");
+  await page.locator('.dock-button[data-app="projects"]').hover();
+  await expect(page.locator('.dock-button[data-app="projects"]')).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
+});
+
+test("opening Projects from About moves keyboard focus into the new window", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Explore projects", exact: true }).press("Enter");
+  const projects = page.getByRole("region", { name: "Projects", exact: true });
+  await expect(projects).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(projects.getByRole("button", { name: "Close window", exact: true })).toBeFocused();
+});
 
 test("image comparison and sequence controls work with the keyboard", async ({ page }) => {
   await page.goto("/projects/denoiser");

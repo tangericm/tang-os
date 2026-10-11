@@ -51,6 +51,7 @@ export default function GameWindow({
   minimizeTarget?: string;
   zIndex?: number;
   onFocus?: () => void;
+  frontmost?: boolean;
   hidden?: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);

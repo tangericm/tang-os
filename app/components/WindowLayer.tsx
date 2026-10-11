@@ -82,9 +82,9 @@ export default function WindowLayer() {
      still-mounted Projects window would silently snap back to the default. */
   const [lastProject, setLastProject] = useState(route.project ?? DEFAULT_PROJECT);
   useEffect(() => {
-    if (route.project) setLastProject(route.project);
-  }, [route.project]);
-  const selected = route.project ?? lastProject;
+    if (route.app === "projects") setLastProject(route.project ?? DEFAULT_PROJECT);
+  }, [route.app, route.project]);
+  const selected = route.app === "projects" ? route.project ?? DEFAULT_PROJECT : lastProject;
 
   const reducedMotion = useRef(false);
   useEffect(() => {
@@ -160,6 +160,7 @@ export default function WindowLayer() {
       motion: phase === "minimizing" || phase === "closing" ? phase : undefined,
       minimizeTarget: `.dock-button[data-app="${id}"]`,
       zIndex: front === id ? 12 : 10,
+      frontmost: front === id,
       onFocus: () => setFront(id),
       /* Minimize deliberately does NOT touch the URL: a minimized app is still
          running, and the address bar should not disagree with the dock. */

@@ -31,6 +31,7 @@ type Passthrough = {
   minimizeTarget?: string;
   zIndex?: number;
   onFocus?: () => void;
+  frontmost?: boolean;
   /** true while minimized; the window stays mounted but is display:none */
   hidden?: boolean;
 };
@@ -84,9 +85,13 @@ function DenoiseHero() {
    page whose whole claim is tracking accuracy. Use the real YOLOv4 output
    (media9 / media10, which carry the detector's own magenta boxes) if this
    is wanted later. */
-function TrackingHero() {
+function TrackingHero({ paused, onToggle }: { paused: boolean; onToggle: () => void }) {
   return (
     <figure className="denoise-figure">
+      <figcaption className="seq-caption-row">
+        <span>Synchronized microscope, surface, and 3D tissue views.</span>
+        <button className="proj-control seq-control" aria-label={paused ? "Resume sequence" : "Pause sequence"} aria-pressed={paused} onClick={onToggle}>{paused ? "Resume" : "Pause"}</button>
+      </figcaption>
       <div
         className="seq"
         role="img"
@@ -99,7 +104,6 @@ function TrackingHero() {
         <span style={{ flex: "77 1 0" }}>en face</span>
         <span className="seq-label-accent" style={{ flex: "150 1 0" }}>tracked OCT volume</span>
       </div>
-      <figcaption>One acquisition, three synchronized views: microscope, surface image, and tracked OCT volume. The volume reveals depth beneath the tissue surface.</figcaption>
     </figure>
   );
 }
@@ -277,11 +281,11 @@ function SimulatorHero() {
   );
 }
 
-function Visual({ kind }: { kind: NonNullable<Project["visual"]> }) {
+function Visual({ kind, paused, onToggle }: { kind: NonNullable<Project["visual"]>; paused: boolean; onToggle: () => void }) {
   if (kind === "tracking")
     return (
       <>
-        <TrackingHero />
+        <TrackingHero paused={paused} onToggle={onToggle} />
         <TrackingSchematic />
       </>
     );
@@ -304,6 +308,7 @@ function Visual({ kind }: { kind: NonNullable<Project["visual"]> }) {
   return (
     <>
       <figure className="denoise-figure">
+        <p className="proj-figure-label">Raw vs repeat-average reference</p>
         <DenoiseHero />
         <figcaption>
           Raw frame and a registered 50-frame repeat average of my own retinal data. This is a reference comparison, not the self-fusion network's output.
@@ -342,7 +347,7 @@ export default function ProjectsWindow({
             </button>
           ))}
         </div>
-        <span className="proj-count">{visibleProjects.length} projects</span>
+        <span className="proj-count">{project.group === "Research" ? "Peer-reviewed" : project.group === "Engineering" ? "Self-directed" : "Personal interests"} · {visibleProjects.length} projects</span>
         <select className="proj-picker" aria-label="Choose a project" value={project.id} onChange={(event) => onSelect(event.target.value)}>
           {visibleProjects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
@@ -371,8 +376,7 @@ export default function ProjectsWindow({
           </header>
           {project.visual && (
             <>
-              {project.visual === "tracking" && <button className="proj-control" aria-pressed={paused} onClick={() => setPaused(!paused)}>{paused ? "Resume sequence" : "Pause sequence"}</button>}
-              <div className={`proj-hero ${paused ? "proj-motion-paused" : ""}`}><Visual kind={project.visual} /></div>
+              <div className={`proj-hero ${paused ? "proj-motion-paused" : ""}`}><Visual kind={project.visual} paused={paused} onToggle={() => setPaused(!paused)} /></div>
             </>
           )}
           {project.id === "optical-design" && (

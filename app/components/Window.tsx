@@ -59,6 +59,7 @@ type WindowProps = {
   minimizeTarget?: string;
   zIndex?: number;
   onFocus?: () => void;
+  frontmost?: boolean;
   frameClassName?: string;
   children: React.ReactNode;
 };
@@ -71,6 +72,7 @@ export default function Window({
   minimizeTarget,
   zIndex,
   onFocus,
+  frontmost,
   frameClassName,
   hidden = false,
   children,
@@ -81,6 +83,11 @@ export default function Window({
   const grabOffset = useRef<{ dx: number; dy: number } | null>(null);
   const resizeStart = useRef<{ w: number; h: number; x: number; y: number } | null>(null);
   const frameRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (frontmost && frame && !frame.contains(document.activeElement)) frame.focus({ preventScroll: true });
+  }, [frontmost]);
 
   /* Un-minimizing. A window that owns explicit coordinates cannot reuse
      `win-open`: that keyframe hardcodes translateX(-50%) for the centered
@@ -318,6 +325,8 @@ export default function Window({
   return (
     <section
       ref={frameRef}
+      aria-label={title}
+      tabIndex={-1}
       className={classes}
       style={{
         /* `transform: none` used to sit here to cancel the stylesheet's
@@ -335,6 +344,7 @@ export default function Window({
         ...(zIndex !== undefined ? { zIndex } : null),
       }}
       onPointerDownCapture={onFocus}
+      onFocusCapture={onFocus}
       /* Guarded: animationend bubbles, and the window body is full of
          animated schematics that would otherwise clear this on their own. */
       onAnimationEnd={(e) => {

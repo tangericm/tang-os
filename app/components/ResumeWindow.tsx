@@ -24,6 +24,7 @@ type Passthrough = {
   minimizeTarget?: string;
   zIndex?: number;
   onFocus?: () => void;
+  frontmost?: boolean;
   /** true while minimized; the window stays mounted but is display:none */
   hidden?: boolean;
 };

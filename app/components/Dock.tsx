@@ -181,7 +181,11 @@ export default function Dock({
   // matchMedia touches `window`, which doesn't exist during server
   // rendering, so we ask the question once, after mount.
   useEffect(() => {
-    setCanMagnify(window.matchMedia("(pointer: fine)").matches);
+    const preference = window.matchMedia("(pointer: fine) and (prefers-reduced-motion: no-preference) and (min-width: 641px)");
+    const update = () => setCanMagnify(preference.matches);
+    update();
+    preference.addEventListener("change", update);
+    return () => preference.removeEventListener("change", update);
   }, []);
 
   useLayoutEffect(() => {
