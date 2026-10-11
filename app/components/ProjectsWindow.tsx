@@ -1,6 +1,7 @@
 "use client";
 
 import Window from "./Window";
+import { useState } from "react";
 import SelfFusionSchematic from "./SelfFusionSchematic";
 import TrackingSchematic from "./TrackingSchematic";
 import ScannerSchematic from "./ScannerSchematic";
@@ -14,10 +15,8 @@ import { GROUPS, PROJECTS, type Project } from "../data/projects";
  * sidebar lists the work; the detail pane lets the selected project
  * lead.
  *
- * Order is deliberate and grouped by what the work actually is: papers
- * where I am first author come first, then things I built on my own, then
- * work I contributed to as a co-author. Within a group, the ones with
- * something to look at come first.
+ * Peer-reviewed work leads; self-directed engineering and hobbies have
+ * separate collections. Stable project URLs restore the right collection.
  *
  * Copy aims at a reader who does computational imaging or CV but not
  * ophthalmology: the transferable engineering leads, the clinical setting
@@ -36,26 +35,26 @@ type Passthrough = {
   hidden?: boolean;
 };
 
-/* The hero for the denoising project: a raw frame resolving into its
-   denoised version. These are REAL images from my own data, a single raw
-   frame underneath and a registered average of a 50-frame repeat stack
-   revealed left-to-right by an animated clip. */
-function DenoiseHero() {
+/* A manual reveal compares registered images without altering their pixels. */
+function ScanComparison({ raw, processed, label }: { raw: string; processed: string; label: string }) {
+  const [rawShare, setRawShare] = useState(50);
   return (
     <>
-      <div className="denoise-tags" aria-hidden="true">
-        <span>raw</span>
-        <span className="denoise-tag-clean">denoised</span>
+      <div className="denoise-tags" aria-hidden="true"><span>raw frame</span><span className="denoise-tag-clean">{label}</span></div>
+      <div className="denoise denoise-manual" aria-label={`Raw frame compared with ${label}`}>
+        <img className="denoise-img" src={raw} alt="Raw retinal cross-section with speckle" loading="lazy" decoding="async" width={1100} height={455} />
+        <img className="denoise-img denoise-clean" style={{ clipPath: `inset(0 0 0 ${rawShare}%)` }} src={processed} alt={`${label} of the same retinal cross-section`} loading="lazy" decoding="async" width={1100} height={455} />
+        <span className="denoise-divider" style={{ left: `${rawShare}%` }} aria-hidden="true" />
       </div>
-      <div className="denoise" aria-label="A real noisy scan resolving into a denoised one">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="denoise-img" src="/oct-raw.jpg" alt="Raw single-frame retinal cross-section, heavy speckle" loading="lazy" decoding="async" width={1100} height={455} />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="denoise-img denoise-clean" src="/oct-clean.jpg" alt="Denoised cross-section, layers and choroid clearly resolved" loading="lazy" decoding="async" width={1100} height={455} />
-        <span className="denoise-scan" aria-hidden="true" />
-      </div>
+      <label className="proj-compare">Compare images <span>{rawShare}% raw</span>
+        <input type="range" aria-label={`Raw frame share compared with ${label}`} min="0" max="100" value={rawShare} onChange={(event) => setRawShare(Number(event.target.value))} />
+      </label>
     </>
   );
+}
+
+function DenoiseHero() {
+  return <ScanComparison raw="/oct-raw.jpg" processed="/oct-clean.jpg" label="repeat-average reference" />;
 }
 
 /* The tracking hero.
@@ -100,13 +99,7 @@ function TrackingHero() {
         <span style={{ flex: "77 1 0" }}>en face</span>
         <span className="seq-label-accent" style={{ flex: "150 1 0" }}>tracked OCT volume</span>
       </div>
-      <figcaption>
-        Thirty consecutive time points from one acquisition, each frame the same
-        instant three ways, so the panels are correlated rather than merely adjacent.
-        The microscope view is top-down and 2D and cannot show what the instrument is
-        doing below the surface, which is what the{" "}
-        <strong>tracked volume</strong> resolves.
-      </figcaption>
+      <figcaption>One acquisition, three synchronized views: microscope, surface image, and tracked OCT volume. The volume reveals depth beneath the tissue surface.</figcaption>
     </figure>
   );
 }
@@ -156,30 +149,8 @@ function TrackingHero() {
 function DenoiserHero() {
   return (
     <figure className="denoise-figure">
-      <div className="denoise-tags" aria-hidden="true">
-        <span>raw frame</span>
-        <span className="denoise-tag-clean">prediction</span>
-      </div>
-      <div className="denoise" aria-label="A raw frame resolving into the network prediction">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="denoise-img" src="/denoiser-raw.jpg" alt="Raw single-frame reconstruction of a retinal cross-section, speckle throughout and layer boundaries barely separable" loading="lazy" decoding="async" width={1100} height={455} />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="denoise-img denoise-clean" src="/denoiser-pred.jpg" alt="Network prediction of the same frame, speckle suppressed with retinal layers resolved and choroidal vessels visible" loading="lazy" decoding="async" width={1100} height={455} />
-        <span className="denoise-scan" aria-hidden="true" />
-      </div>
-      <figcaption>
-        A raw frame against the prediction under a{" "}
-        <strong>single shared display window</strong>, taken from the raw frame
-        and applied unchanged to both, so the difference is the model and not the
-        contrast setting. The frame is from a stack{" "}
-        <strong>held out of training entirely</strong>; speckle contrast falls
-        18.2% on it while the vessel shadows survive. Measured against five
-        registered 64-frame averages held out on the same instrument, over three
-        seeds, the model scores{" "}
-        <strong>29.518 &plusmn; 0.035 dB PSNR</strong> and{" "}
-        <strong>0.7323 SSIM</strong>, against 12.059 dB and 0.1205 for the noisy
-        input.
-      </figcaption>
+      <ScanComparison raw="/denoiser-raw.jpg" processed="/denoiser-pred.jpg" label="network prediction" />
+      <figcaption>A held-out frame and its prediction, shown with the same contrast settings. The slider changes only which image is visible.</figcaption>
     </figure>
   );
 }
@@ -225,22 +196,23 @@ function DenoiserHero() {
    simulator's own label vocabulary — it is not a fixed list, an optic-disc
    field inserts a canal layer and shifts every index below it). */
 const SIM_LAYERS = [
-  ["NFL", "232,178,102"],
-  ["GCL", "231,146,110"],
-  ["IPL", "224,120,120"],
-  ["INL", "208,110,150"],
-  ["OPL", "180,116,186"],
-  ["ONL", "146,130,210"],
-  ["ELM", "116,150,220"],
-  ["EZ", "102,176,214"],
-  ["OS", "100,190,186"],
-  ["IZ", "110,192,146"],
-  ["RPE", "250,206,128"],
-  ["BMCC", "150,168,110"],
-  ["choroid", "196,110,96"],
+  ["NFL", "232,178,102", "Nerve fiber layer"],
+  ["GCL", "231,146,110", "Ganglion cell layer"],
+  ["IPL", "224,120,120", "Inner plexiform layer"],
+  ["INL", "208,110,150", "Inner nuclear layer"],
+  ["OPL", "180,116,186", "Outer plexiform layer"],
+  ["ONL", "146,130,210", "Outer nuclear layer"],
+  ["ELM", "116,150,220", "External limiting membrane"],
+  ["EZ", "102,176,214", "Ellipsoid zone"],
+  ["OS", "100,190,186", "Outer segments"],
+  ["IZ", "110,192,146", "Interdigitation zone"],
+  ["RPE", "250,206,128", "Retinal pigment epithelium"],
+  ["BMCC", "150,168,110", "Bruch membrane and choriocapillaris"],
+  ["choroid", "196,110,96", "Choroid"],
 ];
 
 function SimulatorHero() {
+  const [showLabels, setShowLabels] = useState(false);
   return (
     <figure className="denoise-figure">
       <div className="simreal">
@@ -277,7 +249,7 @@ function SimulatorHero() {
                 unrequested even while the wipe moves across the scan. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              className="simreal-labels"
+              className={`simreal-labels ${showLabels ? "simreal-labels-visible" : "simreal-labels-hidden"}`}
               src="/sim-real-labels.png"
               alt=""
               aria-hidden="true"
@@ -286,34 +258,21 @@ function SimulatorHero() {
               loading="eager"
               decoding="async"
             />
-            <span className="simreal-edge" aria-hidden="true" />
           </div>
         </div>
       </div>
 
+      <button className="proj-control" aria-pressed={showLabels} onClick={() => setShowLabels(!showLabels)}>{showLabels ? "Hide retinal layer map" : "Show retinal layer map"}</button>
       <ul className="simreal-legend" aria-label="Layers labelled in every simulated frame">
-        {SIM_LAYERS.map(([name, rgb]) => (
+        {SIM_LAYERS.map(([name, rgb, fullName]) => (
           <li key={name}>
             <span className="simreal-swatch" style={{ background: `rgb(${rgb})` }} aria-hidden="true" />
-            {name}
+            <abbr title={fullName} aria-label={fullName}>{name}</abbr>
           </li>
         ))}
       </ul>
 
-      <figcaption>
-        A real clinical scan beside a simulated one, on the{" "}
-        <strong>same pixel grid at matched contrast</strong>. The colour over the
-        right panel is the layer map the simulator already knows:{" "}
-        <strong>13 layers, pixel-exact, free with every image</strong>, where
-        labelling the real scan takes an expert hours.
-        <span className="simreal-fine">
-          Matched 1:1: 6 mm foveal cross-section, 1024 A-scans, 3.870 µm axial pixel,
-          one depth window around the detected RPE. Only the scan curvature is
-          calibrated to this eye (269.5 µm of sag against 269 µm measured); layer
-          ordering, speckle statistics and depth falloff come out of the forward
-          model, which is the only test a physics simulator can meaningfully pass.
-        </span>
-      </figcaption>
+      <figcaption>Real and simulated scans on a matched pixel grid and display contrast. Toggle the 13-layer map to inspect the synthetic labels. Scan curvature was calibrated to this eye.</figcaption>
     </figure>
   );
 }
@@ -347,10 +306,7 @@ function Visual({ kind }: { kind: NonNullable<Project["visual"]> }) {
       <figure className="denoise-figure">
         <DenoiseHero />
         <figcaption>
-          My own retinal data: one <strong>raw</strong> frame versus a registered
-          average of the same 50-frame stack. Fusing redundant frames recovers the
-          layers; self-fusion gets there without the repeat acquisition, and the
-          network gets there from three frames.
+          Raw frame and a registered 50-frame repeat average of my own retinal data. This is a reference comparison, not the self-fusion network's output.
         </figcaption>
       </figure>
       <SelfFusionSchematic />
@@ -367,51 +323,38 @@ export default function ProjectsWindow({
   onSelect,
   ...props
 }: Passthrough & { selected: string; onSelect: (id: string) => void }) {
-  const sel = selected;
   /* A project id that survives parseRoute is always real, but a stale link or
      a hand-edited URL can still miss; fall back rather than crash the window. */
-  const project = PROJECTS.find((p) => p.id === sel) ?? PROJECTS[0];
+  const project = PROJECTS.find((p) => p.id === selected) ?? PROJECTS[0];
 
-  const personal = project.group === "Personal projects";
-  const visibleProjects = PROJECTS.filter((p) => (p.group === "Personal projects") === personal);
+  const visibleProjects = PROJECTS.filter((p) => p.group === project.group);
+  const [paused, setPaused] = useState(false);
 
   return (
     <Window title="Projects" frameClassName="window-projects" {...props}>
       <div className="proj-toolbar">
         <div className="proj-collections" role="group" aria-label="Project collections">
-          <button aria-pressed={!personal} onClick={() => onSelect(PROJECTS.find((p) => p.group !== "Personal projects")!.id)}>
-            Professional work
-          </button>
-          <button aria-pressed={personal} onClick={() => onSelect(PROJECTS.find((p) => p.group === "Personal projects")!.id)}>
-            Personal projects
-          </button>
+          {GROUPS.map((group) => (
+            <button key={group} aria-pressed={group === project.group} onClick={() => {
+              if (group !== project.group) onSelect(PROJECTS.find((p) => p.group === group)!.id);
+            }}>
+              {group}
+            </button>
+          ))}
         </div>
         <span className="proj-count">{visibleProjects.length} projects</span>
         <select className="proj-picker" aria-label="Choose a project" value={project.id} onChange={(event) => onSelect(event.target.value)}>
-          {GROUPS.filter((g) => (g === "Personal projects") === personal).map((group) => (
-            <optgroup label={group} key={group}>
-              {visibleProjects.filter((p) => p.group === group).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </optgroup>
-          ))}
+          {visibleProjects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
       </div>
       <div className="projects">
         <nav className="proj-sidebar" aria-label="Projects">
-          {GROUPS.filter((g) => (g === "Personal projects") === personal).map((g) => (
-            <div className="proj-group" key={g}>
-              <h2 className="proj-group-title">{g}</h2>
-              {visibleProjects.filter((p) => p.group === g).map((p) => (
-                <button
-                  key={p.id}
-                  className={p.id === sel ? "proj-item proj-item-active" : "proj-item"}
-                  onClick={() => onSelect(p.id)}
-                  aria-current={p.id === sel}
-                >
-                  <span className="proj-item-name">{p.name}</span>
-                  <span className="proj-item-kind">{p.kind}</span>
-                </button>
-              ))}
-            </div>
+          <h2 className="proj-group-title">{project.group}</h2>
+          {visibleProjects.map((p) => (
+            <button key={p.id} className={p.id === project.id ? "proj-item proj-item-active" : "proj-item"} onClick={() => onSelect(p.id)} aria-current={p.id === project.id}>
+              <span className="proj-item-name">{p.name}</span>
+              <span className="proj-item-kind">{p.kind}</span>
+            </button>
           ))}
         </nav>
 
@@ -419,33 +362,29 @@ export default function ProjectsWindow({
           <header className="proj-heading">
             <h2 className="proj-title">{project.name}</h2>
             <p className="proj-kind">{project.kind}</p>
+            <p className="proj-blurb">{project.blurb}</p>
             <div className="proj-links">
               {project.links.map((link) => (
                 <a className="pill-link" key={link.href} href={link.href} target="_blank" rel="noreferrer">{link.label}</a>
               ))}
             </div>
           </header>
-          {project.visual && <div className="proj-hero"><Visual kind={project.visual} /></div>}
+          {project.visual && (
+            <>
+              {project.visual === "tracking" && <button className="proj-control" aria-pressed={paused} onClick={() => setPaused(!paused)}>{paused ? "Resume sequence" : "Pause sequence"}</button>}
+              <div className={`proj-hero ${paused ? "proj-motion-paused" : ""}`}><Visual kind={project.visual} /></div>
+            </>
+          )}
           {project.id === "optical-design" && (
             <figure className="proj-artifact">
               <img src="/optical-design-cooke.webp" width={1440} height={1216} alt="Reproducible Cooke triplet ray layout and spot diagrams from Optical Design's bundled lens example" loading="lazy" decoding="async" />
               <figcaption>A real ray trace of the bundled Cooke triplet, with field-dependent spot diagrams against the Airy disk. Reproduce it with the repository's render-example.py script.</figcaption>
             </figure>
           )}
-          {project.id === "skillcrit" && (
-            <figure className="proj-artifact">
-              <pre className="proj-code"><code>{`$ skillcrit lint fixtures/repos/stacked
-
-warning SC1002 spec
-  name "Bad_Name" does not match folder "bad-name"
-  at .agents/skills/bad-name/SKILL.md:2
-
-warning SC3005 duplicate-command
-  /status is registered by alpha-pack and beta-pack
-
-7 unique / 7 scanned
-0 errors  7 warnings  2 info`}</code></pre>
-              <figcaption>Abbreviated output from Skillcrit 0.6.0 on its controlled fixture. Findings name the rule and source; heuristics call for human review.</figcaption>
+          {project.id === "frankie-town" && (
+            <figure className="proj-artifact proj-pixel-art">
+              <img src="https://frankie-town.vercel.app/assets/title/title-hero.png" width={400} height={300} alt="Frankie Town's pixel-art neighborhood, with a bakery and colorful storefronts" loading="lazy" decoding="async" />
+              <figcaption>Title art from the playable Frankie's Adventure. A hobby game in progress.</figcaption>
             </figure>
           )}
           {project.id === "recipe-book" && (
@@ -454,7 +393,7 @@ warning SC3005 duplicate-command
               <figcaption>My own cooking notebook. Pick dishes on the order card, make a shopping list, and open a recipe to cook one step at a time.</figcaption>
             </figure>
           )}
-          <p className="proj-blurb">{project.blurb}</p>
+          {project.details && <details className="proj-technical"><summary>Technical details</summary><p>{project.details}</p></details>}
           <div className="proj-tags">
             {project.tags.map((tag) => <span className="proj-tag" key={tag}>{tag}</span>)}
           </div>

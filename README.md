@@ -56,8 +56,8 @@ the whole reason these exist.
 - [x] Draggable, resizable windows with working traffic lights and life-cycle animations
 - [x] Dock with magnification, tooltips, and running indicators
 - [x] About Me (About This Mac parody) with a keyboard-navigable tab bar
-- [x] Projects app: nine projects in Professional Work and Personal Projects collections, with a mobile picker and readable detail pane
-- [x] Original scientific explainers alongside reproducible optical-design figures, a Skillcrit CLI example, and Eric's Recipe Book
+- [x] Projects app: nine projects in Research, Engineering, and Hobbies collections, with a mobile picker and readable detail pane
+- [x] Real scientific figures with concise workflows, keyboard-controlled image comparisons, optical-design plots, Frankie Town, and Eric's Recipe Book
 - [x] Resume: desktop file → document viewer + PDF download
 - [x] Terminal: a working shell over the same project data (`ls`, `cat`, `open`, and some jokes)
 - [x] Runner: a dinosaur game on `<canvas>`
@@ -83,5 +83,4 @@ scripts/            build-output assertions
 
 ## Credits
 
-Original wallpaper artist: **Frankie**, Chief Morale Officer (emeritus).
 Wallpaper photo by Eric M. Tang.

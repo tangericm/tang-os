@@ -4,7 +4,7 @@ import { routeMetadata } from "../../lib/metadata";
 export const metadata = routeMetadata({
   title: "Projects",
   description:
-    "Research and independent engineering in imaging, optical design, and AI tools, alongside personal projects including Eric's Recipe Book and TangOS.",
+    "Peer-reviewed imaging research, independent projects in denoising and optical design, and hobbies including Frankie Town and Eric's Recipe Book.",
   path: "/projects",
 });
 

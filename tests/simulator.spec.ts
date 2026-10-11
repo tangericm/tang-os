@@ -8,7 +8,7 @@ for (const [name, viewport] of [
     test.use({ viewport });
 
     for (const reducedMotion of ["no-preference", "reduce"] as const) {
-      test(`layer map loads after project navigation (${reducedMotion})`, async ({ page }) => {
+      test(`layer map can be shown and hidden after project navigation (${reducedMotion})`, async ({ page }) => {
         await page.emulateMedia({ reducedMotion });
         await page.goto("/projects/denoiser");
         await expect(page.locator(".proj-title")).toBeVisible();
@@ -19,18 +19,17 @@ for (const [name, viewport] of [
         }
 
         const labels = page.locator(".simreal-labels");
-        // The map begins completely clipped. Lazy loading can leave it
-        // unrequested even as the compositor animates the wipe across it.
+        // The map must already be loaded when its manual toggle is used.
         await expect(labels).toHaveJSProperty("naturalWidth", 720);
         await expect(labels).toHaveJSProperty("complete", true);
 
-        if (reducedMotion === "reduce") {
-          await expect(labels).toHaveCSS("animation-name", "none");
-          await expect(labels).toHaveCSS("clip-path", "none");
-          await expect(page.locator(".simreal-edge")).toBeHidden();
-        } else {
-          await expect(labels).toHaveCSS("clip-path", "inset(0px)", { timeout: 10000 });
-        }
+        await expect(labels).toBeHidden();
+        await page.getByRole("button", { name: "Show retinal layer map", exact: true }).click();
+        await expect(labels).toBeVisible();
+        await expect(labels).toHaveCSS("animation-name", "none");
+        await expect(labels).toHaveCSS("clip-path", "none");
+        await page.getByRole("button", { name: "Hide retinal layer map", exact: true }).click();
+        await expect(labels).toBeHidden();
       });
     }
   });

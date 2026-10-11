@@ -118,6 +118,7 @@ const ProjectBody = ({ project }: { project: Project }) => (
       <small>{project.kind}</small>
     </p>
     <p>{project.blurb}</p>
+    {project.details && <details><summary>Technical details</summary><p>{project.details}</p></details>}
     <p>
       <small>{project.tags.join(" · ")}</small>
     </p>

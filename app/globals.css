@@ -1616,15 +1616,6 @@ html.booted .boot-overlay {
   margin-top: 4px;
 }
 
-/* Dense schematics (NAFNet) scroll sideways before their labels crush. */
-.sfs-canvas:has(.sfs-svg-dense) {
-  overflow-x: auto;
-}
-
-.sfs-svg-dense {
-  min-width: 560px;
-}
-
 .sfs-note {
   margin-top: 6px;
   font-size: 11.5px;
@@ -1851,354 +1842,6 @@ html.booted .boot-overlay {
   fill: #f4d29a;
 }
 
-/* ---- the tracking schematic (TrackingSchematic.tsx) ----
-   The red/green/blue here is the one place this warm palette gives way to
-   literal colour, because the subject IS the three channels of an RGB
-   input. Kept muted so it reads as a diagram, not a rainbow. */
-.trk-stack rect {
-  fill: rgba(40, 34, 28, 0.95);
-  stroke: rgba(255, 244, 230, 0.16);
-  stroke-width: 1;
-  animation: trk-roll 2.8s ease-in-out infinite;
-}
-
-@keyframes trk-roll {
-  0%,
-  72%,
-  100% {
-    stroke: rgba(255, 244, 230, 0.16);
-  }
-  18% {
-    stroke: rgba(226, 170, 99, 0.7);
-  }
-}
-
-.trk-frame {
-  fill: rgba(14, 11, 9, 0.9);
-  stroke: var(--hairline);
-  stroke-width: 1;
-}
-
-.trk-ch {
-  stroke-width: 1;
-}
-
-.sfs-ch-b {
-  fill: rgba(96, 128, 190, 0.2);
-  stroke: rgba(126, 160, 222, 0.55);
-}
-
-.sfs-ch-g {
-  fill: rgba(104, 168, 112, 0.2);
-  stroke: rgba(130, 202, 138, 0.55);
-}
-
-.sfs-ch-r {
-  fill: rgba(190, 104, 96, 0.2);
-  stroke: rgba(228, 136, 124, 0.55);
-}
-
-.trk-speckle {
-  stroke: rgba(244, 241, 236, 0.3);
-  stroke-width: 1.1;
-  stroke-linecap: round;
-}
-
-/* the mover: the only thing a variance image keeps */
-.trk-var-blob {
-  fill: rgba(228, 136, 124, 0.5);
-  stroke: rgba(240, 164, 152, 0.85);
-  stroke-width: 1;
-  animation: trk-blob 2.8s ease-in-out infinite;
-}
-
-@keyframes trk-blob {
-  0%,
-  100% {
-    opacity: 0.45;
-  }
-  45% {
-    opacity: 1;
-  }
-}
-
-.trk-fused {
-  stroke: rgba(226, 170, 99, 0.45);
-}
-
-.trk-box {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.6;
-  stroke-dasharray: 4 3;
-  animation: sfs-flow 0.9s linear infinite;
-}
-
-.trk-chip {
-  fill: rgba(226, 170, 99, 0.14);
-  stroke: rgba(226, 170, 99, 0.5);
-  stroke-width: 1;
-}
-
-.trk-curve {
-  fill: none;
-  stroke: rgba(226, 170, 99, 0.75);
-  stroke-width: 1.6;
-  stroke-linecap: round;
-}
-
-.trk-curve-lin {
-  stroke: rgba(244, 241, 236, 0.22);
-  stroke-width: 1.2;
-  stroke-dasharray: 3 3;
-}
-
-.trk-ramp {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.trk-pt {
-  fill: rgba(244, 241, 236, 0.55);
-}
-
-.trk-field {
-  fill: rgba(10, 8, 6, 0.92);
-}
-
-/* The payoff: the target drifts, the imaged field chases it. The chase
-   lags on purpose, because the real loop closes once per volume rather
-   than once per detection. */
-.trk-target {
-  fill: rgba(226, 170, 99, 0.85);
-  animation: trk-drift 4.4s ease-in-out infinite;
-}
-
-.trk-fov {
-  fill: rgba(226, 170, 99, 0.07);
-  stroke: var(--accent);
-  stroke-width: 1.4;
-  animation: trk-chase 4.4s ease-in-out infinite;
-}
-
-@keyframes trk-drift {
-  0%,
-  100% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(96px, 12px);
-  }
-}
-
-@keyframes trk-chase {
-  0%,
-  9%,
-  100% {
-    transform: translate(0, 0);
-  }
-  59% {
-    transform: translate(96px, 12px);
-  }
-}
-
-/* ---- the scanner schematic (ScannerSchematic.tsx) ---- */
-.scn-cmd {
-  fill: none;
-  stroke: rgba(244, 241, 236, 0.32);
-  stroke-width: 1.3;
-  stroke-dasharray: 4 3;
-}
-
-.scn-resp {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.scn-target-line {
-  stroke: rgba(244, 241, 236, 0.18);
-  stroke-width: 1;
-  stroke-dasharray: 2 4;
-}
-
-/* the window where the mirror has not settled, so the position is a lie */
-.scn-dead {
-  fill: rgba(228, 136, 124, 0.1);
-  stroke: rgba(228, 136, 124, 0.3);
-  stroke-width: 1;
-  stroke-dasharray: 3 3;
-}
-
-.scn-dead-small {
-  fill: rgba(228, 136, 124, 0.13);
-}
-
-.scn-band {
-  fill: rgba(226, 170, 99, 0.13);
-  stroke: none;
-}
-
-.scn-gp {
-  fill: none;
-  stroke: rgba(226, 170, 99, 0.8);
-  stroke-width: 1.6;
-}
-
-.scn-min {
-  fill: var(--accent);
-}
-
-.scn-min-tick {
-  stroke: var(--accent);
-  stroke-width: 1.2;
-  stroke-dasharray: 2 2;
-}
-
-.scn-linear {
-  fill: rgba(226, 170, 99, 0.12);
-  stroke: rgba(226, 170, 99, 0.5);
-  stroke-width: 1;
-}
-
-.scn-linear-old {
-  fill: none;
-  stroke: rgba(244, 241, 236, 0.22);
-  stroke-dasharray: 3 3;
-}
-
-.scn-sweep {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* ---- the self-supervised speckle schematic (SpeckleSchematic.tsx) ---- */
-
-/* the two adjacent B-scans that form the training pair, picked out of the
-   stack of slabs that .sfs-slab draws */
-.spc-pair {
-  fill: rgba(226, 170, 99, 0.55);
-  stroke: rgba(226, 170, 99, 0.7);
-  animation: none;
-}
-
-.spc-gap,
-.spc-gap-tick {
-  stroke: var(--accent);
-  stroke-width: 1.2;
-}
-
-.spc-view-1 {
-  border: 0;
-  stroke: rgba(126, 160, 222, 0.5);
-}
-
-.spc-view-2 {
-  stroke: rgba(228, 136, 124, 0.5);
-}
-
-/* the structure both views agree on: steady, so drawn solid and bright */
-.spc-structure path {
-  fill: none;
-  stroke: rgba(244, 241, 236, 0.7);
-  stroke-width: 1.5;
-  stroke-linecap: round;
-}
-
-
-.spc-block {
-  fill: url(#spc-blk);
-  stroke: rgba(255, 244, 230, 0.2);
-  stroke-width: 1;
-}
-
-.spc-unit {
-  fill: url(#spc-unit);
-  stroke: rgba(255, 244, 230, 0.18);
-  stroke-width: 0.6;
-}
-
-.spc-ch {
-  fill: #f7f2ea;
-  font-size: 9px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  paint-order: stroke fill;
-  stroke: rgba(40, 32, 24, 0.55);
-  stroke-width: 2.4px;
-}
-
-.spc-io {
-  fill: rgba(226, 170, 99, 0.14);
-  stroke: rgba(226, 170, 99, 0.5);
-  stroke-width: 1;
-}
-
-.spc-io-label {
-  fill: var(--accent);
-  font-size: 9px;
-  font-weight: 500;
-}
-
-.spc-flow {
-  fill: none;
-  stroke: rgba(226, 170, 99, 0.55);
-  stroke-width: 1.2;
-}
-
-.spc-marker {
-  fill: rgba(226, 170, 99, 0.75);
-}
-
-.spc-callout {
-  fill: rgba(255, 244, 230, 0.04);
-  stroke: rgba(255, 244, 230, 0.14);
-  stroke-width: 1;
-}
-
-.spc-call-step {
-  fill: rgba(150, 133, 112, 0.28);
-  stroke: rgba(255, 244, 230, 0.22);
-  stroke-width: 1;
-}
-
-.spc-call-key {
-  fill: rgba(226, 170, 99, 0.2);
-  stroke: rgba(226, 170, 99, 0.5);
-}
-
-.spc-call-label {
-  fill: var(--ink-soft);
-  font-size: 9px;
-}
-
-.spc-latent {
-  stroke: rgba(226, 170, 99, 0.55);
-}
-
-.spc-out {
-  stroke: rgba(226, 170, 99, 0.6);
-}
-
-.spc-target {
-  stroke: rgba(244, 241, 236, 0.4);
-}
-
-.spc-loss {
-  stroke: var(--accent);
-  stroke-width: 1.4;
-  stroke-dasharray: 3 3;
-  animation: sfs-flow 0.9s linear infinite;
-}
-
 /* ---- a published figure, reproduced as-is ----
    Left on a light card rather than inverted. Inverting a plot shifts its
    series colours, which would misrepresent the figure; and the resume
@@ -2385,18 +2028,6 @@ html.booted .boot-overlay {
   animation: sfs-flow 1s linear infinite;
 }
 
-/* ---- speckle schematic: the objective between prediction and target ---- */
-.spc-loss-pill {
-  fill: rgba(226, 170, 99, 0.12);
-  stroke: rgba(226, 170, 99, 0.5);
-  stroke-width: 1;
-}
-
-.spc-loss-label {
-  fill: var(--accent);
-  font-size: 10px;
-}
-
 /* shared SVG type */
 .sfs-cap {
   fill: var(--ink-soft);
@@ -2526,84 +2157,11 @@ html.booted .boot-overlay {
   .sfs-svg {
     min-width: 470px;
   }
-  /* The NAFNet panel is denser than the other schematics; keep a higher
-     floor so its stage labels and callout chips stay readable. */
-  .sfs-svg-dense {
-    min-width: 560px;
-  }
 
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .denoise-clean {
-    clip-path: inset(0 0 0 0);
-    animation: none;
-  }
-  .denoise-scan,
-  .proj-detail,
-  .sfs-slab,
-  .sfs-warp-a,
-  .sfs-warp-b,
-  .sfs-weight,
-  .sfs-target,
-  .sfs-skip,
-  .trk-stack rect,
-  .trk-var-blob,
-  .trk-box,
-  .trk-target,
-  .trk-fov {
-    animation: none;
-  }
-  .denoise-scan,
-  .sfs-packet {
-    display: none;
-  }
-  /* show only the first time point rather than freezing mid-crossfade */
-  /* hold the first frame of the tracking sequence */
-  .seq-strip {
-    animation: none;
-  }
-  .cal-ray,
-  .cal-target,
-  .cls-pulse,
-  .cls-feedback,
-  .tos-edge,
-  .spc-loss,
-  .spc-merge {
-    animation: none;
-  }
-  /* the weight bars are drawn at full height and scaled down by the
-     animation, so without it they need no transform at all */
-  .sfs-weight {
-    transform: none;
-  }
-
-  /* The simulator's label overlay is a wipe, so with motion off it has to be
-     shown already applied — clip-path:none, not just animation:none, or the
-     overlay stays clipped to zero width and the panel silently loses its
-     whole point. Same for the B-scan's clip rect. */
-  /* Keep this fallback above the later base rule in specificity as well as
-     intent: otherwise that rule restarts the wipe and clips the labels. */
-  html .simreal-labels {
-    clip-path: none;
-    animation: none;
-  }
-  .sim-sweep-clip {
-    animation: none;
-    transform: none;
-  }
-  /* The packet is a moving dot and nothing else — parked at the start of its
-     connector it just reads as a stray bullet, so it goes rather than freezes. */
-  .simreal-edge,
-  .sim-sweep,
-  .sim-packet {
-    display: none;
-  }
-  .sim-scat circle,
-  .sim-bscan,
-  .sim-layers path {
-    animation: none;
-  }
+  .proj-detail, .seq-strip, .tos-edge { animation: none; }
 }
 
 /* The raw → denoised figure and its caption */
@@ -3009,7 +2567,7 @@ html.booted .boot-overlay {
 }
 
 .simreal-tag-plus {
-  color: rgba(226, 170, 99, 0.62);
+  color: var(--accent);
 }
 
 .simreal-frame {
@@ -3036,60 +2594,7 @@ html.booted .boot-overlay {
   inset: 0;
   mix-blend-mode: screen;
   opacity: 0.72;
-  clip-path: inset(0 100% 0 0);
-  animation: sim-reveal 9s ease-in-out infinite;
-}
-
-@keyframes sim-reveal {
-  0%,
-  5% {
-    clip-path: inset(0 100% 0 0);
-  }
-  40%,
-  72% {
-    clip-path: inset(0 0 0 0);
-  }
-  95%,
-  100% {
-    clip-path: inset(0 0 0 100%);
-  }
-}
-
-/* the leading edge of that wipe, so the eye follows the reveal */
-.simreal-edge {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 2px;
-  background: linear-gradient(
-    180deg,
-    transparent,
-    rgba(255, 238, 214, 0.8) 25%,
-    rgba(255, 238, 214, 0.8) 75%,
-    transparent
-  );
-  animation: sim-edge 9s ease-in-out infinite;
-}
-
-@keyframes sim-edge {
-  0%,
-  5% {
-    left: 0;
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.9;
-  }
-  40% {
-    left: 100%;
-    opacity: 0.9;
-  }
-  46%,
-  100% {
-    left: 100%;
-    opacity: 0;
-  }
+  clip-path: none;
 }
 
 /* The layer vocabulary is not decoration: thirteen named classes is the
@@ -3142,229 +2647,6 @@ html.booted .boot-overlay {
   font-size: 10.5px;
   line-height: 1.45;
   color: rgba(244, 241, 236, 0.42);
-}
-
-/* ---- simulator schematic ---- */
-.sim-gauss {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.6;
-  opacity: 0.85;
-}
-
-.sim-scat circle {
-  fill: rgba(244, 241, 236, 0.75);
-  animation: sim-twinkle 2.8s ease-in-out infinite;
-}
-
-@keyframes sim-twinkle {
-  0%,
-  100% {
-    opacity: 0.5;
-  }
-  40% {
-    opacity: 1;
-  }
-}
-
-/* The dot that walks the chain. It is staggered per connector (inline
-   animation-delay in the component), so the four stages read as one pass of a
-   measurement rather than four unrelated boxes. */
-.sim-packet {
-  fill: var(--accent);
-  animation: sim-packet 2.4s ease-in-out infinite;
-}
-
-@keyframes sim-packet {
-  0% {
-    transform: translateX(0);
-    opacity: 0;
-  }
-  15% {
-    opacity: 1;
-  }
-  55% {
-    transform: translateX(12px);
-    opacity: 0.9;
-  }
-  70%,
-  100% {
-    transform: translateX(12px);
-    opacity: 0;
-  }
-}
-
-.sim-fringe {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.3;
-}
-
-.sim-op {
-  font-size: 9.5px;
-  fill: var(--ink-soft);
-}
-
-.sim-op-accent {
-  fill: var(--accent);
-}
-
-.sim-ascan {
-  fill: none;
-  stroke: rgba(244, 241, 236, 0.85);
-  stroke-width: 1.4;
-}
-
-.sim-axis {
-  stroke: var(--hairline);
-  stroke-width: 1;
-}
-
-/* The B-scan the A-scans stack into: greys, never the label palette, because
-   this is the measured image and colour here would read as ground truth.
-   Band 4 is the RPE, the landmark the eye lands on first. */
-.sim-bscan path {
-  stroke: none;
-}
-.sim-bscan path:nth-child(1) { fill: rgba(244, 241, 236, 0.3); }
-.sim-bscan path:nth-child(2) { fill: rgba(244, 241, 236, 0.16); }
-.sim-bscan path:nth-child(3) { fill: rgba(244, 241, 236, 0.24); }
-.sim-bscan path:nth-child(4) { fill: rgba(244, 241, 236, 0.6); }
-.sim-bscan path:nth-child(5) { fill: rgba(244, 241, 236, 0.2); }
-
-/* The scan writing itself out, column by column. The clip rect scales from its
-   left edge, and the group fades before the rect snaps back to zero, so the
-   reset is never seen as an eraser running backwards. */
-.sim-bscan {
-  animation: sim-bscan-hold 3.4s ease-in-out infinite;
-}
-
-.sim-sweep-clip {
-  transform-box: fill-box;
-  transform-origin: left center;
-  animation: sim-fill 3.4s ease-in-out infinite;
-}
-
-@keyframes sim-fill {
-  0% {
-    transform: scaleX(0);
-  }
-  60%,
-  95% {
-    transform: scaleX(1);
-  }
-  96%,
-  100% {
-    transform: scaleX(0);
-  }
-}
-
-@keyframes sim-bscan-hold {
-  0%,
-  88% {
-    opacity: 1;
-  }
-  95%,
-  100% {
-    opacity: 0;
-  }
-}
-
-.sim-sweep {
-  stroke: rgba(255, 238, 214, 0.85);
-  stroke-width: 1.2;
-  animation: sim-sweep 3.4s ease-in-out infinite;
-}
-
-/* The travel distance is the B-scan's own width, handed over from the component
-   as --sim-sweep-x so the line cannot drift out of the frame when the layout
-   numbers change. */
-@keyframes sim-sweep {
-  0% {
-    transform: translateX(0);
-    opacity: 0;
-  }
-  6% {
-    opacity: 0.85;
-  }
-  60% {
-    transform: translateX(var(--sim-sweep-x, 90px));
-    opacity: 0.85;
-  }
-  68%,
-  100% {
-    transform: translateX(var(--sim-sweep-x, 90px));
-    opacity: 0;
-  }
-}
-
-.sim-chip {
-  fill: var(--panel);
-  stroke: var(--panel-edge);
-  stroke-width: 1;
-}
-
-.sim-chip-k {
-  font-size: 9.5px;
-  font-weight: 600;
-  fill: var(--accent);
-  letter-spacing: 0.04em;
-}
-
-.sim-chip-v {
-  font-size: 8.5px;
-  fill: var(--ink-faint);
-}
-
-.sim-feed {
-  fill: none;
-  stroke: var(--hairline);
-  stroke-width: 1;
-}
-
-.sim-core {
-  fill: rgba(226, 170, 99, 0.12);
-  stroke: rgba(226, 170, 99, 0.5);
-  stroke-width: 1;
-}
-
-.sim-core-out {
-  fill: rgba(126, 160, 222, 0.12);
-  stroke: rgba(126, 160, 222, 0.5);
-}
-
-.sim-core-t {
-  font-size: 10px;
-  fill: var(--ink);
-  letter-spacing: 0.03em;
-}
-
-.sim-out {
-  fill: rgba(126, 160, 222, 0.07);
-  stroke: rgba(126, 160, 222, 0.45);
-  stroke-width: 1;
-}
-
-/* Label-map bands. Retinal contour, not bars: see bands(). They pulse in depth
-   order, which is the one thing a still drawing cannot say — that the label is
-   per pixel and per layer, not one mask over the tissue. */
-.sim-layers path {
-  stroke: none;
-  animation: sim-layer 4.5s ease-in-out infinite;
-}
-.sim-layers path:nth-child(1) { fill: rgba(226, 170, 99, 0.62); }
-.sim-layers path:nth-child(2) { fill: rgba(126, 160, 222, 0.55); }
-.sim-layers path:nth-child(3) { fill: rgba(228, 136, 124, 0.5); }
-.sim-layers path:nth-child(4) { fill: rgba(104, 168, 112, 0.5); }
-
-@keyframes sim-layer {
-  0%,
-  100% {
-    opacity: 0.72;
-  }
-  10% {
-    opacity: 1;
-  }
 }
 
 /* Filled brand marks (GitHub, LinkedIn) read heavier than stroke icons at the
@@ -3492,104 +2774,82 @@ html.booted .boot-overlay {
   }
 }
 
-/* Light editorial project pages inside the existing desktop shell. */
+/* Project browsing stays within Warm Graphite. */
 .proj-toolbar {
-  display: flex;
-  flex: 0 0 auto;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--hairline);
+  display: flex; flex: 0 0 auto; flex-wrap: wrap; align-items: center;
+  gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--hairline);
 }
 .proj-collections { display: flex; gap: 4px; }
 .proj-collections button {
-  min-height: 44px;
-  padding: 8px 14px;
-  border: 1px solid transparent;
-  border-radius: 7px;
-  color: var(--ink-soft);
-  background: transparent;
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
+  min-height: 44px; padding: 8px 14px; border: 1px solid transparent;
+  border-radius: 7px; color: var(--ink-soft); background: transparent;
+  font: inherit; font-size: 13px; cursor: pointer;
 }
 .proj-collections button[aria-pressed="true"] {
-  background: rgba(255, 244, 230, 0.1);
-  border-color: var(--hairline);
-  color: var(--ink);
+  background: var(--seg-active-bg); border-color: var(--hairline); color: var(--seg-active-fg);
 }
-.proj-collections button:hover { background: rgba(255, 244, 230, 0.08); }
+.proj-collections button:hover { background: var(--seg-bg); }
 .proj-count { margin-left: auto; color: var(--ink-soft); font-size: 12px; }
 .proj-picker { display: none; }
-.proj-detail {
-  --ink: #202630;
-  --ink-soft: #4b5563;
-  --ink-faint: #626c79;
-  --hairline: #d8dde4;
-  --accent: #2451a4;
-  background: #f7f8fa;
-  color: var(--ink);
-  user-select: text;
-  scrollbar-color: #9ba5b4 #edf0f4;
-}
-.proj-detail::selection, .proj-detail ::selection { background: #c9d9f5; color: #122c56; }
+.proj-detail { background: var(--surface-window); color: var(--ink); user-select: text; scrollbar-color: #766550 var(--panel); }
+.proj-detail::selection, .proj-detail ::selection { background: var(--accent); color: #21170e; }
 .proj-heading { margin-bottom: 24px; }
-.proj-kind { margin-top: 7px; color: var(--ink-soft); font-size: 13px; }
-.proj-heading .proj-links { margin-top: 15px; gap: 8px; }
+.proj-kind { margin-top: 8px; color: var(--ink-soft); font-size: 13px; line-height: 1.5; }
+.proj-heading .proj-links { margin-top: 18px; gap: 8px; }
 .proj-heading .pill-link {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  border: 1px solid var(--hairline);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--accent);
+  display: inline-flex; align-items: center; min-height: 44px;
+  border: 1px solid var(--edge-light); border-radius: 6px;
+  background: transparent; color: var(--ink);
 }
-.proj-heading .pill-link:first-child { background: var(--accent); border-color: var(--accent); color: #fff; }
-.proj-heading .pill-link:hover { background: #e5ebf5; }
-.proj-heading .pill-link:first-child:hover { background: #173b7d; }
-.proj-blurb { font-size: 14px; line-height: 1.75; max-width: 70ch; }
-.proj-tag { background: #edf0f4; }
-.proj-sidebar .proj-item { min-height: 58px; }
-.proj-sidebar .proj-item-kind { text-transform: none; letter-spacing: 0; line-height: 1.4; }
-.proj-hero {
-  --ink: #f4f1ec;
-  --ink-soft: rgba(244, 241, 236, 0.8);
-  --ink-faint: rgba(244, 241, 236, 0.65);
-  --accent: #e2aa63;
-  --hairline: rgba(255, 244, 230, 0.1);
-  background: #221d18;
-  color: var(--ink);
-  padding: 16px;
-  border-radius: 10px;
-}
+.proj-heading .pill-link:first-child { background: var(--accent); border-color: var(--accent); color: #21170e; }
+.proj-heading .pill-link:hover { background: var(--seg-bg); }
+.proj-heading .pill-link:first-child:hover { background: #edbb7c; }
+.proj-blurb { margin-top: 16px; font-size: 15px; line-height: 1.7; max-width: 68ch; color: var(--ink-soft); }
+.proj-sidebar { flex-basis: 230px; --ink-faint: rgba(244, 241, 236, .72); }
+.proj-sidebar .proj-item { min-height: 64px; }
+.proj-sidebar .proj-item-kind { text-transform: none; letter-spacing: 0; line-height: 1.5; font-size: 11px; }
+.proj-group-title { font-size: 12px; text-transform: none; letter-spacing: 0; padding-block: 6px 10px; }
+.proj-hero { color: var(--ink); }
 .proj-artifact { margin-bottom: 24px; }
-.proj-artifact img { display: block; width: 100%; height: auto; border: 1px solid var(--hairline); border-radius: 8px; background: #fff; }
-.proj-artifact figcaption { margin-top: 12px; max-width: 70ch; font-size: 12px; line-height: 1.65; color: var(--ink-soft); }
-.proj-code { padding: 24px; overflow-x: auto; background: #172332; color: #e6eef9; border-radius: 8px; font-size: 12px; line-height: 1.8; tab-size: 2; }
-.proj-collections button:focus-visible, .proj-picker:focus-visible, .proj-sidebar button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.proj-heading a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.proj-artifact img { display: block; width: 100%; height: auto; border: 1px solid var(--hairline); border-radius: 8px; }
+.proj-artifact figcaption, .proj-hero figcaption { margin-top: 12px; max-width: 68ch; font-size: 13px; line-height: 1.65; color: var(--ink-soft); }
+.proj-pixel-art img { image-rendering: pixelated; }
+.proj-technical { margin-top: 24px; border-block: 1px solid var(--hairline); }
+.proj-technical summary { padding-block: 15px; cursor: pointer; color: var(--ink); font-size: 14px; }
+.proj-technical p { padding-bottom: 18px; max-width: 68ch; color: var(--ink-soft); font-size: 14px; line-height: 1.75; }
+.proj-control { min-height: 44px; padding: 8px 12px; margin-bottom: 12px; border: 1px solid var(--edge-light); border-radius: 6px; background: var(--panel); color: var(--ink); font: inherit; font-size: 13px; cursor: pointer; }
+.proj-control:hover, .proj-control[aria-pressed="true"] { background: var(--seg-active-bg); }
+.proj-motion-paused * { animation-play-state: paused !important; }
+.denoise-manual .denoise-clean { animation: none; }
+.denoise-divider { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent); pointer-events: none; }
+.proj-compare { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; font-size: 13px; color: var(--ink-soft); }
+.proj-compare span { margin-left: auto; font-variant-numeric: tabular-nums; }
+.proj-compare input { width: 100%; min-height: 44px; accent-color: var(--accent); cursor: ew-resize; }
+html .simreal-labels { animation: none; clip-path: none; }
+html .simreal-labels-hidden { visibility: hidden; }
+.simreal-legend { margin-bottom: 14px; }
+.simreal-legend abbr { cursor: help; text-underline-offset: 3px; }
+.proj-method { margin-top: 24px; padding-block: 20px; border-top: 1px solid var(--hairline); }
+.proj-method h3 { margin-bottom: 18px; font-size: 16px; font-weight: 600; }
+.proj-flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; list-style: none; }
+.proj-flow li { position: relative; }
+.proj-flow li + li::before { content: ""; position: absolute; left: -20px; top: 7px; width: 7px; height: 7px; border-top: 1px solid var(--accent); border-right: 1px solid var(--accent); transform: rotate(45deg); }
+.proj-flow strong { display: block; font-size: 14px; line-height: 1.5; color: var(--accent); }
+.proj-flow p { margin-top: 6px; font-size: 13px; line-height: 1.65; color: var(--ink-soft); }
+.proj-collections button:focus-visible, .proj-picker:focus-visible, .proj-sidebar button:focus-visible,
+.proj-heading a:focus-visible, .proj-control:focus-visible, .proj-compare input:focus-visible, .proj-technical summary:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 3px;
+}
 @media (max-width: 640px) {
   .proj-toolbar { padding: 8px 12px 12px; gap: 8px; }
   .proj-collections { width: 100%; }
-  .proj-collections button { flex: 1; padding-inline: 8px; }
+  .proj-collections button { flex: 1; padding-inline: 8px; font-size: 12px; }
   .proj-count, .proj-sidebar { display: none; }
-  .proj-picker {
-    display: block;
-    width: 100%;
-    min-width: 0;
-    min-height: 44px;
-    padding: 8px;
-    border: 1px solid var(--hairline);
-    border-radius: 6px;
-    background: var(--surface-window);
-    color: var(--ink);
-    font: inherit;
-    font-size: 13px;
-    color-scheme: dark;
-  }
+  .proj-picker { display: block; width: 100%; min-width: 0; min-height: 44px; padding: 8px; border: 1px solid var(--hairline); border-radius: 6px; background: var(--surface-window); color: var(--ink); font: inherit; font-size: 13px; color-scheme: dark; }
   .proj-detail { padding: 20px 16px 28px; }
-  .proj-hero { padding: 10px; }
-  .proj-code { padding: 16px; font-size: 11px; }
+  .proj-flow { grid-template-columns: 1fr; gap: 24px; }
+  .proj-flow li + li::before { left: 2px; top: -16px; transform: rotate(135deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .proj-control:has(+ .proj-hero) { display: none; }
 }
