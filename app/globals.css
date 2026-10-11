@@ -407,6 +407,10 @@ html.booted .boot-overlay {
   opacity: 1;
 }
 
+@media (hover: none) {
+  .light-glyph { opacity: 1; }
+}
+
 .window-body {
   max-height: min(560px, 70vh);
   overflow-y: auto;
@@ -696,6 +700,8 @@ html.booted .boot-overlay {
   height: 26px;
 }
 
+.dock-label { display: none; }
+
 .dock-button:disabled {
   opacity: 0.45;
   cursor: default;
@@ -742,12 +748,12 @@ html.booted .boot-overlay {
    ============================================================ */
 @media (max-width: 640px) {
   .window {
-    top: 56px;
+    top: 40px;
     width: 94vw;
   }
 
   .window-body {
-    max-height: calc(100dvh - 56px - 52px - 118px);
+    max-height: calc(100dvh - 40px - 52px - 104px - env(safe-area-inset-bottom));
     padding: 20px 18px 18px;
   }
 
@@ -756,6 +762,13 @@ html.booted .boot-overlay {
   .light { width: 44px; height: 44px; }
   .window-title { margin-left: auto; margin-right: 16px; max-width: calc(100% - 152px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+  .spec-row {
+    grid-template-columns: 92px 1fr;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 640px), (min-width: 641px) and (max-width: 1000px) and (max-height: 500px) {
   /* Keep readable labels and full-size targets; secondary apps scroll. */
   .dock {
     width: max-content;
@@ -767,29 +780,43 @@ html.booted .boot-overlay {
     gap: 8px;
     padding: 8px 10px 10px;
     overflow-x: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--ink-faint) transparent;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 10px;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x;
     border-radius: 20px;
   }
 
-  .dock-item { flex: 0 0 52px; width: 52px; padding-bottom: 18px; --s: 1 !important; }
-  .dock-item::after { bottom: 0; padding: 0; background: none; font-size: 10px; opacity: 1; }
-  .dock-dot { bottom: 15px; width: 3px; height: 3px; }
+  .dock ul::-webkit-scrollbar { height: 4px; }
+  .dock ul::-webkit-scrollbar-track { background: var(--hairline); border-radius: 2px; }
+  .dock ul::-webkit-scrollbar-thumb { background: var(--accent-soft); border-radius: 2px; }
+  .dock-item { flex: 0 0 64px; width: 64px; scroll-snap-align: start; --s: 1 !important; }
+  .dock-item::after { display: none; }
+  .dock-dot { bottom: 18px; width: 3px; height: 3px; pointer-events: none; }
   .dock-button {
-    width: 44px;
-    height: 44px;
+    position: relative;
+    flex-direction: column;
+    gap: 6px;
+    width: 64px;
+    height: 64px;
+    border: 0;
     border-radius: 11px;
+    background: none;
+    box-shadow: none;
+    transform: none;
+    touch-action: pan-x;
   }
-
+  .dock-button::before { content: ""; position: absolute; top: 0; width: 44px; height: 44px; border: 1px solid var(--tile-edge); border-radius: 11px; background: linear-gradient(160deg, var(--tile-hi), var(--tile-lo)); box-shadow: 0 6px 16px rgba(0, 0, 0, .3); }
+  .dock-button:active::before { background: var(--seg-active-bg); }
+  .dock-label { display: block; font-size: 10px; line-height: 14px; white-space: nowrap; }
   .dock-button svg {
-    width: 58%;
-    height: 58%;
+    position: relative;
+    flex: 0 0 26px;
+    width: 26px;
+    height: 26px;
+    margin-block: 9px;
   }
 
-  .spec-row {
-    grid-template-columns: 92px 1fr;
-    gap: 10px;
-  }
 }
 
 /* ============================================================
@@ -2074,7 +2101,7 @@ html.booted .boot-overlay {
     width: 96vw;
   }
   .window-projects .window-body {
-    height: calc(100dvh - 56px - 52px - 118px);
+    height: calc(100dvh - 40px - 52px - 104px - env(safe-area-inset-bottom));
     max-height: none;
   }
   .projects {
@@ -2846,7 +2873,7 @@ html.booted .boot-overlay {
 .denoise-divider { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent); pointer-events: none; }
 .proj-compare { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; font-size: 13px; color: var(--ink-soft); }
 .proj-compare span { margin-left: auto; font-variant-numeric: tabular-nums; }
-.proj-compare input { width: 100%; min-height: 44px; accent-color: var(--accent); cursor: ew-resize; }
+.proj-compare input { width: 100%; min-height: 44px; accent-color: var(--accent); cursor: ew-resize; touch-action: pan-y; }
 html .simreal-labels { animation: none; clip-path: none; }
 html .simreal-labels-hidden { visibility: hidden; }
 .simreal-legend { margin-bottom: 14px; }
@@ -2876,4 +2903,16 @@ html .simreal-labels-hidden { visibility: hidden; }
   .seq-control { display: none; }
   .dock-settling .dock-item, .dock-settling .dock-button { transition: none; }
   .dock-item { --s: 1 !important; }
+}
+
+/* Short landscape screens keep the master/detail layout with less empty chrome. */
+@media (min-width: 641px) and (max-width: 1000px) and (max-height: 500px) {
+  .window { top: 40px; }
+  .window-titlebar { height: 44px; }
+  .traffic { left: 4px; gap: 0; }
+  .light { width: 44px; height: 44px; }
+  .window-title { margin-left: auto; margin-right: 16px; }
+  .window-body { max-height: calc(100dvh - 40px - 44px - 104px - env(safe-area-inset-bottom)); }
+  .window-projects .window-body { height: calc(100dvh - 40px - 44px - 104px - env(safe-area-inset-bottom)); max-height: none; }
+  .proj-detail { padding: 16px; }
 }

@@ -270,6 +270,7 @@ export default function Dock({
                   aria-label={item.label}
                 >
                   {item.icon}
+                  <span className="dock-label" aria-hidden="true">{item.label}</span>
                 </a>
               ) : (
                 <button
@@ -280,6 +281,7 @@ export default function Dock({
                   aria-label={item.label}
                 >
                   {item.icon}
+                  <span className="dock-label" aria-hidden="true">{item.label}</span>
                 </button>
               )}
               {/* the little "this app is running" dot */}

@@ -23,11 +23,13 @@ function clampToViewport(p: { x: number; y: number }, frame: HTMLElement | null)
 }
 
 function maximizedGeometry() {
+  const dockTop = document.querySelector(".dock")?.getBoundingClientRect().top
+    ?? window.innerHeight - DOCK_RESERVE;
   return {
     pos: { x: EDGE_GAP, y: MENUBAR_H + EDGE_GAP },
     size: {
       w: window.innerWidth - EDGE_GAP * 2,
-      h: window.innerHeight - MENUBAR_H - EDGE_GAP - DOCK_RESERVE,
+      h: dockTop - MENUBAR_H - EDGE_GAP * 2,
     },
   };
 }
