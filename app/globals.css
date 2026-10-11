@@ -323,6 +323,11 @@ html.booted .boot-overlay {
   box-shadow: var(--shadow-window);
 }
 
+.window:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 /* Zoom is sized in JS now (see Window.tsx). A CSS-only `.window-zoomed
    { width }` rule loses to any `.window-<app>` width rule further down
    this file, same specificity, later wins, which is exactly how the green
