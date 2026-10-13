@@ -19,6 +19,20 @@ for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }
     const context = await browser.newContext({ viewport, hasTouch: true, isMobile: true });
     const page = await context.newPage();
     await page.goto("/");
+    const power = page.getByRole("button", { name: "Power", exact: true });
+    const powerBox = (await power.boundingBox())!;
+    expect(powerBox.width).toBeGreaterThanOrEqual(44);
+    expect(powerBox.height).toBeGreaterThanOrEqual(44);
+    expect(powerBox.y).toBeGreaterThanOrEqual(0);
+    await power.tap();
+    const menu = page.getByRole("menu");
+    expect((await menu.boundingBox())!.x).toBeGreaterThanOrEqual(0);
+    expect((await menu.boundingBox())!.y).toBeGreaterThanOrEqual(powerBox.y + powerBox.height);
+    await page.getByRole("menuitem", { name: "Sleep", exact: true }).tap();
+    const veil = (await page.locator(".sleep-veil").boundingBox())!;
+    expect(veil).toEqual({ x: 0, y: 0, ...viewport });
+    await page.touchscreen.tap(viewport.width / 2, viewport.height / 2);
+    await expect(page.locator(".sleep-veil")).toBeHidden();
     const launcher = page.locator('.dock-button[data-app="projects"]');
     await launcher.locator(".dock-label").tap();
     await expect(page.locator(".proj-title")).toHaveText("Real-Time Instrument Tracking & 4D Imaging");
@@ -42,6 +56,8 @@ for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }
     }
     const checkGeometry = async () => {
       const footer = (await page.locator(".dock").boundingBox())!;
+      const bar = (await page.locator(".menubar").boundingBox())!;
+      await expect.poll(async () => (await projects.boundingBox())!.y).toBeGreaterThanOrEqual(bar.y + bar.height);
       await expect.poll(async () => {
         const frame = (await projects.boundingBox())!;
         return frame.y + frame.height;
@@ -64,6 +80,25 @@ for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }
     await context.close();
   });
 }
+
+test("touch tablet zoom keeps the taller menu bar clear after rotation", async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 1024, height: 768 }, hasTouch: true, isMobile: true });
+  const page = await context.newPage();
+  await page.goto("/");
+  const file = page.getByRole("button", { name: "Eric Tang Resume.pdf", exact: true });
+  const fileBox = (await file.boundingBox())!;
+  await swipe(page, { x: fileBox.x + fileBox.width / 2, y: fileBox.y + fileBox.height / 2 }, { x: fileBox.x + fileBox.width / 2, y: 5 });
+  expect((await file.boundingBox())!.y).toBeGreaterThanOrEqual(46);
+  await page.goto("/projects/rawforge");
+  const projects = page.getByRole("region", { name: "Projects", exact: true });
+  await projects.getByRole("button", { name: "Zoom in", exact: true }).tap();
+  await page.setViewportSize({ width: 768, height: 1024 });
+  await expect.poll(async () => (await projects.boundingBox())!.y).toBeGreaterThanOrEqual(46);
+  const power = page.getByRole("button", { name: "Power", exact: true });
+  await power.tap();
+  await expect(page.getByRole("menuitem", { name: "Restart", exact: true })).toBeVisible();
+  await context.close();
+});
 
 test("touch comparison drags change the image, vertical swipes scroll the content", async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });

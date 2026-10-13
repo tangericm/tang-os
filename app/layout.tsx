@@ -43,9 +43,8 @@ export const viewport: Viewport = {
   themeColor: "#000000",
 };
 
-/* Boot once per session.
-   The boot sequence is a nice first impression and a two-and-a-half second
-   toll on every visit after that. This runs synchronously in <head>, before
+/* Boot once per session, only on a homepage arrival.
+   Direct links show the requested work immediately. This runs in <head>, before
    the first paint, so a returning visitor never sees the overlay at all
    rather than seeing it flash and disappear, which is what a React effect
    would have given us. The overlay itself stays server-rendered, so a
@@ -59,7 +58,7 @@ export const viewport: Viewport = {
    no desktop at all. Correct rendering must not be contingent on a script
    executing; it is a stylesheet's job, and stylesheets are what decide it
    now. */
-const BOOT_ONCE = `try{if(sessionStorage.getItem('tangos-booted')){document.documentElement.classList.add('booted')}else{sessionStorage.setItem('tangos-booted','1')}}catch(e){}`;
+const BOOT_ONCE = `if(location.pathname!=='/'){document.documentElement.classList.add('booted')}try{if(sessionStorage.getItem('tangos-booted')){document.documentElement.classList.add('booted')}else{sessionStorage.setItem('tangos-booted','1')}}catch(e){}`;
 
 export default function RootLayout({
   children,

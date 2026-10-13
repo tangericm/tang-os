@@ -56,7 +56,7 @@ export default function DesktopFile({
     }
     setPos({
       x: e.clientX - d.dx,
-      y: Math.max(34, e.clientY - d.dy),
+      y: Math.max((document.querySelector(".menubar")?.getBoundingClientRect().height ?? 30) + 4, e.clientY - d.dy),
     });
   }
 

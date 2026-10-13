@@ -1,5 +1,32 @@
 import { expect, test } from "@playwright/test";
 
+test("fresh direct links skip boot even when session storage is unavailable", async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "sessionStorage", { get: () => { throw new Error("Storage blocked"); } });
+  });
+  for (const path of ["/projects/rawforge", "/projects/tangos", "/resume"]) {
+    await page.goto(path);
+    await expect(page.locator(".boot-overlay")).toHaveCSS("display", "none");
+  }
+});
+
+test("homepage boot finishes promptly, skips repeat visits, and resets on Restart", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("html")).not.toHaveClass(/booted/);
+  await expect(page.locator(".boot-overlay")).toHaveCSS("animation-delay", "0.9s");
+  await expect(page.locator(".boot-overlay")).toHaveCSS("animation-duration", "0.2s");
+  await expect(page.locator(".boot-overlay")).toBeHidden({ timeout: 1500 });
+  await page.reload();
+  await expect(page.locator(".boot-overlay")).toHaveCSS("display", "none");
+  await page.getByRole("button", { name: "Power", exact: true }).press("Enter");
+  await Promise.all([
+    page.waitForEvent("load"),
+    page.getByRole("menuitem", { name: "Restart", exact: true }).press("Enter"),
+  ]);
+  await expect(page.locator("html")).not.toHaveClass(/booted/);
+  await expect(page.locator(".boot-overlay")).toBeHidden({ timeout: 1500 });
+});
+
 for (const width of [1440, 768, 390]) {
   test(`collections, project navigation, and history (${width}px)`, async ({ page }) => {
     await page.setViewportSize({ width, height: 1000 });

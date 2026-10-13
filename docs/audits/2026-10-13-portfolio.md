@@ -2,13 +2,30 @@
 
 Applied **Impeccable 4.5.2 audit** and **design-taste-frontend v2**, preserving the established desktop OS identity. This is a bounded audit and content update, not a redesign or a WCAG certification.
 
+## Follow-up: all four original findings resolved
+
+The fixes preserve the desktop identity, project content and public routes.
+
+| Original finding | Resolution | Verification |
+| --- | --- | --- |
+| Boot delays requested work | Direct URLs skip boot before first paint, including with blocked session storage. Homepage boot ends after 1.1 s instead of 3.1 s; repeat visits skip it. Windows remain visible during their opening movement. | Fresh direct links, repeat visits, homepage timing, keyboard Restart and reduced motion pass. |
+| Power touch area | A 46 px menu bar fully contains the 44 × 44 target on narrow screens and coarse pointers, including landscape and tablets. The menu opens immediately below the target. Window zoom, drag and rotation, plus desktop-icon drag bounds, follow the actual bar height. Power uses the amber keyboard focus token. | Touch activation, sleep/wake, menu position and window fit pass at 320 × 568, 390 × 844 and 844 × 390; tablet drag and zoom/rotation pass. |
+| Small secondary labels | Project tags and sidebar descriptors are 12 px, with existing names, body text and evidence retaining their hierarchy. | Computed sizes and desktop/mobile wrapping inspected; every project's narrow-pane image containment passes. |
+| Literal semantic colors | Accent foreground, accent hover and scrollbar thumb colors now live in root tokens; selection and primary links use those tokens. | Each former literal occurs only in its token definition; the palette stays visually consistent. |
+
+**Follow-up checks:** `npm run verify` passes, including **183/183 crawlability assertions**. The production-preview browser suite passes **19/19 tests**. Impeccable's final mechanical scan returns **zero findings**. Desktop, portrait and short landscape layouts were inspected. Evidence: [desktop](tangos-desktop-fixed.png), [mobile Power menu](power-mobile-fixed.png).
+
+**Performance qualification:** An isolated Lighthouse 13.5.0 mobile run on local production `/projects/rawforge` measures Performance **97**, Accessibility **100**, Best Practices **96**, SEO **100**, FCP **0.9 s**, LCP **2.6 s**, TBT **0 ms** and CLS **0**. Removing the boot delay improves immediate access but does not establish a lower simulated LCP. That lab metric remains above 2.5 s; no field Core Web Vitals or physical-device claim is made. The Best Practices deduction is the two Vercel telemetry script URLs returning 404 on localhost. A run overlapping browser tests measured Performance 95/LCP 2.8 s and is excluded from the comparison because it had competing load.
+
+The initial scores and findings below remain the audit baseline, not the current unresolved backlog. Physical iPhone, Safari and screen-reader checks remain outside this pass.
+
 ## Implementation integrity verdict: pass
 
 The site expresses a coherent desktop portfolio rather than a generic landing-page template. Warm Graphite windows, amber focus and selection, a dock, and real project artifacts support the same experience. Research, Engineering, and Hobbies remain separate, existing URLs remain stable, and the new `/projects/rawforge` route derives from the shared catalog.
 
 The mechanical Impeccable detector scanned `app/` after the changes and returned **zero findings**. This does not replace the visual and behavioral checks below.
 
-## Impeccable health score
+## Initial Impeccable health score
 
 | Dimension | Score | Evidence and remaining limit |
 | --- | --- | --- |
@@ -21,7 +38,7 @@ The mechanical Impeccable detector scanned `app/` after the changes and returned
 
 Four findings: **P0 0, P1 0, P2 2, P3 2**. No blocker was observed in the tested portfolio flows. Broader assistive-technology and device testing could reveal additional issues.
 
-## Prioritized findings
+## Initial prioritized findings (resolved above)
 
 ### P2: The decorative boot screen delays the work
 
@@ -36,7 +53,7 @@ Four findings: **P0 0, P1 0, P2 2, P3 2**. No blocker was observed in the tested
 
 - **Location:** `app/globals.css:2206` (`.power-button`), `app/components/PowerMenu.tsx:117`.
 - **Category:** Responsive design and accessibility.
-- **Evidence:** The rendered button is 26 × 22 CSS pixels, including at the phone breakpoint. Collection controls and mobile window controls are 44 px tall.
+- **Evidence, corrected in follow-up:** The base button is 26 × 22 CSS pixels. The existing phone override declares 44 × 44, but its target extends above the 30 px bar and viewport. Coarse-pointer layouts wider than 640 px retain the small base size. The initial report's claim that the phone rule also rendered 26 × 22 was inaccurate. Collection controls and mobile window controls are 44 px tall.
 - **Impact:** Power is harder to activate accurately on a phone. It misses Impeccable's 44 × 44 target; this observation alone is not a determination of a WCAG AA violation because target-spacing exceptions need separate assessment.
 - **Recommendation:** Expand the interactive area on touch layouts while retaining the small glyph.
 - **Suggested command:** `/impeccable adapt`.

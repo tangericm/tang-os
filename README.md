@@ -50,7 +50,7 @@ the whole reason these exist.
 
 ## Features
 
-- [x] Boot screen with monogram + progress animation, skipped after the first visit
+- [x] Brief homepage boot with monogram + progress animation; direct links and repeat visits skip it
 - [x] Desktop: frosted menu bar, live clock, Aurora wallpaper
 - [x] Design tokens (`:root` in `globals.css`) — retheme in one edit
 - [x] Draggable, resizable windows with working traffic lights and life-cycle animations
