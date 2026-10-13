@@ -2,10 +2,11 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
-/* Desktop chrome a maximized window must not cover. Kept here next to the
-   geometry that uses them; they mirror .menubar height and the dock's
-   tile + padding + bottom offset in globals.css. */
-const MENUBAR_H = 30;
+/* Measure the menu bar so touch sizing and window geometry stay in sync.
+   The fallback dock reserve mirrors its tile, padding and bottom offset. */
+function menuBarHeight() {
+  return document.querySelector(".menubar")?.getBoundingClientRect().height ?? 30;
+}
 const DOCK_RESERVE = 84;
 const EDGE_GAP = 8;
 
@@ -18,18 +19,19 @@ function clampToViewport(p: { x: number; y: number }, frame: HTMLElement | null)
   const w = frame?.offsetWidth ?? MIN_ON_SCREEN;
   return {
     x: Math.min(Math.max(p.x, MIN_ON_SCREEN - w), window.innerWidth - MIN_ON_SCREEN),
-    y: Math.min(Math.max(p.y, MENUBAR_H + 4), window.innerHeight - MIN_ON_SCREEN),
+    y: Math.min(Math.max(p.y, menuBarHeight() + 4), window.innerHeight - MIN_ON_SCREEN),
   };
 }
 
 function maximizedGeometry() {
+  const menuHeight = menuBarHeight();
   const dockTop = document.querySelector(".dock")?.getBoundingClientRect().top
     ?? window.innerHeight - DOCK_RESERVE;
   return {
-    pos: { x: EDGE_GAP, y: MENUBAR_H + EDGE_GAP },
+    pos: { x: EDGE_GAP, y: menuHeight + EDGE_GAP },
     size: {
       w: window.innerWidth - EDGE_GAP * 2,
-      h: dockTop - MENUBAR_H - EDGE_GAP * 2,
+      h: dockTop - menuHeight - EDGE_GAP * 2,
     },
   };
 }
@@ -168,7 +170,11 @@ export default function Window({
        dragged to the right edge on a wide browser is off-screen entirely once
        the same session continues on a narrow one. */
     const fit = () => {
-      if (zoomed) setSize(maximizedGeometry().size);
+      if (zoomed) {
+        const geometry = maximizedGeometry();
+        setPos(geometry.pos);
+        setSize(geometry.size);
+      }
       else setPos((p) => (p === null ? p : clampToViewport(p, frameRef.current)));
     };
     window.addEventListener("resize", fit);
@@ -224,7 +230,7 @@ export default function Window({
     if (!grabOffset.current) return;
     dragPending.current = {
       x: e.clientX - grabOffset.current.dx,
-      y: Math.max(34, e.clientY - grabOffset.current.dy),
+      y: Math.max(menuBarHeight() + 4, e.clientY - grabOffset.current.dy),
     };
     /* Coalesced: pointer events outpace the compositor, so more than one
        write per frame is work thrown away. */

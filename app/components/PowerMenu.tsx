@@ -8,8 +8,8 @@ import { createPortal } from "react-dom";
  *
  * Three states, each borrowed from the machine this interface imitates.
  * Sleep dims until you touch something. Restart clears the once-per-session
- * boot flag and reloads, so the boot sequence genuinely plays again rather
- * than being simulated. Shut Down is the one worth building: the screen
+ * boot flag and reloads; homepage arrivals replay the boot sequence and
+ * direct URLs return to their work immediately. Shut Down is the one worth building: the screen
  * powers off to a single line of text and the only way back is the power
  * button, which is exactly the deal a real machine offers.
  *
@@ -90,8 +90,8 @@ export default function PowerMenu() {
     };
   }, [mode]);
 
-  /* Restart and power-on are the same act — drop the once-per-session boot
-     flag so the sequence genuinely replays, then reload.
+  /* Restart and power-on are the same act — reset the homepage boot flag,
+     then reload the current URL.
 
      The latch is not defensive programming, it fixes a real bug. Every one of
      these buttons carries onPointerUp AND onClick, because a menu item that
