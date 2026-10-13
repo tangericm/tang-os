@@ -21,8 +21,7 @@ export type Visual =
   | "scanner"
   | "denoiser"
   | "denoise"
-  | "simulator"
-  | "tangos";
+  | "simulator";
 
 export type Project = {
   id: string;
@@ -33,6 +32,8 @@ export type Project = {
   visual?: Visual;
   blurb: string;
   details?: string;
+  workflow?: { title: string; text: string }[];
+  figures?: { src: string; width: number; height: number; alt: string; caption: string }[];
   tags: string[];
   links: { label: string; href: string }[];
 };
@@ -176,6 +177,30 @@ export const PROJECTS: Project[] = [
     ],
   },
   {
+    id: "rawforge",
+    name: "RAWForge",
+    kind: "Self-directed · iPhone RAW capture instrument",
+    group: "Engineering",
+    blurb:
+      "An iPhone app for repeatable RAW capture. Define exposure recipes, capture undemosaiced Bayer frames, and keep the settings and motion record beside every Take.",
+    details:
+      "In production hardening. SwiftUI and AVFoundation execute versioned Recipes across physical cameras, with Burst or Sequential firing. Requested exposure, device readback, photo metadata, and DNG tags provide four witnesses to achieved exposure. A Take is banked completely or discarded; earlier Takes survive a failure. iPhone 15 Pro measurements establish 12 MP Bayer output, requests of up to eight bracketed frames, and a 100 Hz motion stream. These are device-specific findings, not a guarantee for every iPhone. DNGs and capture records export together from app-local storage.",
+    workflow: [
+      { title: "Define a Recipe", text: "Choose a camera, shutter and ISO values, and Burst or Sequential firing for each ordered Step." },
+      { title: "Capture a Take", text: "Run every Step at one pose. Record exposure, focus, timing and motion; bank the complete Take or discard it." },
+      { title: "Export the Run", text: "Transfer DNGs with the Recipe snapshot and capture records so later analysis can trace how each frame was made." },
+    ],
+    figures: [
+      { src: "/rawforge-recipe.webp", width: 480, height: 1044, alt: "RAWForge Recipe editor showing a single frame followed by a 16-frame Burst repeat, each with explicit shutter and ISO settings", caption: "Author an ordered Recipe: one frame, then a 16-frame repeat. Simulator UI, September 5, 2026." },
+      { src: "/rawforge-shoot.webp", width: 480, height: 1044, alt: "RAWForge Shoot screen with the selected Recipe, focus control, time and storage estimates, Capture action, and Shoot and Library tabs", caption: "Review the Recipe, focus and capture. The simulator viewfinder is idle; this is interface evidence, not a RAW capture." },
+    ],
+    tags: ["Swift", "SwiftUI", "AVFoundation", "Camera systems", "RAW imaging", "Sensor characterization"],
+    links: [
+      { label: "GitHub", href: "https://github.com/tangericm/RAWForge" },
+      { label: "Capture findings", href: "https://github.com/tangericm/RAWForge#what-the-sensors-actually-do" },
+    ],
+  },
+  {
     id: "frankie-town",
     name: "Frankie Town",
     kind: "Frankie's Adventure · a playable hobby game",
@@ -210,11 +235,18 @@ export const PROJECTS: Project[] = [
     name: "TangOS",
     kind: "Personal · This portfolio",
     group: "Hobbies",
-    visual: "tangos",
     blurb:
-      "This portfolio as a desktop OS: draggable windows, a dock, a working terminal, and a few playful distractions.",
+      "A playful desktop you can explore as a portfolio: move windows, launch projects from the dock, or browse the same work through a working terminal.",
     details:
-      "Built with Next.js, React, and TypeScript, without a UI component library. A custom window manager handles dragging, resizing, focus, and minimize/restore states. Shared data powers project links and a readable HTML catalog for visitors without JavaScript.",
+      "Built with Next.js, React, and TypeScript, without a UI component library. The window manager preserves position, size and terminal history across navigation. Project URLs open the right collection and detail pane, with browser Back and Forward support. The same project data supplies the desktop, terminal, metadata and server-rendered HTML catalog, so visitors without JavaScript can still read the work. A custom stylesheet provides the warm dark palette, keyboard focus and reduced-motion behavior.",
+    workflow: [
+      { title: "Open a project URL", text: "A link selects the project and its collection. Back and Forward restore the selection without resetting the desktop." },
+      { title: "Read one shared catalog", text: "Project descriptions and links live in one TypeScript data module, shared by the windows and terminal." },
+      { title: "Render for each visitor", text: "JavaScript adds the desktop interactions. Server-rendered HTML keeps the same work readable without scripting and indexable by search engines." },
+    ],
+    figures: [
+      { src: "/tangos-desktop.webp", width: 1280, height: 720, alt: "TangOS desktop with the About Me window, document shortcuts, and dock for Projects, Resume, Terminal and Runner", caption: "The actual TangOS desktop. Familiar window controls and a dock turn the portfolio into a place to explore." },
+    ],
     tags: [
       "TypeScript",
       "React",

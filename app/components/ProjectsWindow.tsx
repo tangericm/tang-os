@@ -7,7 +7,7 @@ import TrackingSchematic from "./TrackingSchematic";
 import ScannerSchematic from "./ScannerSchematic";
 import SpeckleSchematic from "./SpeckleSchematic";
 import SimulatorSchematic from "./SimulatorSchematic";
-import { TangosSchematic } from "./MiniSchematics";
+import ProjectEvidence from "./ProjectEvidence";
 import { GROUPS, PROJECTS, type Project } from "../data/projects";
 
 /**
@@ -304,7 +304,6 @@ function Visual({ kind, paused, onToggle }: { kind: NonNullable<Project["visual"
         <SimulatorSchematic />
       </>
     );
-  if (kind === "tangos") return <TangosSchematic />;
   return (
     <>
       <figure className="denoise-figure">
@@ -397,6 +396,7 @@ export default function ProjectsWindow({
               <figcaption>My own cooking notebook. Pick dishes on the order card, make a shopping list, and open a recipe to cook one step at a time.</figcaption>
             </figure>
           )}
+          <ProjectEvidence project={project} />
           {project.details && <details className="proj-technical"><summary>Technical details</summary><p>{project.details}</p></details>}
           <div className="proj-tags">
             {project.tags.map((tag) => <span className="proj-tag" key={tag}>{tag}</span>)}

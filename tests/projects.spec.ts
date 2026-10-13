@@ -18,19 +18,33 @@ for (const width of [1440, 768, 390]) {
       if (width <= 640) await page.getByRole("combobox", { name: "Choose a project" }).selectOption(id);
       else await page.locator(".proj-sidebar button").filter({ hasText: name }).click();
     };
+    await choose("rawforge", "RAWForge");
+    await expect(page).toHaveURL(/\/projects\/rawforge$/);
+    await expect(page.locator(".proj-title")).toHaveText("RAWForge");
+    await expect(page.locator(".proj-detail .proj-flow li")).toHaveCount(3);
+    for (const image of await page.locator(".proj-detail .proj-evidence-figures img").all()) {
+      await image.scrollIntoViewIfNeeded();
+      await expect(image).toHaveJSProperty("naturalWidth", 480);
+    }
+    await page.locator(".proj-technical summary").click();
+    await expect(page.locator(".proj-technical p")).toContainText("production hardening");
+    await expect(page.locator(".proj-technical p")).toContainText("device-specific");
+    await page.reload();
+    await expect(page.getByRole("button", { name: "Engineering", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator(".proj-title")).toHaveText("RAWForge");
     await choose("optical-design", "Optical Design");
     await expect(page.locator(".proj-title")).toHaveText("Optical Design");
-    await expect(page.locator(".proj-artifact img")).toHaveJSProperty("naturalWidth", 1440);
+    await expect(page.locator(".proj-detail .proj-artifact img")).toHaveJSProperty("naturalWidth", 1440);
     await page.getByRole("button", { name: "Engineering", exact: true }).click();
     await expect(page).toHaveURL(/\/projects\/optical-design$/);
     await page.getByRole("button", { name: "Hobbies", exact: true }).press("Enter");
     await expect(page).toHaveURL(/\/projects\/frankie-town$/);
-    await expect(page.locator(".proj-artifact img")).toHaveJSProperty("naturalWidth", 400);
+    await expect(page.locator(".proj-detail .proj-artifact img")).toHaveJSProperty("naturalWidth", 400);
     await expect(page.locator(".proj-detail").getByRole("link", { name: "Play Frankie Town", exact: true })).toHaveAttribute("href", "https://frankie-town.vercel.app");
     await expect(page.locator(".proj-detail").getByRole("link", { name: "GitHub", exact: true })).toHaveAttribute("href", "https://github.com/tangericm/frankie-town");
     await choose("recipe-book", "Eric's Recipe Book");
     await expect(page.locator(".proj-title")).toHaveText("Eric's Recipe Book");
-    await expect(page.locator(".proj-artifact img")).toHaveJSProperty("naturalWidth", 1200);
+    await expect(page.locator(".proj-detail .proj-artifact img")).toHaveJSProperty("naturalWidth", 1200);
     await page.goBack();
     await expect(page.locator(".proj-title")).toHaveText("Frankie Town");
     await page.goForward();
@@ -46,6 +60,12 @@ for (const width of [1440, 768, 390]) {
     const detail = page.locator(".proj-detail");
     expect(await detail.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
     expect((await page.request.get("/projects/skillcrit")).status()).toBe(404);
+    await choose("tangos", "TangOS");
+    await expect(page.locator(".proj-detail .proj-flow")).toContainText("Read one shared catalog");
+    await expect(page.locator(".proj-detail .proj-flow")).toContainText("Server-rendered HTML");
+    await expect(page.locator(".proj-detail .proj-evidence-figures img")).toHaveJSProperty("naturalWidth", 1280);
+    await expect(page.locator(".proj-detail")).not.toContainText("Window lifecycle state machine");
+    expect(await detail.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
   });
 }
 
@@ -95,11 +115,15 @@ test("public catalog and technical details work without JavaScript", async ({ br
   for (const group of ["Research", "Engineering", "Hobbies"]) {
     await expect(page.getByRole("heading", { name: `Projects · ${group}`, exact: true })).toBeVisible();
   }
-  for (const name of ["Optical Design", "Frankie Town", "Eric's Recipe Book"]) {
+  for (const name of ["Optical Design", "RAWForge", "Frankie Town", "Eric's Recipe Book"]) {
     await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
   }
   await expect(page.locator(".sitedoc")).not.toContainText("Skillcrit");
   await page.locator(".sitedoc details").first().locator("summary").click();
   await expect(page.locator(".sitedoc details").first().locator("p")).toBeVisible();
+  await page.goto("/projects/rawforge");
+  await expect(page.getByRole("heading", { name: "RAWForge", exact: true })).toBeVisible();
+  await expect(page.locator(".sitedoc .proj-flow").first()).toContainText("Export the Run");
+  await expect(page.locator('.sitedoc img[src="/rawforge-recipe.webp"]')).toBeVisible();
   await context.close();
 });

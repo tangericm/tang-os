@@ -87,16 +87,17 @@ test("touch comparison drags change the image, vertical swipes scroll the conten
 test("every project visual stays within the narrow phone content pane", async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 320, height: 568 }, hasTouch: true, isMobile: true });
   const page = await context.newPage();
-  for (const id of ["tracking", "galvo", "denoise", "denoiser", "simulator", "optical-design", "frankie-town", "recipe-book", "tangos"]) {
+  for (const id of ["tracking", "galvo", "denoise", "denoiser", "simulator", "optical-design", "rawforge", "frankie-town", "recipe-book", "tangos"]) {
     await page.goto(`/projects/${id}`);
     const detail = page.locator(".proj-detail");
     await expect(detail).toBeVisible();
     expect(await detail.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
-    const hero = page.locator(".proj-hero, .proj-artifact");
-    await hero.scrollIntoViewIfNeeded();
-    for (const image of await hero.locator("img").all()) {
-      await expect.poll(() => image.evaluate(el => (el as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
-      expect(await image.evaluate(el => el.clientWidth <= el.closest(".proj-detail")!.clientWidth)).toBe(true);
+    for (const hero of await detail.locator(".proj-hero, .proj-artifact").all()) {
+      await hero.scrollIntoViewIfNeeded();
+      for (const image of await hero.locator("img").all()) {
+        await expect.poll(() => image.evaluate(el => (el as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+        expect(await image.evaluate(el => el.clientWidth <= el.closest(".proj-detail")!.clientWidth)).toBe(true);
+      }
     }
   }
   await context.close();

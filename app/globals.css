@@ -2041,33 +2041,6 @@ html.booted .boot-overlay {
 }
 
 
-/* ---- TangOS lifecycle ---- */
-.tos-node {
-  fill: url(#spc-blk);
-  fill: rgba(150, 133, 112, 0.28);
-  stroke: rgba(255, 244, 230, 0.24);
-  stroke-width: 1;
-}
-
-.tos-node-transient {
-  fill: rgba(226, 170, 99, 0.12);
-  stroke: rgba(226, 170, 99, 0.5);
-  stroke-dasharray: 4 3;
-}
-
-.tos-label {
-  fill: var(--ink-soft);
-  font-size: 9.5px;
-}
-
-.tos-edge {
-  fill: none;
-  stroke: rgba(226, 170, 99, 0.45);
-  stroke-width: 1.3;
-  stroke-dasharray: 4 4;
-  animation: sfs-flow 1s linear infinite;
-}
-
 /* shared SVG type */
 .sfs-cap {
   fill: var(--ink-soft);
@@ -2202,7 +2175,7 @@ html.booted .boot-overlay {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .proj-detail, .seq-strip, .tos-edge { animation: none; }
+  .proj-detail, .seq-strip { animation: none; }
 }
 
 /* The raw → denoised figure and its caption */
@@ -2854,6 +2827,10 @@ html.booted .boot-overlay {
 .proj-artifact { margin-bottom: 24px; }
 .proj-artifact img { display: block; width: 100%; height: auto; border: 1px solid var(--hairline); border-radius: 8px; }
 .proj-artifact figcaption, .proj-hero figcaption { margin-top: 12px; max-width: 68ch; font-size: 13px; line-height: 1.65; color: var(--ink-soft); }
+.proj-evidence-figures { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.proj-evidence-figures .proj-artifact img { max-width: 240px; margin-inline: auto; }
+.proj-evidence-figures:has(> :only-child) { grid-template-columns: 1fr; }
+.proj-evidence-figures > :only-child img { max-width: none; }
 .proj-pixel-art img { image-rendering: pixelated; }
 .proj-technical { margin-top: 24px; border-block: 1px solid var(--hairline); }
 .proj-technical summary { padding-block: 15px; cursor: pointer; color: var(--ink); font-size: 14px; }
@@ -2897,6 +2874,7 @@ html .simreal-labels-hidden { visibility: hidden; }
   .proj-picker { display: block; width: 100%; min-width: 0; min-height: 44px; padding: 8px; border: 1px solid var(--hairline); border-radius: 6px; background: var(--surface-window); color: var(--ink); font: inherit; font-size: 13px; color-scheme: dark; }
   .proj-detail { padding: 20px 16px 28px; }
   .proj-flow { grid-template-columns: 1fr; gap: 24px; }
+  .proj-evidence-figures { grid-template-columns: 1fr; }
   .proj-flow li + li::before { left: 2px; top: -16px; transform: rotate(135deg); }
 }
 @media (prefers-reduced-motion: reduce) {

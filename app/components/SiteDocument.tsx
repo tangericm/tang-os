@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import ResumeDocument from "./ResumeDocument";
+import ProjectEvidence from "./ProjectEvidence";
 import { EDUCATION, EXPERIENCE, LINKS, PROFILE, TAGLINE } from "../data/profile";
 import { GROUPS, PROJECTS, type Project } from "../data/projects";
 import { PUBLICATIONS } from "../data/publications";
@@ -118,6 +119,7 @@ const ProjectBody = ({ project }: { project: Project }) => (
       <small>{project.kind}</small>
     </p>
     <p>{project.blurb}</p>
+    <ProjectEvidence project={project} />
     {project.details && <details><summary>Technical details</summary><p>{project.details}</p></details>}
     <p>
       <small>{project.tags.join(" · ")}</small>
