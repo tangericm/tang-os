@@ -2,11 +2,11 @@
 
 The operating system behind [ericmtang.com](https://ericmtang.com) —
 Eric M. Tang's personal site with the look and feel of a modern desktop
-OS. Built from scratch with [Next.js](https://nextjs.org) and React,
+OS. Built with [Next.js](https://nextjs.org) and React,
 deployed on Vercel.
 
 No UI framework, no component library, no CSS framework. Five runtime
-dependencies, three of which are React and Next. The design system is one
+dependencies plus chess.js for chess rules. The design system is one
 hand-written stylesheet.
 
 More of Eric's work: [github.com/tangericm](https://github.com/tangericm)
@@ -60,7 +60,7 @@ the whole reason these exist.
 - [x] Real scientific figures with concise workflows, keyboard-controlled image comparisons, optical-design plots, RAWForge capture screens, Frankie Town, and Eric's Recipe Book
 - [x] Resume: desktop file → document viewer + PDF download
 - [x] Terminal: a working shell over the same project data (`ls`, `cat`, `open`, and some jokes)
-- [x] Runner: a dinosaur game on `<canvas>`
+- [x] Chess: on-device Stockfish engine, six approximate difficulty levels, White/Black choice, move hints, undo, and move history
 - [x] Power menu: sleep, restart, shut down
 - [x] Real routes and deep links — `/projects/denoiser` opens that project
 - [x] Crawlable document mirror, JSON-LD, sitemap
@@ -84,3 +84,9 @@ scripts/            build-output assertions
 ## Credits
 
 Wallpaper photo by Eric M. Tang.
+
+Chess uses [chess.js](https://github.com/jhlywa/chess.js) (BSD-2-Clause) and the
+unmodified Stockfish.js 19.0.1 lite single-threaded engine (GPLv3). Engine
+license, exact source links, and reproduction instructions live in
+`public/engine/`. Elo presets are approximate and have not been calibrated
+against human ratings.

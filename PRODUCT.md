@@ -16,7 +16,7 @@ Present Eric's computational imaging research and independent projects with real
 
 ## Capabilities and Constraints
 
-Next.js and React, static project routes, shared TypeScript project/profile/publication data, and Vercel deployment. Preserve published URLs, résumé PDF, contact details, scientific explainers, and the terminal and runner. The latest user direction preserves the desktop OS format while improving visuals, navigation, and structure. Keep project details in the warm dark desktop palette. Lead with peer-reviewed research, separate self-directed engineering from hobbies, and use short plain-language descriptions with optional technical detail. Build directly in code.
+Next.js and React, static project routes, shared TypeScript project/profile/publication data, and Vercel deployment. Preserve published URLs, résumé PDF, contact details, scientific explainers, and the terminal. Replace Runner with Chess at `/play`, using a browser-local engine with approximate difficulty presets. The latest user direction preserves the desktop OS format while improving visuals, navigation, and structure. Keep project details in the warm dark desktop palette. Lead with peer-reviewed research, separate self-directed engineering from hobbies, and use short plain-language descriptions with optional technical detail. Build directly in code.
 
 ## Evidence on Hand
 

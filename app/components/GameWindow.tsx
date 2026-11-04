@@ -1,412 +1,239 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ComponentProps, type KeyboardEvent } from "react";
+import { Chess, type Color, type PieceSymbol, type Square } from "chess.js";
 import Window from "./Window";
+import ChessPiece from "./ChessPiece";
+import { CHESS_LEVELS, gameStatus, undoTurn } from "../lib/chess-game";
+import { ChessEngine } from "../lib/chess-engine";
 
-/**
- * GameWindow: the offline dinosaur runner, rebuilt properly.
- *
- * The first version was a generic jumper with a monogram for a player. This
- * one follows the real thing: a pixel dinosaur that runs, jumps and ducks,
- * ground cacti and flying pterodactyls (which is what makes ducking matter,
- * since a jump-only game never needs a second verb), a speed ramp, and a
- * day/night flip on a score threshold.
- *
- * Structure is unchanged and deliberate: one fixed-timestep loop at 60 Hz with
- * an accumulator so physics is identical on a 60 and a 144 Hz panel, and ALL
- * mutable state in a single ref. Per-frame React state would re-render sixty
- * times a second to draw something React is not drawing. React owns the score
- * readout and the overlay; the loop owns everything that moves.
- */
+const NAMES: Record<PieceSymbol, string> = { p: "pawn", n: "knight", b: "bishop", r: "rook", q: "queen", k: "king" };
+const PROMOTIONS = ["q", "r", "b", "n"] as const;
+type Props = Omit<ComponentProps<typeof Window>, "title" | "children" | "frameClassName"> & { active?: boolean };
 
-const W = 600;
-const H = 180;
-const GROUND = H - 26;
-const GRAVITY = 0.58;
-const JUMP = -10.2;
-const DUCK_DROP = 1.9; // extra gravity while held, so ducking cuts a jump short
-const START_SPEED = 4.2;
-const NIGHT_EVERY = 700;
+export default function GameWindow({ active = true, ...props }: Props) {
+  const [game] = useState(() => new Chess());
+  const [revision, setRevision] = useState(0);
+  const generation = useRef(0);
+  const [player, setPlayer] = useState<Color>("w");
+  const [nextSide, setNextSide] = useState<Color>("w");
+  const [levelId, setLevelId] = useState("novice");
+  const level = CHESS_LEVELS.find((item) => item.id === levelId) ?? CHESS_LEVELS[1];
+  const [flipped, setFlipped] = useState(false);
+  const [selected, setSelected] = useState<Square | null>(null);
+  const [focused, setFocused] = useState<Square>("e2");
+  const [promotion, setPromotion] = useState<{ from: Square; to: Square } | null>(null);
+  const [confirmNew, setConfirmNew] = useState(false);
+  const [engineState, setEngineState] = useState("loading");
+  const [error, setError] = useState("");
+  const [retry, setRetry] = useState(0);
+  const boardRef = useRef<HTMLDivElement>(null);
+  const promotionRef = useRef<HTMLDivElement>(null);
+  const historyRef = useRef<HTMLOListElement>(null);
+  const history = game.history({ verbose: true });
+  const last = history.at(-1);
+  const over = game.isGameOver();
+  const canPlay = active && !over && !confirmNew && !promotion && game.turn() === player;
+  const legal = selected ? game.moves({ square: selected, verbose: true }) : [];
+  const files = (flipped ? "hgfedcba" : "abcdefgh").split("");
+  const ranks = flipped ? [1, 2, 3, 4, 5, 6, 7, 8] : [8, 7, 6, 5, 4, 3, 2, 1];
+  const squares = ranks.flatMap((rank) => files.map((file) => `${file}${rank}` as Square));
 
-type Obstacle = {
-  kind: "cactus" | "bird";
-  x: number;
-  w: number;
-  h: number;
-  y: number; // top edge
-  variant: number;
-};
+  function changed() {
+    generation.current++;
+    setSelected(null);
+    setPromotion(null);
+    setRevision((value) => value + 1);
+  }
 
-type Phase = "ready" | "running" | "over";
-
-export default function GameWindow({
-  active = true,
-  ...props
-}: {
-  /** false while minimized: the window stays mounted, the loop must not run */
-  active?: boolean;
-  onClose: () => void;
-  onMinimize: () => void;
-  motion?: "minimizing" | "closing";
-  minimizeTarget?: string;
-  zIndex?: number;
-  onFocus?: () => void;
-  frontmost?: boolean;
-  hidden?: boolean;
-}) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [phase, setPhase] = useState<Phase>("ready");
-  const [score, setScore] = useState(0);
-  /* What the HUD is currently showing. The loop compares against this rather
-     than against `score`, which it cannot see updates to. */
-  const shownScore = useRef(0);
-  const [best, setBest] = useState(0);
-
-  const g = useRef({
-    y: GROUND,
-    vy: 0,
-    ducking: false,
-    speed: START_SPEED,
-    obstacles: [] as Obstacle[],
-    clouds: [] as { x: number; y: number; s: number }[],
-    ticks: 0,
-    score: 0,
-    night: false,
-    flash: 0,
-    dead: false,
-    raf: 0,
-    last: 0,
-    acc: 0,
-  });
-
-  const reset = useCallback(() => {
-    Object.assign(g.current, {
-      y: GROUND,
-      vy: 0,
-      ducking: false,
-      speed: START_SPEED,
-      obstacles: [],
-      clouds: [
-        { x: 120, y: 34, s: 0.4 },
-        { x: 360, y: 54, s: 0.28 },
-        { x: 520, y: 26, s: 0.34 },
-      ],
-      ticks: 0,
-      score: 0,
-      night: false,
-      flash: 0,
-      dead: false,
-      acc: 0,
-    });
-    setScore(0);
-  }, []);
-
-  const jump = useCallback(() => {
-    const s = g.current;
-    if (s.dead) return;
-    if (s.y >= GROUND - 0.5) s.vy = JUMP;
-  }, []);
-
-  const setDuck = useCallback((on: boolean) => {
-    g.current.ducking = on;
-  }, []);
-
-  const start = useCallback(() => {
-    reset();
-    setPhase("running");
-  }, [reset]);
-
-  /* ---- one physics step ---- */
-  const step = useCallback(() => {
-    const s = g.current;
-    s.ticks += 1;
-    s.speed = START_SPEED + s.ticks / 850;
-
-    s.vy += GRAVITY + (s.ducking && s.y < GROUND ? DUCK_DROP : 0);
-    s.y = Math.min(GROUND, s.y + s.vy);
-    if (s.y === GROUND) s.vy = 0;
-
-    // spawn: gap scales with speed so the game stays clearable
-    const last = s.obstacles[s.obstacles.length - 1];
-    const minGap = 165 + s.speed * 15;
-    if (!last || last.x < W - minGap - Math.random() * 150) {
-      const wantBird = s.score > 180 && Math.random() < 0.28;
-      if (wantBird) {
-        const lane = Math.floor(Math.random() * 3);
-        const y = [GROUND - 58, GROUND - 40, GROUND - 22][lane];
-        s.obstacles.push({ kind: "bird", x: W + 20, w: 26, h: 16, y, variant: lane });
-      } else {
-        const variant = Math.floor(Math.random() * 3);
-        const h = [26, 34, 30][variant];
-        const w = [12, 14, 26][variant]; // variant 2 is a cluster
-        s.obstacles.push({ kind: "cactus", x: W + 20, w, h, y: GROUND - h, variant });
-      }
-    }
-
-    for (const o of s.obstacles) o.x -= s.speed;
-    s.obstacles = s.obstacles.filter((o) => o.x + o.w > -30);
-
-    for (const c of s.clouds) {
-      c.x -= s.speed * c.s;
-      if (c.x < -60) {
-        c.x = W + 40 + Math.random() * 120;
-        c.y = 20 + Math.random() * 46;
-      }
-    }
-
-    // collision against the dino box, which shortens and lowers when ducking
-    const dx = 44;
-    const grounded = s.y >= GROUND - 0.5;
-    const dw = s.ducking && grounded ? 38 : 26;
-    const dh = s.ducking && grounded ? 18 : 32;
-    const dtop = s.y - dh;
-    for (const o of s.obstacles) {
-      if (
-        o.x < dx + dw - 4 &&
-        o.x + o.w > dx + 4 &&
-        o.y < s.y - 3 &&
-        o.y + o.h > dtop + 3
-      ) {
-        s.dead = true;
-        break;
-      }
-    }
-
-    s.score = Math.floor(s.ticks / 6);
-    const nowNight = Math.floor(s.score / NIGHT_EVERY) % 2 === 1;
-    if (nowNight !== s.night) {
-      s.night = nowNight;
-      s.flash = 22;
-    }
-    if (s.flash > 0) s.flash -= 1;
-  }, []);
-
-  /* ---- render ---- */
-  const draw = useCallback((ctx: CanvasRenderingContext2D) => {
-    const s = g.current;
-    const ink = s.night ? "#f2ede6" : "#6b5c4a";
-
-    ctx.clearRect(0, 0, W, H);
-    if (s.night) {
-      ctx.fillStyle = "#141110";
-      ctx.fillRect(0, 0, W, H);
-    }
-    if (s.flash > 0) {
-      ctx.fillStyle = `rgba(226,170,99,${(s.flash / 22) * 0.18})`;
-      ctx.fillRect(0, 0, W, H);
-    }
-
-    ctx.fillStyle = s.night ? "rgba(242,237,230,0.16)" : "rgba(107,92,74,0.22)";
-    for (const c of s.clouds) {
-      ctx.fillRect(c.x, c.y, 22, 4);
-      ctx.fillRect(c.x + 5, c.y - 4, 14, 4);
-      ctx.fillRect(c.x + 3, c.y + 4, 17, 3);
-    }
-
-    // ground: a line plus scrolling speckle, so speed is legible
-    ctx.fillStyle = ink;
-    ctx.fillRect(0, GROUND + 1, W, 1.5);
-    ctx.globalAlpha = 0.5;
-    for (let i = 0; i < 26; i++) {
-      const x = (i * 51 - ((s.ticks * s.speed) % 51)) | 0;
-      ctx.fillRect(x, GROUND + 7, 9, 1.5);
-      ctx.fillRect(x + 24, GROUND + 12, 5, 1.5);
-    }
-    ctx.globalAlpha = 1;
-
-    for (const o of s.obstacles) {
-      ctx.fillStyle = ink;
-      if (o.kind === "cactus") {
-        if (o.variant === 2) {
-          drawCactus(ctx, o.x, GROUND, 10, 24);
-          drawCactus(ctx, o.x + 14, GROUND, 11, 30);
-        } else {
-          drawCactus(ctx, o.x, GROUND, o.w, o.h);
-        }
-      } else {
-        const up = Math.floor(s.ticks / 9) % 2 === 0;
-        ctx.fillRect(o.x + 8, o.y + 6, 16, 4);
-        ctx.fillRect(o.x + 20, o.y + 3, 6, 3);
-        ctx.fillRect(o.x, o.y + 7, 9, 3);
-        if (up) ctx.fillRect(o.x + 9, o.y - 4, 10, 10);
-        else ctx.fillRect(o.x + 9, o.y + 9, 10, 8);
-      }
-    }
-
-    drawDino(ctx, s, ink);
-  }, []);
-
-  /* ---- loop ---- */
   useEffect(() => {
-    /* `active` is the minimize guard. display:none removes the canvas from the
-       paint tree but does NOT stop requestAnimationFrame, so without this the
-       dino keeps stepping physics and drawing at 60Hz into a window nobody can
-       see. Resume needs no special handling: the loop reassigns s.last on
-       start and clamps dt, so it picks up mid-jump instead of catching up. */
-    if (phase !== "running" || !active) return;
-    const ctx = canvasRef.current?.getContext("2d");
-    if (!ctx) return;
-    const s = g.current;
-    s.last = performance.now();
+    if (!active || confirmNew || game.isGameOver()) {
+      setEngineState("paused");
+      return;
+    }
+    if (game.turn() === player) {
+      setError("");
+      setEngineState("ready");
+      return;
+    }
+    let cancelled = false;
+    let engine: ChessEngine | undefined;
+    const ticket = generation.current;
+    const fen = game.fen();
+    setError("");
+    setEngineState("loading");
+    async function run() {
+      try {
+        engine = new ChessEngine();
+        await engine.ready;
+        if (cancelled || ticket !== generation.current) return;
+        setEngineState("thinking");
+        const move = await engine.move(fen, level, game.moves({ verbose: true }).map((item) => item.lan),
+          game.history({ verbose: true }).map((item) => item.lan));
+        if (cancelled || ticket !== generation.current || game.fen() !== fen) return;
+        game.move({ from: move.slice(0, 2), to: move.slice(2, 4), promotion: move[4] });
+        changed();
+      } catch (reason) {
+        if (cancelled || ticket !== generation.current) return;
+        setEngineState("error");
+        setError(reason instanceof Error ? reason.message : "Could not load Stockfish. Please retry.");
+      }
+    }
+    void run();
+    // Each engine turn owns its worker. Termination also cancels loading, so stale results
+    // cannot reach a reset/undone game. Later workers reuse the cached engine assets.
+    return () => { cancelled = true; engine?.dispose(); };
+  }, [active, confirmNew, game, level, player, retry, revision]);
 
-    const frame = (now: number) => {
-      const dt = Math.min(now - s.last, 60);
-      s.last = now;
-      s.acc += dt;
-      while (s.acc >= 1000 / 60) {
-        step();
-        s.acc -= 1000 / 60;
-        if (s.dead) break;
-      }
-      draw(ctx);
-      if (s.dead) {
-        setScore(s.score);
-        setBest((b) => Math.max(b, s.score));
-        setPhase("over");
-        return;
-      }
-      /* Compared against the ref, not the `score` state. `score` is captured
-         when the effect runs and is deliberately absent from the dep array,
-         so the closure held 0 for the whole run and this called setScore on
-         essentially every frame once the score passed zero — sixty state
-         updates a second that React then had to bail out of one by one. */
-      if (s.score !== shownScore.current) {
-        shownScore.current = s.score;
-        setScore(s.score);
-      }
-      s.raf = requestAnimationFrame(frame);
+  useEffect(() => {
+    if (promotion) promotionRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
+  }, [promotion]);
+  useEffect(() => {
+    const list = historyRef.current;
+    if (list) list.scrollTop = list.scrollHeight;
+  }, [revision]);
+
+  function move(from: Square, to: Square, promote?: string) {
+    game.move({ from, to, promotion: promote });
+    changed();
+  }
+
+  function choose(square: Square) {
+    if (!canPlay) return;
+    const destination = legal.find((item) => item.to === square);
+    if (selected && destination) {
+      if (destination.isPromotion()) setPromotion({ from: selected, to: square });
+      else move(selected, square);
+    } else setSelected(game.get(square)?.color === player && selected !== square ? square : null);
+  }
+
+  function boardKey(event: KeyboardEvent<HTMLButtonElement>, square: Square) {
+    if (event.key === "Escape") { setSelected(null); return; }
+    const index = squares.indexOf(square);
+    const row = Math.floor(index / 8), col = index % 8;
+    const destinations: Record<string, number> = {
+      ArrowLeft: row * 8 + Math.max(0, col - 1), ArrowRight: row * 8 + Math.min(7, col + 1),
+      ArrowUp: Math.max(0, row - 1) * 8 + col, ArrowDown: Math.min(7, row + 1) * 8 + col,
+      Home: row * 8, End: row * 8 + 7,
     };
-    s.raf = requestAnimationFrame(frame);
-    return () => cancelAnimationFrame(s.raf);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, active, step, draw]);
-
-  /* idle frame so the canvas is never blank */
-  useEffect(() => {
-    if (phase === "running") return;
-    const ctx = canvasRef.current?.getContext("2d");
-    if (ctx) draw(ctx);
-  }, [phase, draw]);
-
-  function onKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setDuck(true);
-      return;
-    }
-    if (e.key !== " " && e.key !== "ArrowUp" && e.key !== "Enter") return;
-    e.preventDefault();
-    if (phase === "running") jump();
-    else start();
+    const destination = destinations[event.key];
+    if (destination === undefined) return;
+    event.preventDefault();
+    const next = squares[destination];
+    setFocused(next);
+    boardRef.current?.querySelector<HTMLButtonElement>(`[data-square="${next}"]`)?.focus();
   }
 
-  function onKeyUp(e: React.KeyboardEvent) {
-    if (e.key === "ArrowDown") setDuck(false);
+  function reset() {
+    game.reset();
+    setPlayer(nextSide);
+    setFlipped(nextSide === "b");
+    setFocused(nextSide === "b" ? "e7" : "e2");
+    setConfirmNew(false);
+    changed();
   }
 
-  /* touch: upper area jumps, lower strip ducks while held */
-  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
-    if (phase !== "running") {
-      start();
-      return;
-    }
-    const r = e.currentTarget.getBoundingClientRect();
-    if (e.clientY - r.top > r.height * 0.62) setDuck(true);
-    else jump();
+  function cancelPromotion() {
+    setPromotion(null);
+    if (promotion) boardRef.current?.querySelector<HTMLButtonElement>(`[data-square="${promotion.from}"]`)?.focus();
   }
+
+  const status = over ? gameStatus(game, player)
+    : error ? "Engine unavailable — retry to continue"
+    : engineState === "thinking" ? "Stockfish is thinking…"
+    : gameStatus(game, player);
+  const captured = history.filter((item) => item.color === player && item.captured).map((item) => item.captured!);
 
   return (
-    <Window title="Runner" frameClassName="window-game" {...props}>
-      <div
-        className="game"
-        tabIndex={0}
-        role="application"
-        aria-label="Dinosaur runner. Space or tap to jump, down arrow or tap low to duck."
-        onKeyDown={onKeyDown}
-        onKeyUp={onKeyUp}
-        onPointerDown={onPointerDown}
-        onPointerUp={() => setDuck(false)}
-        onPointerLeave={() => setDuck(false)}
-      >
-        <div className="game-hud">
-          <span className="game-score">{String(score).padStart(5, "0")}</span>
-          <span className="game-best">HI {String(best).padStart(5, "0")}</span>
+    <Window title="Chess" frameClassName="window-game" {...props}>
+      <div className="chess">
+        <div className="chess-heading">
+          <div><span className="chess-eyebrow">A little time to think</span><h2>Your next move.</h2></div>
+          <span className="chess-local"><span />On-device engine</span>
         </div>
-
-        <canvas ref={canvasRef} width={W} height={H} className="game-canvas" />
-
-        {phase !== "running" && (
-          <div className="game-overlay">
-            <p className="game-msg">
-              {phase === "over" ? "Game over" : "Jump the cacti, duck the birds."}
-            </p>
-            <p className="game-hint">
-              {phase === "over" ? "space or tap to retry" : "space to jump · down to duck"}
-            </p>
+        <div className="chess-layout">
+          <div className="chess-table">
+            <div className="chess-player">
+              <span className="chess-avatar"><ChessPiece type="n" color={player === "w" ? "b" : "w"} /></span>
+              <div><strong>Stockfish</strong><small>{level.label} · ≈{level.elo} Elo</small></div>
+              <span className="chess-engine-state" data-state={engineState}>{engineState === "loading" ? "Loading…" : engineState === "thinking" ? "Thinking…" : engineState === "error" ? "Offline" : ""}</span>
+            </div>
+            <div className="chess-board-wrap">
+              <div className="chess-board" role="group" aria-label="Chessboard" aria-describedby="chess-keyboard-help" ref={boardRef}>
+                {squares.map((square, index) => {
+                  const piece = game.get(square);
+                  const target = legal.some((item) => item.to === square);
+                  const dark = (square.charCodeAt(0) + Number(square[1])) % 2 === 0;
+                  const check = piece?.type === "k" && piece.color === game.turn() && game.isCheck();
+                  const label = `${square}, ${piece ? `${piece.color === "w" ? "white" : "black"} ${NAMES[piece.type]}` : "empty"}${target ? ", legal move" : ""}`;
+                  return <button key={square} type="button" data-square={square}
+                    className={`chess-square ${dark ? "chess-dark" : "chess-light"}${selected === square ? " chess-selected" : ""}${last?.from === square || last?.to === square ? " chess-last" : ""}${check ? " chess-check" : ""}`}
+                    aria-label={label} aria-pressed={selected === square} aria-disabled={!canPlay}
+                    tabIndex={square === focused ? 0 : -1} onFocus={() => setFocused(square)}
+                    onKeyDown={(event) => boardKey(event, square)} onClick={() => choose(square)}>
+                    {index % 8 === 0 && <span className="chess-rank" aria-hidden="true">{square[1]}</span>}
+                    {index >= 56 && <span className="chess-file" aria-hidden="true">{square[0]}</span>}
+                    {piece && <ChessPiece type={piece.type} color={piece.color} />}
+                    {target && <span className={piece ? "chess-capture-ring" : "chess-legal-dot"} />}
+                  </button>;
+                })}
+              </div>
+              {promotion && <div className="chess-promotion" role="group" aria-label="Choose promotion" ref={promotionRef}
+                onKeyDown={(event) => { if (event.key === "Escape") cancelPromotion(); }}>
+                <strong>Promote your pawn</strong>
+                <div>{PROMOTIONS.map((piece) => <button key={piece} aria-label={`Promote to ${NAMES[piece]}`} onClick={() => {
+                  const destination = promotion.to;
+                  move(promotion.from, destination, piece);
+                  boardRef.current?.querySelector<HTMLButtonElement>(`[data-square="${destination}"]`)?.focus();
+                }}><ChessPiece type={piece} color={player} /></button>)}</div>
+                <button className="chess-text-button" onClick={cancelPromotion}>Cancel</button>
+              </div>}
+            </div>
+            <div className="chess-player chess-you">
+              <span className="chess-avatar"><ChessPiece type="k" color={player} /></span>
+              <div><strong>You</strong><small>Playing {player === "w" ? "White" : "Black"}</small></div>
+              <div className="chess-captured" aria-label={`You captured ${captured.length} pieces`}>{captured.map((piece, index) => <ChessPiece key={index} type={piece} color={player === "w" ? "b" : "w"} />)}</div>
+            </div>
           </div>
-        )}
+          <aside className="chess-sidebar" aria-label="Game controls">
+            <div className="chess-settings">
+              <label htmlFor="chess-difficulty">Difficulty</label>
+              <select id="chess-difficulty" value={levelId} onChange={(event) => { generation.current++; setLevelId(event.target.value); }}>
+                {CHESS_LEVELS.map((item) => <option key={item.id} value={item.id}>{item.label} · ≈{item.elo}</option>)}
+              </select>
+              <label htmlFor="chess-side">Play as</label>
+              <select id="chess-side" value={nextSide} onChange={(event) => setNextSide(event.target.value as Color)}>
+                <option value="w">White · move first</option><option value="b">Black · move second</option>
+              </select>
+              {nextSide !== player && <small className="chess-side-note">Applies to your next game.</small>}
+              <button className="chess-new" onClick={() => {
+                if (history.length) { generation.current++; setConfirmNew(true); } else reset();
+              }}>New game <span aria-hidden="true">↗</span></button>
+            </div>
+            {confirmNew && <div className="chess-confirm" role="group" aria-label="Confirm new game">
+              <p>Start a new game? This game will be cleared.</p>
+              <button onClick={reset}>Start game</button><button onClick={() => setConfirmNew(false)}>Keep playing</button>
+            </div>}
+            <div className="chess-status" role="status" aria-live="polite"><span className={over ? "chess-status-dot chess-finished" : "chess-status-dot"} />{status}</div>
+            {error && <div className="chess-error" role="alert"><p>{error}</p><button onClick={() => setRetry((value) => value + 1)}>Retry engine</button></div>}
+            <div className="chess-history-heading"><h3>Moves</h3><span>{history.length ? `${Math.ceil(history.length / 2)} played` : "A fresh board"}</span></div>
+            <ol className="chess-history" aria-label="Move history" ref={historyRef}>
+              {history.filter((_, index) => index % 2 === 0).map((item, index) => <li key={index}>
+                <span>{index + 1}.</span><span>{item.san}</span><span>{history[index * 2 + 1]?.san ?? "…"}</span>
+              </li>)}
+            </ol>
+            {!history.length && <p className="chess-empty">Every game starts with a possibility.</p>}
+            <div className="chess-actions">
+              <button disabled={!history.some((item) => item.color === player) || confirmNew} onClick={() => { if (undoTurn(game, player)) changed(); }}>Undo turn</button>
+              <button onClick={() => setFlipped((value) => !value)}>Flip board</button>
+            </div>
+          </aside>
+        </div>
+        <footer className="chess-footer">
+          <p id="chess-keyboard-help">Select a piece, then its destination. Arrow keys to navigate; Enter to select.</p>
+          <details><summary>About the engine & ratings</summary><p>Stockfish 19 runs on your device. Elo labels are approximate, not calibrated ratings. Beginner and Novice add occasional weaker moves; device speed and search time affect strength.</p><p><a href="/engine/Copying.txt" target="_blank" rel="noreferrer">GPLv3 license</a> · <a href="https://github.com/nmrugg/stockfish.js/tree/v19.0.1" target="_blank" rel="noreferrer">Exact engine source</a> · <a href="/engine/SOURCE.md" target="_blank" rel="noreferrer">Build & credits</a></p></details>
+        </footer>
       </div>
     </Window>
   );
-}
-
-/* ---- sprites, drawn as rectangles in the spirit of the original ---- */
-
-function drawCactus(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  base: number,
-  w: number,
-  h: number
-) {
-  const armY = base - h * 0.62;
-  ctx.fillRect(x + w * 0.32, base - h, w * 0.36, h);
-  ctx.fillRect(x, armY, w * 0.3, h * 0.34);
-  ctx.fillRect(x, armY, w * 0.3, 3);
-  ctx.fillRect(x + w * 0.7, armY + 4, w * 0.3, h * 0.3);
-  ctx.fillRect(x + w * 0.7, armY + 4, w * 0.3, 3);
-}
-
-function drawDino(
-  ctx: CanvasRenderingContext2D,
-  s: { y: number; ticks: number; ducking: boolean; dead: boolean },
-  ink: string
-) {
-  const x = 44;
-  const grounded = s.y >= GROUND - 0.5;
-  const duck = s.ducking && grounded;
-  ctx.fillStyle = ink;
-
-  if (duck) {
-    const y = s.y - 18;
-    ctx.fillRect(x, y + 4, 30, 12); // body, long and low
-    ctx.fillRect(x + 28, y, 14, 11); // head
-    ctx.fillRect(x + 40, y + 4, 3, 3); // snout
-    ctx.fillStyle = "#1c1813";
-    ctx.fillRect(x + 36, y + 3, 2.5, 2.5); // eye
-    ctx.fillStyle = ink;
-    ctx.fillRect(x - 8, y + 6, 9, 4); // tail
-    const legPhase = Math.floor(s.ticks / 5) % 2 === 0;
-    ctx.fillRect(x + (legPhase ? 6 : 14), y + 16, 5, 4);
-    return;
-  }
-
-  const y = s.y - 32;
-  ctx.fillRect(x + 4, y + 12, 18, 14); // torso
-  ctx.fillRect(x + 16, y, 16, 14); // head
-  ctx.fillRect(x + 30, y + 8, 4, 4); // snout
-  ctx.fillStyle = "#1c1813";
-  ctx.fillRect(x + 26, y + 4, 2.5, 2.5); // eye
-  ctx.fillStyle = ink;
-  ctx.fillRect(x - 4, y + 14, 10, 5); // tail
-  ctx.fillRect(x + 12, y + 22, 6, 4); // arm
-
-  if (grounded && !s.dead) {
-    const legPhase = Math.floor(s.ticks / 6) % 2 === 0;
-    ctx.fillRect(x + 6, y + 26, 5, legPhase ? 6 : 3);
-    ctx.fillRect(x + 15, y + 26, 5, legPhase ? 3 : 6);
-  } else {
-    ctx.fillRect(x + 6, y + 26, 5, 5);
-    ctx.fillRect(x + 15, y + 26, 5, 5);
-  }
 }

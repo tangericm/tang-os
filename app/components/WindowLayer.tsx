@@ -2,14 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import AboutWindow from "./AboutWindow";
 import ProjectsWindow from "./ProjectsWindow";
 import ResumeWindow from "./ResumeWindow";
 import TerminalWindow from "./TerminalWindow";
-import GameWindow from "./GameWindow";
 import DesktopFile from "./DesktopFile";
 import Dock from "./Dock";
 import { DEFAULT_PROJECT, hrefFor, parseRoute, type AppId } from "../lib/routes";
+
+// Chess rules and UI load only when its window is used. Direct /play links still prerender it.
+const GameWindow = dynamic(() => import("./GameWindow"));
 
 /**
  * WindowLayer, the window manager, now also the router.
@@ -182,7 +185,7 @@ export default function WindowLayer() {
     <>
       <DesktopFile label="Eric Tang Resume.pdf" onOpen={() => open("resume")} />
       <DesktopFile label="Terminal" art="terminal" onOpen={() => open("terminal")} />
-      <DesktopFile label="Runner" art="game" onOpen={() => open("game")} />
+      <DesktopFile label="Chess" art="game" onOpen={() => open("game")} />
 
       {mounted(phases.about) && <AboutWindow {...windowProps("about")} />}
       {mounted(phases.projects) && (

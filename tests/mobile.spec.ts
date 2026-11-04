@@ -40,20 +40,6 @@ for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }
     const projectUrl = page.url();
     const projects = page.getByRole("region", { name: "Projects", exact: true });
     const dock = page.locator(".dock ul");
-    if (viewport.width <= 640) {
-      const box = (await dock.boundingBox())!;
-      for (let attempt = 0; attempt < 3; attempt++) {
-        await swipe(page, { x: box.x + box.width - 35, y: box.y + 25 }, { x: box.x + 35, y: box.y + 25 });
-      }
-      await expect.poll(() => dock.evaluate(el => el.scrollLeft)).toBeGreaterThan(150);
-      const mail = (await dock.getByRole("link", { name: "Email me" }).boundingBox())!;
-      expect(mail.x + mail.width).toBeLessThanOrEqual(box.x + box.width);
-      await expect(page).toHaveURL(projectUrl); // Swipes must not launch an app.
-      for (let attempt = 0; attempt < 3; attempt++) {
-        await swipe(page, { x: box.x + 35, y: box.y + 25 }, { x: box.x + box.width - 35, y: box.y + 25 });
-      }
-      await expect.poll(() => dock.evaluate(el => el.scrollLeft)).toBeLessThan(2);
-    }
     const checkGeometry = async () => {
       const footer = (await page.locator(".dock").boundingBox())!;
       const bar = (await page.locator(".menubar").boundingBox())!;
@@ -77,6 +63,24 @@ for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }
     await expect(projects).toBeHidden();
     await launcher.tap();
     await expect(projects).toBeVisible();
+    // Check window controls before CDP scroll gestures: Chromium can suppress the
+    // next synthetic tap while a prior compositor scroll is still settling.
+    if (viewport.width <= 640) {
+      const box = (await dock.boundingBox())!;
+      const maxScroll = await dock.evaluate(el => el.scrollWidth - el.clientWidth);
+      for (let attempt = 0; attempt < 3 && await dock.evaluate(el => el.scrollLeft) < maxScroll - 2; attempt++) {
+        await swipe(page, { x: box.x + box.width - 35, y: box.y + 25 }, { x: box.x + 35, y: box.y + 25 });
+      }
+      await expect.poll(() => dock.evaluate(el => el.scrollLeft)).toBeGreaterThan(150);
+      const mail = (await dock.getByRole("link", { name: "Email me" }).boundingBox())!;
+      expect(mail.x + mail.width).toBeLessThanOrEqual(box.x + box.width);
+      await expect(page).toHaveURL(projectUrl); // Swipes must not launch an app.
+      for (let attempt = 0; attempt < 3 && await dock.evaluate(el => el.scrollLeft) > 2; attempt++) {
+        await swipe(page, { x: box.x + 35, y: box.y + 25 }, { x: box.x + box.width - 35, y: box.y + 25 });
+      }
+      await expect.poll(() => dock.evaluate(el => el.scrollLeft)).toBeLessThan(2);
+      await expect(page).toHaveURL(projectUrl);
+    }
     await context.close();
   });
 }

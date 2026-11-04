@@ -108,13 +108,10 @@ const icons = {
     </Ico>
   ),
   game: (
-    /* a gamepad, redrawn so its mass sits in the optical box rather than
-       hugging the bottom edge the way the old headphone-ish shape did */
+    /* A knight, using the same optical box and stroke weight as the other apps. */
     <Ico>
-      <path d="M8.4 8.5h7.2a4.6 4.6 0 0 1 4.5 3.7l.7 3.6a2.2 2.2 0 0 1-3.9 1.8l-1.3-1.7H8.4l-1.3 1.7a2.2 2.2 0 0 1-3.9-1.8l.7-3.6a4.6 4.6 0 0 1 4.5-3.7z" />
-      <path d="M7.6 12.3v2.2M6.5 13.4h2.2" />
-      <circle cx="16" cy="12.6" r="0.95" fill="currentColor" stroke="none" />
-      <circle cx="17.7" cy="14.4" r="0.95" fill="currentColor" stroke="none" />
+      <path d="m7 17 1-4 5-3-4-1-3 2-2-2 5-4 .5-2 3 2c5 .5 7 5 5 12H7zM7 17h11l1.5 3.5h-14L7 17z" />
+      <path d="M12 7h.1" />
     </Ico>
   ),
   terminal: (
@@ -139,7 +136,7 @@ const ITEMS: DockItem[] = [
   { kind: "app", id: "projects", label: "Projects", icon: icons.folder },
   { kind: "app", id: "resume", label: "Resume", icon: icons.doc },
   { kind: "app", id: "terminal", label: "Terminal", icon: icons.terminal },
-  { kind: "app", id: "game", label: "Runner", icon: icons.game },
+  { kind: "app", id: "game", label: "Chess", icon: icons.game },
   { kind: "link", id: "github", label: "GitHub", icon: icons.github, href: "https://github.com/tangericm" },
   { kind: "link", id: "scholar", label: "Publications", icon: icons.scholar, href: "https://scholar.google.com/citations?user=LV0RaF8AAAAJ" },
   { kind: "link", id: "linkedin", label: "LinkedIn", icon: icons.linkedin, href: "https://www.linkedin.com/in/eric-tang-a09524ab/" },

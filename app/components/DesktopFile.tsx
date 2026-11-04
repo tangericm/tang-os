@@ -82,21 +82,12 @@ export default function DesktopFile({
     >
       <span className="desktop-file-art" aria-hidden="true">
         {art === "game" ? (
-          /* the runner, as a cartridge: a little dino against a screen */
+          /* A chessboard and knight, drawn in the desktop's warm palette. */
           <svg viewBox="0 0 40 48">
-            <rect x="3" y="5" width="34" height="32" rx="4" fill="#14100c" stroke="#6b5f50" strokeWidth="1.6" />
-            <rect x="6.5" y="8.5" width="27" height="19" rx="2" fill="#efe9df" />
-            <g fill="#4a4038">
-              <rect x="18" y="12" width="7" height="6" />
-              <rect x="24" y="15" width="2.5" height="2" />
-              <rect x="14" y="16" width="7" height="6" />
-              <rect x="11" y="17" width="4" height="2" />
-              <rect x="15" y="22" width="2.5" height="3" />
-              <rect x="19" y="22" width="2.5" height="2" />
-            </g>
-            <rect x="6.5" y="25.5" width="27" height="1.4" fill="#8a7c6a" />
-            <circle cx="11" cy="32" r="2.4" fill="#2c261f" stroke="#6b5f50" strokeWidth="1.1" />
-            <rect x="25" y="30.5" width="7" height="2.6" rx="1.3" fill="#e2aa63" />
+            <rect x="3" y="5" width="34" height="34" rx="5" fill="#e8d9bf" stroke="#6b5f50" strokeWidth="1.6" />
+            <path d="M4 14h8V6h8v8h8V6h8v8h-8v8h8v8h-8v8h-8v-8h-8v8H4v-8h8v-8H4zm8 0v8h8v8h8v-8h-8v-8z" fill="#8d7052" />
+            <path d="m14 30 1-7 8-5-6-1-4 3-3-4 8-8 .5-3 5 4c8 1 10 9 6 21zM13 30h18l2 5H11z" fill="#fff6e6" stroke="#49392b" strokeWidth="1.3" strokeLinejoin="round" />
+            <circle cx="22" cy="13" r="1" fill="#49392b" />
           </svg>
         ) : art === "terminal" ? (
           <svg viewBox="0 0 40 48">

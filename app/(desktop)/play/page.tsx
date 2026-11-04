@@ -2,9 +2,9 @@ import SiteDocument from "../../components/SiteDocument";
 import { routeMetadata } from "../../lib/metadata";
 
 export const metadata = routeMetadata({
-  title: "Runner",
+  title: "Chess",
   description:
-    "A dinosaur runner hidden inside Eric M. Tang's desktop portfolio. Jump the cacti, duck the birds.",
+    "Play chess against Stockfish inside TangOS. Choose from six difficulty levels, from Beginner to Grandmaster.",
   path: "/play",
   index: false,
 });

@@ -108,7 +108,7 @@ export default function TerminalWindow({ onOpenApp, hidden = false, ...props }: 
           out("contact           how to reach me"),
           out("clear             clear the screen"),
           out("history           commands this session"),
-          out("play              launch the runner")
+          out("play              play chess against Stockfish")
         );
         break;
 
@@ -182,9 +182,10 @@ export default function TerminalWindow({ onOpenApp, hidden = false, ...props }: 
         break;
 
       case "play":
+      case "chess":
       case "game":
         onOpenApp?.("game");
-        push({ kind: "note", text: "launching runner..." });
+        push({ kind: "note", text: "launching chess..." });
         break;
 
       /* --- the jokes --- */
