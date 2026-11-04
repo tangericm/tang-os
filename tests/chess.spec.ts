@@ -3,6 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 async function mockEngine(page: Page, replies: string[], delay = 10) {
   await page.addInitScript(({ replies, delay }) => {
     const NativeWorker = window.Worker;
+    const analyzing = new WeakSet<object>();
     window.Worker = class {
       onmessage: ((event: MessageEvent) => void) | null = null;
       onerror: ((event: ErrorEvent) => void) | null = null;
@@ -10,8 +11,9 @@ async function mockEngine(page: Page, replies: string[], delay = 10) {
         if (!String(url).includes("/engine/")) return new NativeWorker(url, options);
       }
       postMessage(command: string) {
+        if (command === "setoption name UCI_ShowWDL value true") analyzing.add(this);
         const reply = command === "uci" ? "uciok" : command === "isready" ? "readyok"
-          : command.startsWith("go ") ? `bestmove ${replies.shift() ?? "e7e5"}` : null;
+          : command.startsWith("go ") ? `bestmove ${analyzing.has(this) ? "e2e4" : replies.shift() ?? "e7e5"}` : null;
         if (reply) {
           const handler = this.onmessage;
           // Deliberately deliver late callbacks even after terminate, exercising cancellation.
@@ -29,13 +31,21 @@ async function play(page: Page, from: string, to: string) {
   await chess.locator(`[data-square="${to}"]`).click();
 }
 
+async function setup(page: Page, level: string, side: "w" | "b" = "w") {
+  await page.getByRole("region", { name: "Chess", exact: true }).getByRole("button", { name: "New game", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "New game", exact: true });
+  await dialog.getByRole("radio", { name: new RegExp(level, "i") }).check();
+  await dialog.getByRole("radio", { name: side === "w" ? "White" : "Black", exact: true }).check();
+  await dialog.getByRole("button", { name: "Start game", exact: true }).click();
+}
+
 test("Chess replaces Runner and a real engine answers a legal move", async ({ page }) => {
   await page.goto("/play");
   const chess = page.getByRole("region", { name: "Chess", exact: true });
   await expect(chess).toBeVisible();
   await expect(page).toHaveTitle(/Chess/);
-  await expect(chess.getByLabel("Difficulty")).toHaveValue("novice");
-  await chess.getByLabel("Difficulty").selectOption("advanced");
+  await expect(chess.locator(".chess-player small").first()).toContainText("Novice");
+  await setup(page, "advanced");
   await chess.getByRole("button", { name: "e2, white pawn", exact: true }).click();
   await expect(chess.getByRole("button", { name: "e4, empty, legal move", exact: true })).toBeVisible();
   await chess.getByRole("button", { name: "e4, empty, legal move", exact: true }).click();
@@ -51,9 +61,7 @@ test("Chess replaces Runner and a real engine answers a legal move", async ({ pa
 test("Black gets an engine opening and undo preserves that opening", async ({ page }) => {
   await page.goto("/play");
   const chess = page.getByRole("region", { name: "Chess", exact: true });
-  await chess.getByLabel("Difficulty").selectOption("advanced");
-  await chess.getByLabel("Play as").selectOption("b");
-  await chess.getByRole("button", { name: "New game", exact: true }).click();
+  await setup(page, "advanced", "b");
   await expect(chess.getByRole("status")).toContainText("Your turn", { timeout: 20000 });
   await expect(chess.getByRole("button", { name: "Undo turn", exact: true })).toBeDisabled();
   await expect(chess.locator(".chess-square").first()).toHaveAttribute("data-square", "h1");
@@ -62,7 +70,7 @@ test("Black gets an engine opening and undo preserves that opening", async ({ pa
   await expect(chess.getByRole("status")).toContainText("Your turn", { timeout: 20000 });
   await chess.getByRole("button", { name: "Undo turn", exact: true }).click();
   await expect(chess.locator(".chess-history li")).toHaveCount(1);
-  await expect(chess.locator(".chess-history li span").nth(1)).toHaveText(opening!);
+  await expect(chess.locator(".chess-history li span").nth(1)).toContainText(opening!);
   await expect(chess.locator(".chess-history li span").last()).toHaveText("…");
   await expect(chess.getByRole("button", { name: "g8, black knight", exact: true })).toBeVisible();
 });
@@ -90,7 +98,7 @@ test("undo and new game reject replies from searches that already started", asyn
   await mockEngine(page, ["e7e5", "e7e5"], 700);
   await page.goto("/play");
   const chess = page.getByRole("region", { name: "Chess", exact: true });
-  await chess.getByLabel("Difficulty").selectOption("advanced");
+  await setup(page, "advanced");
   await play(page, "e2", "e4");
   await expect(chess.getByRole("status")).toContainText("thinking");
   await chess.getByRole("button", { name: "Undo turn", exact: true }).click();
@@ -110,7 +118,7 @@ test("minimize cancels a pending search and restore resumes the same game", asyn
   await mockEngine(page, ["e7e5", "e7e5"], 700);
   await page.goto("/play");
   const chess = page.getByRole("region", { name: "Chess", exact: true });
-  await chess.getByLabel("Difficulty").selectOption("advanced");
+  await setup(page, "advanced");
   await play(page, "e2", "e4");
   await expect(chess.getByRole("status")).toContainText("thinking");
   await chess.getByRole("button", { name: "Minimize to Dock", exact: true }).click();
@@ -119,15 +127,15 @@ test("minimize cancels a pending search and restore resumes the same game", asyn
   await page.locator('.dock-button[data-app="game"]').click();
   await expect(chess).toBeVisible();
   await expect(chess.getByRole("status")).toContainText("Your turn");
-  await expect(chess.locator(".chess-history li span").nth(1)).toHaveText("e4");
-  await expect(chess.locator(".chess-history li span").last()).toHaveText("e5");
+  await expect(chess.locator(".chess-history li span").nth(1)).toContainText("e4");
+  await expect(chess.locator(".chess-history li span").last()).toContainText("e5");
 });
 
 test("promotion offers all four pieces and supports underpromotion", async ({ page }) => {
   await mockEngine(page, ["b8c6", "h7h6", "h6h5", "h5h4", "a7a6"]);
   await page.goto("/play");
   const chess = page.getByRole("region", { name: "Chess", exact: true });
-  await chess.getByLabel("Difficulty").selectOption("advanced");
+  await setup(page, "advanced");
   for (const [from, to] of [["a2", "a4"], ["a4", "a5"], ["a5", "a6"], ["a6", "b7"]]) {
     await play(page, from, to);
     await expect(chess.getByRole("status")).toContainText("Your turn");
@@ -148,7 +156,7 @@ test("checkmate ends play and reports the winner", async ({ page }) => {
   await mockEngine(page, ["e7e5", "d8h4"]);
   await page.goto("/play");
   const chess = page.getByRole("region", { name: "Chess", exact: true });
-  await chess.getByLabel("Difficulty").selectOption("advanced");
+  await setup(page, "advanced");
   await play(page, "f2", "f3");
   await expect(chess.getByRole("status")).toContainText("Your turn");
   await play(page, "g2", "g4");
@@ -166,10 +174,10 @@ test("a blocked engine can be retried without losing the position", async ({ pag
   await page.unroute("**/engine/stockfish-19-lite-single.js");
   await chess.getByRole("button", { name: "Retry engine", exact: true }).click();
   await expect(chess.getByRole("status")).toContainText("Your turn", { timeout: 20000 });
-  await expect(chess.locator(".chess-history li span").nth(1)).toHaveText("e4");
+  await expect(chess.locator(".chess-history li span").nth(1)).toContainText("e4");
 });
 
-test("the engine only initializes for an opponent turn", async ({ page }) => {
+test("play and coach engines load only after the first move", async ({ page }) => {
   const requests: string[] = [];
   page.on("request", (request) => { if (request.url().includes("/engine/stockfish-19-lite-single.js")) requests.push(request.url()); });
   await page.goto("/play");
@@ -178,7 +186,7 @@ test("the engine only initializes for an opponent turn", async ({ page }) => {
   expect(requests).toHaveLength(0);
   await play(page, "e2", "e4");
   await expect(chess.locator(".chess-engine-state")).toHaveAttribute("data-state", "ready", { timeout: 20000 });
-  expect(requests).toHaveLength(1);
+  expect(requests.length).toBeGreaterThanOrEqual(2);
 });
 
 test("touch taps can select a piece and play a complete turn on a phone", async ({ browser }) => {
@@ -190,7 +198,7 @@ test("touch taps can select a piece and play a complete turn on a phone", async 
     await chess.locator('[data-square="e2"]').tap();
     await chess.locator('[data-square="e4"]').tap();
     await expect(chess.getByRole("status")).toContainText("Your turn", { timeout: 20000 });
-    await expect(chess.locator(".chess-history li span").nth(1)).toHaveText("e4");
+    await expect(chess.locator(".chess-history li span").nth(1)).toContainText("e4");
     await expect(chess.locator(".chess-history li span").last()).not.toHaveText("…");
   } finally { await context.close(); }
 });
@@ -206,14 +214,14 @@ test("resizing a desktop window stacks the board and controls", async ({ page })
   await page.mouse.up();
   const board = await chess.getByRole("group", { name: "Chessboard", exact: true }).boundingBox();
   expect(board!.width).toBeGreaterThan(260);
-  await chess.getByLabel("Difficulty").selectOption("advanced");
+  await setup(page, "advanced");
 });
 
 test("all six presets produce a legal reply from the bundled engine", async ({ page }) => {
   await page.goto("/play");
   const chess = page.getByRole("region", { name: "Chess", exact: true });
   for (const level of ["beginner", "novice", "intermediate", "advanced", "expert", "grandmaster"]) {
-    await chess.getByLabel("Difficulty").selectOption(level);
+    await setup(page, level);
     await play(page, "e2", "e4");
     await expect(chess.getByRole("status")).toContainText("Your turn", { timeout: 20000 });
     await expect(chess.locator(".chess-history li span").last()).not.toHaveText("…");
@@ -239,7 +247,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
       expect(board!.y).toBeGreaterThanOrEqual(body!.y);
       expect(board!.y + board!.height).toBeLessThanOrEqual(body!.y + body!.height);
     }
-    await chess.getByLabel("Difficulty").selectOption("grandmaster");
+    await setup(page, "grandmaster");
     await chess.getByRole("button", { name: "Flip board", exact: true }).click();
     await expect(chess.locator(".chess-square").first()).toHaveAttribute("data-square", "h1");
     if (viewport.width === 1440 || viewport.width === 390) {

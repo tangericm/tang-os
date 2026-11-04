@@ -114,3 +114,39 @@ test("beginner can choose a weaker legal move without claiming a sub-minimum UCI
   expect(await result).toBe("a2a3");
   engine.dispose();
 });
+
+test("analysis returns the deepest complete exact iteration and restores playing strength", async () => {
+  const worker = new TestWorker();
+  const engine = new ChessEngine(() => worker as unknown as Worker);
+  worker.emit("uciok\nreadyok");
+  await engine.ready;
+  const game = new Chess();
+  const legal = ["e2e4", "d2d4"];
+  const result = engine.analyze(game.fen(), legal, [], { multiPV: 2, time: 150 });
+  expect(worker.commands).toContain("setoption name Skill Level value 20");
+  expect(worker.commands).toContain("setoption name UCI_ShowWDL value true");
+  await expect(engine.move(game.fen(), CHESS_LEVELS[3], legal)).rejects.toThrow(/running/);
+  worker.emit("info depth 6 multipv 1 score cp 10 wdl 30 960 10 pv e2e4 e7e5\ninfo depth 6 multipv 2 score cp 8 wdl 20 970 10 pv d2d4 d7d5\ninfo depth 7 multipv 1 score cp 22 wdl 70 920 10 pv d2d4 d7d5\ninfo depth 7 multipv 2 score cp 4 upperbound wdl 20 970 10 pv e2e4 e7e5\nbestmove d2d4");
+  const lines = await result;
+  expect(lines.map(line => [line.depth, line.pv[0], line.points])).toEqual([[6,"e2e4",0.51],[6,"d2d4",0.505]]);
+  const move = engine.move(game.fen(), CHESS_LEVELS[0], legal);
+  expect(worker.commands.slice(-6)).toContain("setoption name MultiPV value 1");
+  worker.emit("bestmove e2e4");
+  await move;
+  engine.dispose();
+});
+
+test("restricted analysis rejects malformed evidence, and disposal cancels retry", async () => {
+  const worker = new TestWorker();
+  const engine = new ChessEngine(() => worker as unknown as Worker);
+  worker.emit("uciok\nreadyok");
+  await engine.ready;
+  const analyze = () => engine.analyze(new Chess().fen(), ["e2e4"], [], {multiPV: 1, time: 200, searchMoves: ["e2e4"]});
+  const result = analyze();
+  expect(worker.commands.at(-1)).toBe("go movetime 200 searchmoves e2e4");
+  worker.emit("info depth 9 multipv 1 score cp 16 pv e2e4\ninfo depth 9 multipv 1 score cp 16 wdl 100 800 100 pv e2e4 a9b3\nbestmove e2e4");
+  await expect(result).rejects.toThrow(/analysis/i);
+  const second = analyze();
+  engine.dispose();
+  await expect(second).rejects.toThrow(/cancel/i);
+});

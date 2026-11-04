@@ -101,6 +101,7 @@ test("keyboard focus raises an obscured window and motion preferences keep the d
   await page.goto("/projects");
   const about = page.getByRole("region", { name: "About Me", exact: true });
   const projects = page.getByRole("region", { name: "Projects", exact: true });
+  await expect(projects).toBeFocused();
   await about.getByRole("button", { name: "Close window", exact: true }).focus();
   await expect(about).toHaveCSS("z-index", "12");
   await expect(projects).toHaveCSS("z-index", "10");
