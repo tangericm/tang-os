@@ -1,5 +1,24 @@
 import { expect, test } from "@playwright/test";
 
+test("review keeps its board navigation and return action visible on a shorter desktop", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/play");
+  const chess = page.getByRole("region", { name: "Chess", exact: true });
+  await chess.locator('[data-square="e2"]').click();
+  await chess.locator('[data-square="e4"]').click();
+  await expect(chess.locator(".chess-engine-state")).toHaveAttribute("data-state", "ready", { timeout: 20000 });
+  await chess.getByRole("button", { name: "More options", exact: true }).click();
+  await chess.getByRole("button", { name: "Review game", exact: true }).click();
+  await expect(chess.getByText("2 / 2 graded", { exact: true })).toBeVisible({ timeout: 20000 });
+  const body = await chess.locator(".window-body").boundingBox();
+  const nav = await chess.getByRole("navigation", { name: "Review navigation", exact: true }).boundingBox();
+  expect(nav!.y + nav!.height).toBeLessThanOrEqual(body!.y + body!.height);
+  await chess.getByRole("button", { name: "Show best move", exact: true }).click();
+  const back = await chess.getByRole("button", { name: "Back to game", exact: true }).boundingBox();
+  expect(back!.y).toBeGreaterThanOrEqual(body!.y);
+  expect(await chess.evaluate(el => el.scrollTop)).toBe(0);
+});
+
 test("opponent difficulty can change without clearing the game", async ({ page }) => {
   await page.goto("/play");
   const chess = page.getByRole("region", { name: "Chess", exact: true });

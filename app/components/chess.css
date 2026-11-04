@@ -1,5 +1,5 @@
 /* Board first. At full size: 520px board + 24px gutter + 228px panel + 40px edges. */
-.window-game { width: min(812px, 94vw, calc(max(160px, 100dvh - var(--compact-window-top) - 300px - env(safe-area-inset-bottom)) + 292px)); top: var(--compact-window-top); display: flex; flex-direction: column; container: chess-window / inline-size; }
+.window-game { width: min(812px, 94vw, calc(max(160px, 100dvh - var(--compact-window-top) - 300px - env(safe-area-inset-bottom)) + 292px)); top: var(--compact-window-top); display: flex; flex-direction: column; container: chess-window / inline-size; overflow: clip; }
 .window-game.window-hidden { display: none; }
 .window-game .window-titlebar { flex-shrink: 0; }
 .window-game .window-body { padding: 0; min-height: 0; max-height: calc(100dvh - var(--compact-window-top) - 150px - env(safe-area-inset-bottom)); overflow: auto; }
@@ -9,7 +9,7 @@
 .chess button:disabled { color: var(--ink-faint); cursor: default; opacity: .55; }
 .chess button:focus-visible:not(.chess-square), .chess summary:focus-visible, .chess a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .chess button:not(.chess-square):active:not(:disabled) { transform: translateY(1px); }
-.chess-toolbar { display: flex; justify-content: space-between; align-items: center; min-height: 40px; margin-bottom: 8px; gap: 12px; }
+.chess-toolbar { position: sticky; top: 0; z-index: 9; background: var(--surface-window); display: flex; justify-content: space-between; align-items: center; min-height: 40px; margin-bottom: 8px; gap: 12px; }
 .chess-tools { display: flex; align-items: center; gap: 2px; }
 .chess-new, .chess-back { min-height: 36px; background: transparent; border: 0; border-radius: 6px; padding: 6px 10px; font-weight: 600 !important; }
 .chess-new { background: var(--panel); display: flex; align-items: center; gap: 7px; }
@@ -162,6 +162,9 @@
 .chess-review-method p { margin-top: 6px; }
 .chess-review-error { font-size: 11px; color: #edb2a3; margin-bottom: 12px; }
 .chess-sr-only, .chess .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (min-height: 501px) {
+  .chess[data-reviewing="true"] { --chess-board-limit: min(520px, max(160px, calc(100dvh - var(--compact-window-top) - 350px - env(safe-area-inset-bottom)))); }
+}
 @keyframes chess-travel { from { transform: translate(0,0); } to { transform: translate(var(--move-x),var(--move-y)); } }
 @keyframes chess-capture { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(.6); } }
 @keyframes chess-badge { from { transform: scale(.65); opacity: .1; } to { transform: scale(1); opacity: 1; } }

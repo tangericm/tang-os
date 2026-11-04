@@ -185,7 +185,7 @@ export default function GameWindow({ active = true, ...props }: Props) {
   const dialogName = dialog === "new" ? "New game" : dialog === "difficulty" ? "Opponent level" : dialog === "resign" ? "Resign game?" : "Help & engine";
 
   return <Window title="Chess" frameClassName="window-game" {...props}>
-    <div className="chess" onKeyDownCapture={event => {
+    <div className="chess" data-reviewing={review} onKeyDownCapture={event => {
       if (!review || dialog || event.nativeEvent.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
       if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
         event.preventDefault(); event.stopPropagation(); navigate(selected + (event.key === "ArrowLeft" ? -1 : 1));

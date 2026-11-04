@@ -7,12 +7,13 @@ Stockfish analyzes at full strength independently of the opponent preset. Grades
 ## Checks
 
 - `npm run verify`: typecheck, production build, and 183/183 crawlability checks passed.
-- Full browser suite: 71/71 passed on the development server and 71/71 against the production build. Includes real bundled-engine replies at all six strengths, touch play, White/Black, promotion, terminal results, cancellation, undo, retry, live Coach, review, keyboard, responsive layouts, and reduced motion.
+- Full browser suite: 71/71 passed on the development server and 72/72 against the final production build. Includes real bundled-engine replies at all six strengths, touch play, White/Black, promotion, terminal results, cancellation, undo, retry, live Coach, review, keyboard, responsive layouts, and reduced motion.
 - Component tests cover castling, en passant, promoting captures, focus restoration, and an analysis queue deliberately slower than opponent play. Numerical tests reject cross-depth comparisons and keep suggestions consistent with scores.
 - Independent review reproduced and fixed inconsistent candidate searches, analysis starvation, incorrect badge ownership after capture, capture counts from future moves, and missing apply-only difficulty changes. The bundled engine distinguished a winning queen sacrifice from a losing control position.
 - The portfolio focus test now waits for the initial routed-window focus before moving focus to another window. The original failure and synchronized pass were reproduced on the exact previous production commit; its original z-index assertions remain.
 - `npm audit`: zero known vulnerabilities across the full dependency graph.
 - Impeccable 4.8.0 mechanical detector: no findings. Taste 2.1.5 app lint: zero failures. Its six shadow warnings concern floating menus/dialogs/badges/arrows and inset selection/focus indicators; these have a specific interaction purpose.
 - Inspected the rendered desktop, narrow phone, manually resized, and short landscape layouts. The final coordinate colors meet 4.5:1 contrast on both square colors and selection/check backgrounds. Browser inspection used the available CUA controls and exported browser-test captures rather than Taste's separate browser launcher.
+- Release 0.32.1 gives review navigation its own height reserve on shorter desktops, keeps the toolbar visible when content scrolls, and prevents focus from scrolling the outer window frame. A 1280×720 regression first reproduced the clipped navigation, then passed with the whole navigation and return action visible. The complete final production suite passed afterward.
 
 The feature retains the existing browser security policies and engine license/source links. Private Vercel and registrar audit records are stored outside this public repository. No production email was sent as a test.
