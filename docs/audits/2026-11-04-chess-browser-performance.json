@@ -1,0 +1,242 @@
+{
+  "method": "Browser Worker, real bundled WASM, actual baseline/current review hook and current grading code; 3 alternating batches of 6 plies; drained queues; no opponent or rendering animation; latency is move append to published grade, not field INP; local device, uncontrolled OS load, no throttling; retained hash state may change grades and depth",
+  "groups": [
+    {
+      "baseline": true,
+      "workers": 18,
+      "latency": {
+        "n": 18,
+        "medianMs": 662.4000000357628,
+        "p95Ms": 971
+      },
+      "initialization": {
+        "n": 18,
+        "medianMs": 441.19999998807907,
+        "p95Ms": 627.3000000119209
+      }
+    },
+    {
+      "baseline": false,
+      "workers": 3,
+      "latency": {
+        "n": 18,
+        "medianMs": 171,
+        "p95Ms": 615.3999999761581
+      },
+      "initialization": {
+        "n": 3,
+        "medianMs": 400.39999997615814,
+        "p95Ms": 430.10000002384186
+      }
+    }
+  ],
+  "runs": [
+    {
+      "baseline": true,
+      "batch": 0,
+      "workers": 6,
+      "initialization": [
+        532.6000000238419,
+        373,
+        584.5,
+        587.7999999523163,
+        364.5,
+        353.30000001192093
+      ],
+      "latency": [
+        712.9000000357628,
+        538.5,
+        766.8999999761581,
+        918,
+        690.1999999880791,
+        527.3000000119209
+      ],
+      "depths": [
+        14,
+        11,
+        9,
+        11,
+        9,
+        9
+      ],
+      "grades": [
+        "Best",
+        "Best",
+        "Best",
+        "Excellent",
+        "Best",
+        "Best"
+      ]
+    },
+    {
+      "baseline": false,
+      "batch": 0,
+      "workers": 1,
+      "initialization": [
+        430.10000002384186
+      ],
+      "latency": [
+        615.3999999761581,
+        327.89999997615814,
+        170.79999995231628,
+        166,
+        174.80000001192093,
+        169.29999995231628
+      ],
+      "depths": [
+        13,
+        11,
+        12,
+        11,
+        10,
+        8
+      ],
+      "grades": [
+        "Best",
+        "Best",
+        "Best",
+        "Best",
+        "Best",
+        "Best"
+      ]
+    },
+    {
+      "baseline": false,
+      "batch": 1,
+      "workers": 1,
+      "initialization": [
+        400.39999997615814
+      ],
+      "latency": [
+        579.2999999523163,
+        331.69999998807907,
+        168.60000002384186,
+        168.60000002384186,
+        329.4000000357628,
+        172.39999997615814
+      ],
+      "depths": [
+        12,
+        11,
+        11,
+        10,
+        10,
+        9
+      ],
+      "grades": [
+        "Best",
+        "Best",
+        "Best",
+        "Best",
+        "Excellent",
+        "Best"
+      ]
+    },
+    {
+      "baseline": true,
+      "batch": 1,
+      "workers": 6,
+      "initialization": [
+        363.39999997615814,
+        355.89999997615814,
+        484.60000002384186,
+        361.19999998807907,
+        533.3999999761581,
+        594.1000000238419
+      ],
+      "latency": [
+        545.6999999880791,
+        532.0999999642372,
+        662.4000000357628,
+        697.3999999761581,
+        883.9000000357628,
+        770.5999999642372
+      ],
+      "depths": [
+        13,
+        8,
+        10,
+        10,
+        8,
+        6
+      ],
+      "grades": [
+        "Best",
+        "Best",
+        "Best",
+        "Best",
+        "Inaccuracy",
+        "Best"
+      ]
+    },
+    {
+      "baseline": true,
+      "batch": 2,
+      "workers": 6,
+      "initialization": [
+        456,
+        586.8000000119209,
+        441.19999998807907,
+        353.19999998807907,
+        627.3000000119209,
+        332.7000000476837
+      ],
+      "latency": [
+        642.1000000238419,
+        931.5,
+        613.3000000119209,
+        517.3000000119209,
+        971,
+        502.0999999642372
+      ],
+      "depths": [
+        13,
+        7,
+        9,
+        7,
+        6,
+        9
+      ],
+      "grades": [
+        "Best",
+        "Excellent",
+        "Best",
+        "Best",
+        "Excellent",
+        "Best"
+      ]
+    },
+    {
+      "baseline": false,
+      "batch": 2,
+      "workers": 1,
+      "initialization": [
+        345.0999999642372
+      ],
+      "latency": [
+        522.3999999761581,
+        333,
+        169.89999997615814,
+        171,
+        171,
+        167.60000002384186
+      ],
+      "depths": [
+        12,
+        10,
+        12,
+        12,
+        9,
+        9
+      ],
+      "grades": [
+        "Best",
+        "Excellent",
+        "Excellent",
+        "Best",
+        "Best",
+        "Best"
+      ]
+    }
+  ]
+}

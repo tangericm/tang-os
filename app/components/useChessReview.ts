@@ -9,7 +9,7 @@ type Options = { enabled: boolean; mode: ReviewMode; epoch: number };
 type Entry = { before: string; lan: string; quality: ReviewMode; result: MoveReview };
 type Cache = { epoch: number; entries: readonly Entry[] };
 type Halt = { epoch: number; mode: ReviewMode; error: string };
-type Job = { epoch: number; mode: ReviewMode; moves: readonly Move[]; worker?: ChessEngine };
+type Job = { epoch: number; mode: ReviewMode; moves: readonly Move[] };
 
 function sharedLength(cache: Cache, epoch: number, moves: readonly Move[]) {
   if (cache.epoch !== epoch) return 0;
@@ -23,14 +23,15 @@ export function useChessReview(moves: readonly Move[], { enabled, mode, epoch }:
   const [snapshot, setSnapshot] = useState<Cache>({ epoch, entries: [] });
   const saved = useRef(snapshot);
   const active = useRef<Job | null>(null);
+  const engine = useRef<ChessEngine | null>(null);
   const [halt, setHalt] = useState<Halt | null>(null);
   const [running, setRunning] = useState(false);
   const paused = halt?.epoch === epoch && halt.mode === mode;
 
   const cancel = useCallback(() => {
-    const job = active.current;
     active.current = null;
-    job?.worker?.dispose();
+    engine.current?.dispose();
+    engine.current = null;
   }, []);
 
   const stop = useCallback(() => {
@@ -51,9 +52,11 @@ export function useChessReview(moves: readonly Move[], { enabled, mode, epoch }:
       existing.moves = moves;
       return;
     }
-    cancel();
     const previous = saved.current;
     const length = sharedLength(previous, epoch, moves);
+    // An idle engine stays warm across appended moves and mode changes. In-flight
+    // work, disabled sessions and rewritten history must relinquish ownership.
+    if (existing || !enabled || paused || previous.epoch !== epoch || length < previous.entries.length) cancel();
     let entries = previous.entries.slice(0, length);
     function publish() {
       const cache = { epoch, entries };
@@ -71,9 +74,9 @@ export function useChessReview(moves: readonly Move[], { enabled, mode, epoch }:
     active.current = job;
     setRunning(true);
     async function run() {
+      let worker: ChessEngine | undefined;
       try {
-        const worker = new ChessEngine();
-        job.worker = worker;
+        worker = engine.current ??= new ChessEngine();
         await worker.ready;
         const history: string[] = [];
         for (let i = 0; i < job.moves.length; i++) {
@@ -89,9 +92,12 @@ export function useChessReview(moves: readonly Move[], { enabled, mode, epoch }:
           history.push(move.lan);
         }
       } catch (reason) {
-        if (active.current === job) setHalt({ epoch, mode, error: reason instanceof Error ? reason.message : "Analysis failed." });
+        if (active.current === job) {
+          worker?.dispose();
+          if (engine.current === worker) engine.current = null;
+          setHalt({ epoch, mode, error: reason instanceof Error ? reason.message : "Analysis failed." });
+        }
       } finally {
-        job.worker?.dispose();
         if (active.current === job) {
           active.current = null;
           setRunning(false);
@@ -102,11 +108,10 @@ export function useChessReview(moves: readonly Move[], { enabled, mode, epoch }:
   }, [enabled, mode, epoch, moves, paused, cancel]);
 
   const visible = sharedLength(snapshot, epoch, moves);
-  const reviews = moves.map((_, i) => {
-    const entry = i < visible ? snapshot.entries[i] : undefined;
-    return mode === "review" && entry?.quality !== "review" ? undefined : entry?.result;
-  });
-  return { reviews, running: enabled && !paused && running, completed: reviews.filter(Boolean).length,
+  const entries = moves.map((_, i) => i < visible ? snapshot.entries[i] : undefined);
+  const reviews = entries.map(entry => entry?.result);
+  return { reviews, qualities: entries.map(entry => entry?.quality), running: enabled && !paused && running,
+    completed: entries.filter(entry => entry && (mode === "live" || entry.quality === "review")).length,
     total: moves.length, error: paused ? halt.error : "", stop, restart };
 }
 

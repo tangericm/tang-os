@@ -24,6 +24,12 @@ catalog, and the simulator layer reveal on desktop and mobile, including reduced
 motion. Run `npx playwright install chromium` once, then
 `npm run test:browser` (the test runner starts the dev server if needed).
 
+Chess tests also cover real engine play, warm analysis-worker ownership, progressive
+review, legal continuation playback, isolated practice, keyboard controls, special
+moves, and reduced motion. The historical worker-latency comparison requires Git
+commit `973a65c`; that comparison explicitly skips when the object is unavailable
+in a shallow or source-only checkout. The other chess checks still run.
+
 ## Deploy
 
 Pushing to `main` deploys automatically via Vercel. CI runs `verify` on every
@@ -60,7 +66,7 @@ the whole reason these exist.
 - [x] Real scientific figures with concise workflows, keyboard-controlled image comparisons, optical-design plots, RAWForge capture screens, Frankie Town, and Eric's Recipe Book
 - [x] Resume: desktop file → document viewer + PDF download
 - [x] Terminal: a working shell over the same project data (`ls`, `cat`, `open`, and some jokes)
-- [x] Chess: on-device Stockfish engine, six approximate difficulty levels, White/Black choice, move hints, undo, and move history
+- [x] Chess: on-device Stockfish, six approximate difficulty levels, live coaching, progressive review, continuation playback, practice with hints, an evaluation timeline, and adjustable piece animation
 - [x] Power menu: sleep, restart, shut down
 - [x] Real routes and deep links — `/projects/denoiser` opens that project
 - [x] Crawlable document mirror, JSON-LD, sitemap

@@ -9,7 +9,7 @@ import ChessPiece from "./ChessPiece";
 type Props = {
   game: Chess; player: Color; flipped: boolean; disabled: boolean; lastMove?: Move; motion?: Move;
   badge?: { square: Square; grade: MoveGrade; key: string };
-  arrow?: { from: Square; to: Square };
+  arrow?: { from: Square; to: Square; tone?: "suggestion" | "danger" };
   onMove: (from: Square, to: Square, promotion?: string) => void;
 };
 
@@ -46,13 +46,13 @@ function overlayStyle(from: Square, to: Square, flipped: boolean): CSSProperties
   } as CSSProperties;
 }
 
-function BestArrow({ from, to, flipped }: { from: Square; to: Square; flipped: boolean }) {
+function BestArrow({ from, to, flipped, tone = "suggestion" }: { from: Square; to: Square; flipped: boolean; tone?: "suggestion" | "danger" }) {
   const a = coordinates(from, flipped), b = coordinates(to, flipped);
   const dx = b.x - a.x, dy = b.y - a.y;
   const length = Math.hypot(dx, dy);
   if (!length) return null;
   const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-  return <svg className="chess-best-arrow" viewBox="0 0 8 8" aria-hidden="true" focusable="false">
+  return <svg className="chess-best-arrow" data-tone={tone} viewBox="0 0 8 8" aria-hidden="true" focusable="false">
     <g transform={`translate(${a.x + .5} ${a.y + .5}) rotate(${angle})`}>
       <line x1=".17" y1="0" x2={length - .32} y2="0" stroke="currentColor" strokeWidth=".13" strokeLinecap="round" />
       <path d={`M ${length - .45} -.24 L ${length - .03} 0 L ${length - .45} .24 Z`} fill="currentColor" />

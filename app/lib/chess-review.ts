@@ -1,5 +1,6 @@
 import { Chess, DEFAULT_POSITION, type Color, type Move, type PieceSymbol } from "chess.js";
 import type { ChessEngine } from "./chess-engine";
+import { explainMove } from "./chess-coach";
 
 export type MoveGrade = "Brilliant" | "Great" | "Best" | "Excellent" | "Good" | "Inaccuracy" | "Mistake" | "Miss" | "Blunder" | "Forced";
 export type ReviewMode = "live" | "review";
@@ -8,6 +9,8 @@ export interface MoveReview {
   playedSan: string;
   bestSan: string;
   bestLan: string;
+  bestLine: readonly string[];
+  playedLine: readonly string[];
   explanation: string;
   loss: number;
   bestPoints: number;
@@ -126,9 +129,16 @@ export async function reviewMove(engine: ReviewEngine, move: Move, historyBefore
   if (grade === "Best" && terminal !== undefined) {
     explanation = terminal === 1 ? "This move delivered checkmate." : "This move secured a draw.";
   }
+  const bestLine = (ranked.find(line => line.pv[0] === preferred)?.pv ?? [preferred]).slice(0, 8);
+  const playedLine = (played?.pv ?? [move.lan]).slice(0, 8);
+  if (terminal === undefined) {
+    explanation = sacrifice ? `${move.san} offers the ${sacrifice.piece === "n" ? "knight" : sacrifice.piece === "b" ? "bishop" : sacrifice.piece === "r" ? "rook" : "queen"} on ${move.to}. ${explanations.Brilliant}`
+      : explainMove(move, playedLine, bestLine, loss, explanation);
+    if (grade === "Forced" || grade === "Great") explanation = `${explanations[grade]} ${explanation}`;
+  }
   return {
     grade, playedSan: move.san, bestSan: legal.find(candidate => candidate.lan === preferred)!.san,
-    bestLan: preferred, explanation, loss, bestPoints, playedPoints, depth, ...(sacrifice && { sacrifice }),
+    bestLan: preferred, bestLine, playedLine, explanation, loss, bestPoints, playedPoints, depth, ...(sacrifice && { sacrifice }),
   };
 }
 

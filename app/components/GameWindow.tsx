@@ -6,6 +6,7 @@ import Window from "./Window";
 import ChessBoard from "./ChessBoard";
 import ChessPiece from "./ChessPiece";
 import ChessReviewPanel from "./ChessReviewPanel";
+import ChessLesson, { type Lesson, type ChessMotion } from "./ChessLesson";
 import { useChessReview } from "./useChessReview";
 import { CHESS_LEVELS, gameStatus, undoTurn, type ChessLevel } from "../lib/chess-game";
 import { ChessEngine } from "../lib/chess-engine";
@@ -13,7 +14,7 @@ import { GRADE_SYMBOLS } from "../lib/chess-grades";
 import "./chess.css";
 
 type Props = Omit<ComponentProps<typeof Window>, "title" | "children" | "frameClassName"> & { active?: boolean };
-type Dialog = "new" | "difficulty" | "resign" | "help" | null;
+type Dialog = "new" | "difficulty" | "display" | "resign" | "help" | null;
 const paths = {
   plus: "M12 5v14M5 12h14", undo: "m8 4-5 5 5 5M4 9h9a7 7 0 0 1 0 14",
   flip: "M4 7h15m-4-4 4 4-4 4M20 17H5m4-4-4 4 4 4", more: "M5 12h.01M12 12h.01M19 12h.01",
@@ -49,6 +50,8 @@ export default function GameWindow({ active = true, ...props }: Props) {
   const [selected, setSelected] = useState(-1);
   const [inspected, setInspected] = useState<number | null>(null);
   const [showBest, setShowBest] = useState(false);
+  const [lesson, setLesson] = useState<Lesson | null>(null);
+  const [motionStyle, setMotionStyle] = useState<ChessMotion>("normal");
   const [motion, setMotion] = useState<Move>();
   const [engineState, setEngineState] = useState("ready");
   const [engineError, setEngineError] = useState("");
@@ -56,9 +59,9 @@ export default function GameWindow({ active = true, ...props }: Props) {
   const historyRef = useRef<HTMLOListElement>(null);
   const navigationRef = useRef<HTMLElement>(null);
   const over = resigned || game.isGameOver();
-  const browsing = review || inspected !== null || showBest;
+  const browsing = review || inspected !== null || showBest || lesson !== null;
   const paused = !active || dialog !== null || browsing;
-  const analysis = useChessReview(history, { enabled: active && !dialog, mode: review ? "review" : "live", epoch });
+  const analysis = useChessReview(history, { enabled: active && !dialog && lesson?.kind !== "practice", mode: review ? "review" : "live", epoch });
   const coachIndex = inspected ?? history.findLastIndex(move => move.color === player);
   const ply = review ? selected : coachIndex;
   const current = history[ply];
@@ -69,14 +72,14 @@ export default function GameWindow({ active = true, ...props }: Props) {
   const arrow = alternative && grade ? { from: grade.bestLan.slice(0, 2) as Square, to: grade.bestLan.slice(2, 4) as Square } : undefined;
 
   function record(move: Move) {
-    setMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches ? undefined : move);
+    setMotion(motionStyle === "off" || window.matchMedia("(prefers-reduced-motion: reduce)").matches ? undefined : move);
     setRevision(n => n + 1);
   }
   useEffect(() => {
     if (!motion) return;
-    const timer = setTimeout(() => setMotion(undefined), 260);
+    const timer = setTimeout(() => setMotion(undefined), motionStyle === "fast" ? 180 : 260);
     return () => clearTimeout(timer);
-  }, [motion]);
+  }, [motion, motionStyle]);
 
   // One turn owns its search and its pacing timer. Navigation, undo and setup cancel both.
   useLayoutEffect(() => {
@@ -112,7 +115,7 @@ export default function GameWindow({ active = true, ...props }: Props) {
     }
     void search();
     return () => { cancelled = true; clearTimeout(timer); release(); worker?.dispose(); };
-  }, [game, history, level, over, paused, player, retry]);
+  }, [game, history, level, over, paused, player, retry, motionStyle]);
 
   useLayoutEffect(() => {
     const node = dialogRef.current;
@@ -139,17 +142,17 @@ export default function GameWindow({ active = true, ...props }: Props) {
   }, [review]);
 
   function live() {
-    setReview(false); setInspected(null); setShowBest(false);
+    setReview(false); setInspected(null); setShowBest(false); setLesson(null);
   }
   function openReview() {
-    setMenu(false); setMotion(undefined); setInspected(null); setShowBest(false);
+    setMenu(false); setMotion(undefined); setInspected(null); setShowBest(false); setLesson(null);
     setSelected(history.length - 1); setReview(true);
   }
   function navigate(index: number) {
-    setSelected(Math.max(-1, Math.min(index, history.length - 1))); setShowBest(false);
+    setSelected(Math.max(-1, Math.min(index, history.length - 1))); setShowBest(false); setLesson(null);
   }
   function openDialog(next: Dialog) {
-    setMenu(false);
+    setMenu(false); setLesson(null); setMotion(undefined);
     if (next === "new" || next === "difficulty") { setDraftLevel(level); setDraftSide(player); }
     setDialog(next);
   }
@@ -163,8 +166,14 @@ export default function GameWindow({ active = true, ...props }: Props) {
     setMotion(undefined); setResigned(false); live(); setRevision(n => n + 1);
   }
   function selectHistory(index: number) {
+    setLesson(null);
     if (review) navigate(index);
     else { setInspected(index); setMotion(undefined); setShowBest(false); }
+  }
+  function openLesson(kind: Lesson["kind"]) {
+    if (!current || !grade) return;
+    setShowBest(false); setMotion(undefined);
+    setLesson({ kind, move: current, result: grade, history: history.slice(0, ply).map(move => move.lan) });
   }
   function moveButton(index: number) {
     const move = history[index], result = analysis.reviews[index];
@@ -182,11 +191,12 @@ export default function GameWindow({ active = true, ...props }: Props) {
   const visibleHistory = browsing ? history.slice(0, Math.max(0, ply + (alternative ? 0 : 1))) : history;
   const captured = visibleHistory.filter(m => m.color === player && m.captured);
   const coachOwner = current?.color === player ? "Your" : "Stockfish’s";
-  const dialogName = dialog === "new" ? "New game" : dialog === "difficulty" ? "Opponent level" : dialog === "resign" ? "Resign game?" : "Help & engine";
+  const dialogName = dialog === "new" ? "New game" : dialog === "difficulty" ? "Opponent level" : dialog === "display" ? "Board settings" : dialog === "resign" ? "Resign game?" : "Help & engine";
 
   return <Window title="Chess" frameClassName="window-game" {...props}>
-    <div className="chess" data-reviewing={review} onKeyDownCapture={event => {
-      if (!review || dialog || event.nativeEvent.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
+    <div className="chess" data-reviewing={review} data-lesson={Boolean(lesson)} data-motion={motionStyle} onKeyDownCapture={event => {
+      if (!review || dialog || lesson || event.nativeEvent.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
+      if (event.target instanceof HTMLElement && event.target.closest("input, select, textarea")) return;
       if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
         event.preventDefault(); event.stopPropagation(); navigate(selected + (event.key === "ArrowLeft" ? -1 : 1));
       }
@@ -196,13 +206,14 @@ export default function GameWindow({ active = true, ...props }: Props) {
           : <button type="button" className="chess-new" onClick={() => openDialog("new")}><Icon name="plus" /> New game</button>}
         <div className="chess-tools">
           <button type="button" className="chess-icon-button" aria-label="Undo turn" title="Undo turn"
-            disabled={!history.some(m => m.color === player) || review} onClick={undo}><Icon name="undo" /></button>
+            disabled={!history.some(m => m.color === player) || review || Boolean(lesson)} onClick={undo}><Icon name="undo" /></button>
           <button type="button" className="chess-icon-button" aria-label="Flip board" title="Flip board" onClick={() => setFlipped(value => !value)}><Icon name="flip" /></button>
           <div className="chess-menu-wrap" ref={menuRef}>
             <button type="button" className="chess-icon-button" ref={menuButton} aria-label="More options" title="More options"
               aria-expanded={menu} onClick={() => setMenu(value => !value)}><Icon name="more" /></button>
             {menu && <div className="chess-menu" role="group" aria-label="Chess options">
               <button type="button" onClick={() => openDialog("difficulty")}>Opponent level</button>
+              <button type="button" onClick={() => openDialog("display")}>Board settings</button>
               {!review && <button type="button" disabled={!history.length} onClick={openReview}>Review game</button>}
               {!over && <button type="button" onClick={() => openDialog("resign")}>Resign</button>}
               <button type="button" onClick={() => openDialog("help")}>Help &amp; engine</button>
@@ -220,10 +231,12 @@ export default function GameWindow({ active = true, ...props }: Props) {
                 engineState === "loading" ? "Loading…" : engineState === "error" ? "Offline" : ""}
             </span>
           </div>
+          {lesson ? <ChessLesson key={`${epoch}-${ply}-${lesson.kind}`} lesson={lesson} flipped={flipped} active={active && !dialog}
+            motionStyle={motionStyle} onClose={() => { setLesson(null); menuButton.current?.focus({ preventScroll: true }); }} /> :
           <ChessBoard key={epoch} game={boardGame} player={player} flipped={flipped} lastMove={alternative ? undefined : browsing ? current : history.at(-1)}
             disabled={paused || over || engineState === "error"} motion={browsing ? undefined : motion} badge={badge} arrow={arrow}
-            onMove={(from, to, promotion) => { if (!paused && !over && !motion && game.turn() === player) record(game.move({ from, to, promotion })); }} />
-          <div className="chess-player chess-you">
+            onMove={(from, to, promotion) => { if (!paused && !over && !motion && game.turn() === player) record(game.move({ from, to, promotion })); }} />}
+          {!lesson && <div className="chess-player chess-you">
             <span className="chess-avatar"><ChessPiece type="k" color={player} /></span>
             <strong>You</strong>
             <div className="chess-captured" aria-label={`You captured ${captured.length} pieces`}>
@@ -232,8 +245,8 @@ export default function GameWindow({ active = true, ...props }: Props) {
             {!browsing && <div className="chess-status" role="status">
               {engineError ? "Engine unavailable — retry to continue" : engineState === "thinking" || engineState === "loading" ? "Stockfish is thinking…" : status}
             </div>}
-          </div>
-          {review ? <nav className="chess-review-nav" aria-label="Review navigation" aria-keyshortcuts="ArrowLeft ArrowRight" tabIndex={-1} ref={navigationRef}>
+          </div>}
+          {lesson ? null : review ? <nav className="chess-review-nav" aria-label="Review navigation" aria-keyshortcuts="ArrowLeft ArrowRight" tabIndex={-1} ref={navigationRef}>
             {(["first","prev","next","last"] as const).map((name,i) => <button key={name} type="button"
               className="chess-icon-button" aria-label={["First position","Previous move","Next move","Last position"][i]}
               disabled={i < 2 ? selected === -1 : selected >= history.length - 1}
@@ -247,8 +260,9 @@ export default function GameWindow({ active = true, ...props }: Props) {
         </div>
         <aside className="chess-sidebar" aria-label="Game details">
           {review ? <ChessReviewPanel moves={history} reviews={analysis.reviews} selected={selected} onSelect={navigate}
-            running={analysis.running} completed={analysis.completed} error={analysis.error} onStop={analysis.stop}
-            onRestart={analysis.restart} showBest={alternative} onToggleBest={() => setShowBest(value => !value)} /> : <>
+            running={analysis.running} completed={analysis.completed} quality={analysis.qualities[selected]} error={analysis.error} onStop={analysis.stop}
+            onRestart={analysis.restart} showBest={alternative} onToggleBest={() => { setLesson(null); setShowBest(value => !value); }}
+            onLesson={openLesson} lessonOpen={Boolean(lesson)} /> : <>
             {over && <div className="chess-result"><strong>{status}</strong><p>{history.length} {history.length === 1 ? "move" : "moves"} played</p>
               <button type="button" onClick={openReview}>Review game</button></div>}
             <section className="chess-coach" aria-label="Coach" aria-live="polite" aria-atomic="true">
@@ -260,7 +274,9 @@ export default function GameWindow({ active = true, ...props }: Props) {
                 </div>
                 <p>{grade.explanation}</p>
                 {grade.bestLan !== current.lan && !alternative && <button type="button" className="chess-text-button"
-                  onClick={() => setShowBest(true)}>Try {grade.bestSan}</button>}
+                  disabled={Boolean(lesson)} onClick={() => setShowBest(true)}>Try {grade.bestSan}</button>}
+                <div className="chess-coach-actions"><button type="button" className="chess-text-button" disabled={Boolean(lesson)} onClick={() => openLesson("best")}>Show line</button>
+                  <button type="button" className="chess-text-button" disabled={Boolean(lesson)} onClick={() => openLesson("practice")}>Try again</button></div>
               </div> : <p className="chess-coach-placeholder">{current ? (analysis.error ? "Move grade unavailable." : "Looking at your move…") :
                 "Play a move to see your coach’s feedback."}</p>}
               {analysis.error && <button type="button" className="chess-text-button" title={analysis.error} onClick={analysis.restart}>Retry analysis</button>}
@@ -292,6 +308,12 @@ export default function GameWindow({ active = true, ...props }: Props) {
             <button type="button" className="chess-primary" onClick={() => {
               if (dialog === "new") startGame(); else { setLevel(draftLevel); setDialog(null); }
             }}>{dialog === "new" ? "Start game" : "Apply level"}</button></div>
+        </> : dialog === "display" ? <>
+          <h2>Board settings</h2>
+          <fieldset className="chess-motion-options"><legend>Piece animation</legend>{(["normal", "fast", "off"] as const).map(style => <label key={style}>
+            <input type="radio" name="chess-motion" checked={motionStyle === style} onChange={() => setMotionStyle(style)} />{style === "normal" ? "Normal" : style === "fast" ? "Fast" : "Off"}</label>)}</fieldset>
+          <p>Reduced-motion preferences are respected in every mode.</p>
+          <div className="chess-dialog-actions"><button type="button" onClick={() => setDialog(null)}>Close</button></div>
         </> : dialog === "resign" ? <>
           <h2>Resign game?</h2><p>Stockfish wins. You can still review every move.</p>
           <div className="chess-dialog-actions"><button type="button" onClick={() => setDialog(null)}>Keep playing</button>

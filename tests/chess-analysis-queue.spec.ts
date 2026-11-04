@@ -39,6 +39,7 @@ test.beforeEach(async ({ page }) => {
   });
   await page.goto("/play");
   const chess = page.getByRole("region", {name:"Chess", exact:true});
+  await expect(chess).toBeFocused();
   await chess.getByRole("button", {name:"New game", exact:true}).click();
   const setup = page.getByRole("dialog", {name:"New game", exact:true});
   await setup.getByRole("radio", {name:/Advanced/}).check();

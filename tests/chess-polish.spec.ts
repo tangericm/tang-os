@@ -9,7 +9,7 @@ test("review keeps its board navigation and return action visible on a shorter d
   await expect(chess.locator(".chess-engine-state")).toHaveAttribute("data-state", "ready", { timeout: 20000 });
   await chess.getByRole("button", { name: "More options", exact: true }).click();
   await chess.getByRole("button", { name: "Review game", exact: true }).click();
-  await expect(chess.getByText("2 / 2 graded", { exact: true })).toBeVisible({ timeout: 20000 });
+  await expect(chess.getByText("2 / 2 refined", { exact: true })).toBeVisible({ timeout: 20000 });
   const body = await chess.locator(".window-body").boundingBox();
   const nav = await chess.getByRole("navigation", { name: "Review navigation", exact: true }).boundingBox();
   expect(nav!.y + nav!.height).toBeLessThanOrEqual(body!.y + body!.height);
