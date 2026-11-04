@@ -20,7 +20,7 @@ const csp = [
 const config: NextConfig = {
   poweredByHeader: false,
   // Every image is already served directly; no component uses next/image.
-  images: { unoptimized: true },
+  images: { unoptimized: true, localPatterns: [], remotePatterns: [] },
   async headers() {
     return [{ source: "/:path*", headers: [
       { key: "Content-Security-Policy", value: csp },

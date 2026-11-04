@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "images": {
+    "sizes": [64],
+    "domains": [],
+    "localPatterns": [],
+    "remotePatterns": []
+  }
+}
