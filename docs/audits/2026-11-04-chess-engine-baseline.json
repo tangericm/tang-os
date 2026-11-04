@@ -1,0 +1,1249 @@
+{
+  "date": "2026-11-04",
+  "sourceCommit": "973a65c",
+  "node": "v24.14.0",
+  "platform": "win32",
+  "method": "Node CLI diagnostic using actual unmodified ChessEngine/reviewMove and bundled WASM; warm OS cache; 12 Ruy Lopez plies; 3 alternating fresh-process vs reused-process batches; no network, browser rendering, or mobile CPU throttle; reused engines retain transposition tables so grade/depth differences are recorded, not asserted equivalent",
+  "san": [
+    "e4",
+    "e5",
+    "Nf3",
+    "Nc6",
+    "Bb5",
+    "a6",
+    "Ba4",
+    "Nf6",
+    "O-O",
+    "Be7",
+    "Re1",
+    "b5"
+  ],
+  "warmup": {
+    "processes": 1
+  },
+  "groups": [
+    {
+      "mode": "live",
+      "reuse": false,
+      "processes": 36,
+      "perPlyTotalMs": {
+        "count": 36,
+        "min": 816.5,
+        "median": 1081,
+        "p95": 2519.8,
+        "max": 2579.3
+      },
+      "startupMs": {
+        "count": 36,
+        "min": 645.1,
+        "median": 890.2,
+        "p95": 2129,
+        "max": 2356.8
+      },
+      "searchAndValidationMs": {
+        "count": 36,
+        "min": 164.5,
+        "median": 181.3,
+        "p95": 390.8,
+        "max": 444.3
+      },
+      "batchMs": {
+        "count": 3,
+        "min": 11668.9,
+        "median": 13125.1,
+        "p95": 24763.8,
+        "max": 24763.8
+      },
+      "depth": {
+        "count": 36,
+        "min": 7,
+        "median": 9,
+        "p95": 12,
+        "max": 14
+      }
+    },
+    {
+      "mode": "live",
+      "reuse": true,
+      "processes": 3,
+      "perPlyTotalMs": {
+        "count": 36,
+        "min": 166.8,
+        "median": 215.8,
+        "p95": 1275.2,
+        "max": 2124.4
+      },
+      "startupMs": {
+        "count": 3,
+        "min": 777.2,
+        "median": 1055.5,
+        "p95": 1920.7,
+        "max": 1920.7
+      },
+      "searchAndValidationMs": {
+        "count": 36,
+        "min": 166.8,
+        "median": 209.8,
+        "p95": 662.3,
+        "max": 789.4
+      },
+      "batchMs": {
+        "count": 3,
+        "min": 2987.5,
+        "median": 4131.6,
+        "p95": 6154.5,
+        "max": 6154.5
+      },
+      "depth": {
+        "count": 36,
+        "min": 4,
+        "median": 9,
+        "p95": 12,
+        "max": 12
+      }
+    }
+  ],
+  "results": [
+    {
+      "mode": "live",
+      "reuse": false,
+      "repetitions": 1,
+      "processes": 12,
+      "startupMs": {
+        "count": 12,
+        "min": 751.3,
+        "median": 887.3,
+        "p95": 1218.2,
+        "max": 1218.2
+      },
+      "perPlyTotalMs": {
+        "count": 12,
+        "min": 921.4,
+        "median": 1080.3,
+        "p95": 1387.3,
+        "max": 1387.3
+      },
+      "searchAndValidationMs": {
+        "count": 12,
+        "min": 164.7,
+        "median": 173.8,
+        "p95": 330.4,
+        "max": 330.4
+      },
+      "batchMs": {
+        "count": 1,
+        "min": 13125.1,
+        "median": 13125.1,
+        "p95": 13125.1,
+        "max": 13125.1
+      },
+      "depth": {
+        "count": 12,
+        "min": 7,
+        "median": 8,
+        "p95": 12,
+        "max": 12
+      },
+      "rows": [
+        {
+          "run": 0,
+          "ply": 0,
+          "san": "e4",
+          "startupMs": 916.2,
+          "searchAndValidationMs": 164.7,
+          "totalMs": 1081,
+          "depth": 12,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 1,
+          "san": "e5",
+          "startupMs": 890.2,
+          "searchAndValidationMs": 321.3,
+          "totalMs": 1211.5,
+          "depth": 9,
+          "grade": "Excellent"
+        },
+        {
+          "run": 0,
+          "ply": 2,
+          "san": "Nf3",
+          "startupMs": 1085.4,
+          "searchAndValidationMs": 197,
+          "totalMs": 1282.4,
+          "depth": 10,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 3,
+          "san": "Nc6",
+          "startupMs": 1218.2,
+          "searchAndValidationMs": 169,
+          "totalMs": 1387.3,
+          "depth": 7,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 4,
+          "san": "Bb5",
+          "startupMs": 887.3,
+          "searchAndValidationMs": 330.4,
+          "totalMs": 1217.8,
+          "depth": 9,
+          "grade": "Inaccuracy"
+        },
+        {
+          "run": 0,
+          "ply": 5,
+          "san": "a6",
+          "startupMs": 807.3,
+          "searchAndValidationMs": 169.2,
+          "totalMs": 976.4,
+          "depth": 7,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 6,
+          "san": "Ba4",
+          "startupMs": 788.2,
+          "searchAndValidationMs": 168.6,
+          "totalMs": 956.8,
+          "depth": 8,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 7,
+          "san": "Nf6",
+          "startupMs": 774.5,
+          "searchAndValidationMs": 173.8,
+          "totalMs": 948.3,
+          "depth": 7,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 8,
+          "san": "O-O",
+          "startupMs": 792.3,
+          "searchAndValidationMs": 174,
+          "totalMs": 966.3,
+          "depth": 9,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 9,
+          "san": "Be7",
+          "startupMs": 913.4,
+          "searchAndValidationMs": 175.1,
+          "totalMs": 1088.5,
+          "depth": 7,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 10,
+          "san": "Re1",
+          "startupMs": 902.7,
+          "searchAndValidationMs": 177.5,
+          "totalMs": 1080.3,
+          "depth": 9,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 11,
+          "san": "b5",
+          "startupMs": 751.3,
+          "searchAndValidationMs": 170.1,
+          "totalMs": 921.4,
+          "depth": 8,
+          "grade": "Best"
+        }
+      ]
+    },
+    {
+      "mode": "live",
+      "reuse": true,
+      "repetitions": 1,
+      "processes": 1,
+      "startupMs": {
+        "count": 1,
+        "min": 777.2,
+        "median": 777.2,
+        "p95": 777.2,
+        "max": 777.2
+      },
+      "perPlyTotalMs": {
+        "count": 12,
+        "min": 166.8,
+        "median": 170.7,
+        "p95": 947.9,
+        "max": 947.9
+      },
+      "searchAndValidationMs": {
+        "count": 12,
+        "min": 166.8,
+        "median": 170.6,
+        "p95": 332.3,
+        "max": 332.3
+      },
+      "batchMs": {
+        "count": 1,
+        "min": 2987.5,
+        "median": 2987.5,
+        "p95": 2987.5,
+        "max": 2987.5
+      },
+      "depth": {
+        "count": 12,
+        "min": 8,
+        "median": 10,
+        "p95": 12,
+        "max": 12
+      },
+      "rows": [
+        {
+          "run": 0,
+          "ply": 0,
+          "san": "e4",
+          "startupMs": 777.2,
+          "searchAndValidationMs": 170.6,
+          "totalMs": 947.9,
+          "depth": 12,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 1,
+          "san": "e5",
+          "startupMs": 0,
+          "searchAndValidationMs": 332.3,
+          "totalMs": 332.3,
+          "depth": 9,
+          "grade": "Good"
+        },
+        {
+          "run": 0,
+          "ply": 2,
+          "san": "Nf3",
+          "startupMs": 0,
+          "searchAndValidationMs": 174.4,
+          "totalMs": 174.4,
+          "depth": 10,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 3,
+          "san": "Nc6",
+          "startupMs": 0,
+          "searchAndValidationMs": 168.6,
+          "totalMs": 168.6,
+          "depth": 10,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 4,
+          "san": "Bb5",
+          "startupMs": 0,
+          "searchAndValidationMs": 170.5,
+          "totalMs": 170.5,
+          "depth": 10,
+          "grade": "Excellent"
+        },
+        {
+          "run": 0,
+          "ply": 5,
+          "san": "a6",
+          "startupMs": 0,
+          "searchAndValidationMs": 171.8,
+          "totalMs": 171.8,
+          "depth": 8,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 6,
+          "san": "Ba4",
+          "startupMs": 0,
+          "searchAndValidationMs": 166.8,
+          "totalMs": 166.8,
+          "depth": 10,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 7,
+          "san": "Nf6",
+          "startupMs": 0,
+          "searchAndValidationMs": 173.4,
+          "totalMs": 173.4,
+          "depth": 11,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 8,
+          "san": "O-O",
+          "startupMs": 0,
+          "searchAndValidationMs": 168,
+          "totalMs": 168.1,
+          "depth": 12,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 9,
+          "san": "Be7",
+          "startupMs": 0,
+          "searchAndValidationMs": 174.2,
+          "totalMs": 174.2,
+          "depth": 10,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 10,
+          "san": "Re1",
+          "startupMs": 0,
+          "searchAndValidationMs": 167.9,
+          "totalMs": 167.9,
+          "depth": 9,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 11,
+          "san": "b5",
+          "startupMs": 0,
+          "searchAndValidationMs": 170.6,
+          "totalMs": 170.7,
+          "depth": 9,
+          "grade": "Best"
+        }
+      ]
+    },
+    {
+      "mode": "live",
+      "reuse": true,
+      "repetitions": 1,
+      "processes": 1,
+      "startupMs": {
+        "count": 1,
+        "min": 1055.5,
+        "median": 1055.5,
+        "p95": 1055.5,
+        "max": 1055.5
+      },
+      "perPlyTotalMs": {
+        "count": 12,
+        "min": 185.4,
+        "median": 209.8,
+        "p95": 1275.2,
+        "max": 1275.2
+      },
+      "searchAndValidationMs": {
+        "count": 12,
+        "min": 185.4,
+        "median": 209.8,
+        "p95": 662.3,
+        "max": 662.3
+      },
+      "batchMs": {
+        "count": 1,
+        "min": 4131.6,
+        "median": 4131.6,
+        "p95": 4131.6,
+        "max": 4131.6
+      },
+      "depth": {
+        "count": 12,
+        "min": 7,
+        "median": 8,
+        "p95": 12,
+        "max": 12
+      },
+      "rows": [
+        {
+          "run": 0,
+          "ply": 0,
+          "san": "e4",
+          "startupMs": 1055.5,
+          "searchAndValidationMs": 219.8,
+          "totalMs": 1275.2,
+          "depth": 12,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 1,
+          "san": "e5",
+          "startupMs": 0,
+          "searchAndValidationMs": 185.4,
+          "totalMs": 185.4,
+          "depth": 9,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 2,
+          "san": "Nf3",
+          "startupMs": 0,
+          "searchAndValidationMs": 209.8,
+          "totalMs": 209.8,
+          "depth": 9,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 3,
+          "san": "Nc6",
+          "startupMs": 0,
+          "searchAndValidationMs": 271,
+          "totalMs": 271,
+          "depth": 10,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 4,
+          "san": "Bb5",
+          "startupMs": 0,
+          "searchAndValidationMs": 662.3,
+          "totalMs": 662.3,
+          "depth": 8,
+          "grade": "Excellent"
+        },
+        {
+          "run": 0,
+          "ply": 5,
+          "san": "a6",
+          "startupMs": 0,
+          "searchAndValidationMs": 277.1,
+          "totalMs": 277.1,
+          "depth": 8,
+          "grade": "Excellent"
+        },
+        {
+          "run": 0,
+          "ply": 6,
+          "san": "Ba4",
+          "startupMs": 0,
+          "searchAndValidationMs": 240,
+          "totalMs": 240,
+          "depth": 9,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 7,
+          "san": "Nf6",
+          "startupMs": 0,
+          "searchAndValidationMs": 201.8,
+          "totalMs": 201.8,
+          "depth": 7,
+          "grade": "Excellent"
+        },
+        {
+          "run": 0,
+          "ply": 8,
+          "san": "O-O",
+          "startupMs": 0,
+          "searchAndValidationMs": 211.4,
+          "totalMs": 215.8,
+          "depth": 8,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 9,
+          "san": "Be7",
+          "startupMs": 0,
+          "searchAndValidationMs": 193.4,
+          "totalMs": 193.5,
+          "depth": 8,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 10,
+          "san": "Re1",
+          "startupMs": 0,
+          "searchAndValidationMs": 201.5,
+          "totalMs": 201.5,
+          "depth": 7,
+          "grade": "Excellent"
+        },
+        {
+          "run": 0,
+          "ply": 11,
+          "san": "b5",
+          "startupMs": 0,
+          "searchAndValidationMs": 196.8,
+          "totalMs": 196.8,
+          "depth": 9,
+          "grade": "Best"
+        }
+      ]
+    },
+    {
+      "mode": "live",
+      "reuse": false,
+      "repetitions": 1,
+      "processes": 12,
+      "startupMs": {
+        "count": 12,
+        "min": 645.1,
+        "median": 676.3,
+        "p95": 1532.8,
+        "max": 1532.8
+      },
+      "perPlyTotalMs": {
+        "count": 12,
+        "min": 816.5,
+        "median": 882.2,
+        "p95": 1773.8,
+        "max": 1773.8
+      },
+      "searchAndValidationMs": {
+        "count": 12,
+        "min": 164.5,
+        "median": 180,
+        "p95": 344.8,
+        "max": 344.8
+      },
+      "batchMs": {
+        "count": 1,
+        "min": 11668.9,
+        "median": 11668.9,
+        "p95": 11668.9,
+        "max": 11668.9
+      },
+      "depth": {
+        "count": 12,
+        "min": 7,
+        "median": 9,
+        "p95": 14,
+        "max": 14
+      },
+      "rows": [
+        {
+          "run": 0,
+          "ply": 0,
+          "san": "e4",
+          "startupMs": 792.2,
+          "searchAndValidationMs": 164.5,
+          "totalMs": 956.7,
+          "depth": 14,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 1,
+          "san": "e5",
+          "startupMs": 656.9,
+          "searchAndValidationMs": 175.3,
+          "totalMs": 832.2,
+          "depth": 9,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 2,
+          "san": "Nf3",
+          "startupMs": 709.8,
+          "searchAndValidationMs": 180.9,
+          "totalMs": 890.7,
+          "depth": 9,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 3,
+          "san": "Nc6",
+          "startupMs": 691,
+          "searchAndValidationMs": 336.9,
+          "totalMs": 1027.8,
+          "depth": 10,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 4,
+          "san": "Bb5",
+          "startupMs": 652.3,
+          "searchAndValidationMs": 344.8,
+          "totalMs": 997.1,
+          "depth": 9,
+          "grade": "Excellent"
+        },
+        {
+          "run": 0,
+          "ply": 5,
+          "san": "a6",
+          "startupMs": 646.4,
+          "searchAndValidationMs": 170.1,
+          "totalMs": 816.5,
+          "depth": 8,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 6,
+          "san": "Ba4",
+          "startupMs": 676.3,
+          "searchAndValidationMs": 181,
+          "totalMs": 857.4,
+          "depth": 10,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 7,
+          "san": "Nf6",
+          "startupMs": 765.4,
+          "searchAndValidationMs": 178.2,
+          "totalMs": 943.7,
+          "depth": 10,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 8,
+          "san": "O-O",
+          "startupMs": 702.6,
+          "searchAndValidationMs": 179.7,
+          "totalMs": 882.2,
+          "depth": 10,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 9,
+          "san": "Be7",
+          "startupMs": 670,
+          "searchAndValidationMs": 184.2,
+          "totalMs": 854.2,
+          "depth": 7,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 10,
+          "san": "Re1",
+          "startupMs": 645.1,
+          "searchAndValidationMs": 180,
+          "totalMs": 825.1,
+          "depth": 9,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 11,
+          "san": "b5",
+          "startupMs": 1532.8,
+          "searchAndValidationMs": 241,
+          "totalMs": 1773.8,
+          "depth": 7,
+          "grade": "Best"
+        }
+      ]
+    },
+    {
+      "mode": "live",
+      "reuse": false,
+      "repetitions": 1,
+      "processes": 12,
+      "startupMs": {
+        "count": 12,
+        "min": 1078.8,
+        "median": 1680.1,
+        "p95": 2356.8,
+        "max": 2356.8
+      },
+      "perPlyTotalMs": {
+        "count": 12,
+        "min": 1260.1,
+        "median": 2065.5,
+        "p95": 2579.3,
+        "max": 2579.3
+      },
+      "searchAndValidationMs": {
+        "count": 12,
+        "min": 181.3,
+        "median": 292.9,
+        "p95": 444.3,
+        "max": 444.3
+      },
+      "batchMs": {
+        "count": 1,
+        "min": 24763.8,
+        "median": 24763.8,
+        "p95": 24763.8,
+        "max": 24763.8
+      },
+      "depth": {
+        "count": 12,
+        "min": 7,
+        "median": 9,
+        "p95": 11,
+        "max": 11
+      },
+      "rows": [
+        {
+          "run": 0,
+          "ply": 0,
+          "san": "e4",
+          "startupMs": 1078.8,
+          "searchAndValidationMs": 181.3,
+          "totalMs": 1260.1,
+          "depth": 11,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 1,
+          "san": "e5",
+          "startupMs": 1651.6,
+          "searchAndValidationMs": 218.7,
+          "totalMs": 1870.3,
+          "depth": 9,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 2,
+          "san": "Nf3",
+          "startupMs": 2356.8,
+          "searchAndValidationMs": 222.4,
+          "totalMs": 2579.3,
+          "depth": 9,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 3,
+          "san": "Nc6",
+          "startupMs": 2129,
+          "searchAndValidationMs": 390.8,
+          "totalMs": 2519.8,
+          "depth": 10,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 4,
+          "san": "Bb5",
+          "startupMs": 1680.1,
+          "searchAndValidationMs": 444.3,
+          "totalMs": 2124.5,
+          "depth": 8,
+          "grade": "Excellent"
+        },
+        {
+          "run": 0,
+          "ply": 5,
+          "san": "a6",
+          "startupMs": 1641.1,
+          "searchAndValidationMs": 243.1,
+          "totalMs": 1884.3,
+          "depth": 7,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 6,
+          "san": "Ba4",
+          "startupMs": 1503.4,
+          "searchAndValidationMs": 329.3,
+          "totalMs": 1832.7,
+          "depth": 8,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 7,
+          "san": "Nf6",
+          "startupMs": 1821.7,
+          "searchAndValidationMs": 297.4,
+          "totalMs": 2119.1,
+          "depth": 8,
+          "grade": "Excellent"
+        },
+        {
+          "run": 0,
+          "ply": 8,
+          "san": "O-O",
+          "startupMs": 1874.2,
+          "searchAndValidationMs": 269.6,
+          "totalMs": 2143.8,
+          "depth": 10,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 9,
+          "san": "Be7",
+          "startupMs": 1579.8,
+          "searchAndValidationMs": 292.9,
+          "totalMs": 1872.7,
+          "depth": 9,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 10,
+          "san": "Re1",
+          "startupMs": 1702.1,
+          "searchAndValidationMs": 363.4,
+          "totalMs": 2065.5,
+          "depth": 9,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 11,
+          "san": "b5",
+          "startupMs": 2055.3,
+          "searchAndValidationMs": 359.2,
+          "totalMs": 2414.4,
+          "depth": 8,
+          "grade": "Best"
+        }
+      ]
+    },
+    {
+      "mode": "live",
+      "reuse": true,
+      "repetitions": 1,
+      "processes": 1,
+      "startupMs": {
+        "count": 1,
+        "min": 1920.7,
+        "median": 1920.7,
+        "p95": 1920.7,
+        "max": 1920.7
+      },
+      "perPlyTotalMs": {
+        "count": 12,
+        "min": 211.5,
+        "median": 294.9,
+        "p95": 2124.4,
+        "max": 2124.4
+      },
+      "searchAndValidationMs": {
+        "count": 12,
+        "min": 203.7,
+        "median": 284,
+        "p95": 789.4,
+        "max": 789.4
+      },
+      "batchMs": {
+        "count": 1,
+        "min": 6154.5,
+        "median": 6154.5,
+        "p95": 6154.5,
+        "max": 6154.5
+      },
+      "depth": {
+        "count": 12,
+        "min": 4,
+        "median": 10,
+        "p95": 12,
+        "max": 12
+      },
+      "rows": [
+        {
+          "run": 0,
+          "ply": 0,
+          "san": "e4",
+          "startupMs": 1920.7,
+          "searchAndValidationMs": 203.7,
+          "totalMs": 2124.4,
+          "depth": 12,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 1,
+          "san": "e5",
+          "startupMs": 0,
+          "searchAndValidationMs": 531.3,
+          "totalMs": 531.3,
+          "depth": 11,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 2,
+          "san": "Nf3",
+          "startupMs": 0,
+          "searchAndValidationMs": 276.8,
+          "totalMs": 276.8,
+          "depth": 11,
+          "grade": "Excellent"
+        },
+        {
+          "run": 0,
+          "ply": 3,
+          "san": "Nc6",
+          "startupMs": 0,
+          "searchAndValidationMs": 211.5,
+          "totalMs": 211.5,
+          "depth": 11,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 4,
+          "san": "Bb5",
+          "startupMs": 0,
+          "searchAndValidationMs": 227.2,
+          "totalMs": 227.2,
+          "depth": 10,
+          "grade": "Excellent"
+        },
+        {
+          "run": 0,
+          "ply": 5,
+          "san": "a6",
+          "startupMs": 0,
+          "searchAndValidationMs": 231.5,
+          "totalMs": 231.5,
+          "depth": 10,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 6,
+          "san": "Ba4",
+          "startupMs": 0,
+          "searchAndValidationMs": 300.1,
+          "totalMs": 300.2,
+          "depth": 12,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 7,
+          "san": "Nf6",
+          "startupMs": 0,
+          "searchAndValidationMs": 284,
+          "totalMs": 284,
+          "depth": 7,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 8,
+          "san": "O-O",
+          "startupMs": 0,
+          "searchAndValidationMs": 294.9,
+          "totalMs": 294.9,
+          "depth": 5,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 9,
+          "san": "Be7",
+          "startupMs": 0,
+          "searchAndValidationMs": 449.8,
+          "totalMs": 449.8,
+          "depth": 5,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 10,
+          "san": "Re1",
+          "startupMs": 0,
+          "searchAndValidationMs": 789.4,
+          "totalMs": 789.4,
+          "depth": 6,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 11,
+          "san": "b5",
+          "startupMs": 0,
+          "searchAndValidationMs": 432.3,
+          "totalMs": 432.3,
+          "depth": 4,
+          "grade": "Best"
+        }
+      ]
+    },
+    {
+      "mode": "review",
+      "reuse": true,
+      "repetitions": 1,
+      "processes": 1,
+      "startupMs": {
+        "count": 1,
+        "min": 2447.1,
+        "median": 2447.1,
+        "p95": 2447.1,
+        "max": 2447.1
+      },
+      "perPlyTotalMs": {
+        "count": 12,
+        "min": 365.9,
+        "median": 495,
+        "p95": 2934.6,
+        "max": 2934.6
+      },
+      "searchAndValidationMs": {
+        "count": 12,
+        "min": 365.9,
+        "median": 492.4,
+        "p95": 1058.7,
+        "max": 1058.7
+      },
+      "batchMs": {
+        "count": 1,
+        "min": 9329.3,
+        "median": 9329.3,
+        "p95": 9329.3,
+        "max": 9329.3
+      },
+      "depth": {
+        "count": 12,
+        "min": 6,
+        "median": 9,
+        "p95": 15,
+        "max": 15
+      },
+      "rows": [
+        {
+          "run": 0,
+          "ply": 0,
+          "san": "e4",
+          "startupMs": 2447.1,
+          "searchAndValidationMs": 487.4,
+          "totalMs": 2934.6,
+          "depth": 15,
+          "grade": "Excellent"
+        },
+        {
+          "run": 0,
+          "ply": 1,
+          "san": "e5",
+          "startupMs": 0,
+          "searchAndValidationMs": 460.4,
+          "totalMs": 460.4,
+          "depth": 14,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 2,
+          "san": "Nf3",
+          "startupMs": 0,
+          "searchAndValidationMs": 463.5,
+          "totalMs": 463.5,
+          "depth": 12,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 3,
+          "san": "Nc6",
+          "startupMs": 0,
+          "searchAndValidationMs": 511.3,
+          "totalMs": 511.4,
+          "depth": 10,
+          "grade": "Excellent"
+        },
+        {
+          "run": 0,
+          "ply": 4,
+          "san": "Bb5",
+          "startupMs": 0,
+          "searchAndValidationMs": 621.3,
+          "totalMs": 621.5,
+          "depth": 7,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 5,
+          "san": "a6",
+          "startupMs": 0,
+          "searchAndValidationMs": 964.3,
+          "totalMs": 964.3,
+          "depth": 6,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 6,
+          "san": "Ba4",
+          "startupMs": 0,
+          "searchAndValidationMs": 587.5,
+          "totalMs": 587.5,
+          "depth": 9,
+          "grade": "Excellent"
+        },
+        {
+          "run": 0,
+          "ply": 7,
+          "san": "Nf6",
+          "startupMs": 0,
+          "searchAndValidationMs": 495,
+          "totalMs": 495,
+          "depth": 6,
+          "grade": "Excellent"
+        },
+        {
+          "run": 0,
+          "ply": 8,
+          "san": "O-O",
+          "startupMs": 0,
+          "searchAndValidationMs": 492.4,
+          "totalMs": 492.4,
+          "depth": 8,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 9,
+          "san": "Be7",
+          "startupMs": 0,
+          "searchAndValidationMs": 1058.7,
+          "totalMs": 1058.7,
+          "depth": 8,
+          "grade": "Good"
+        },
+        {
+          "run": 0,
+          "ply": 10,
+          "san": "Re1",
+          "startupMs": 0,
+          "searchAndValidationMs": 373.5,
+          "totalMs": 373.5,
+          "depth": 9,
+          "grade": "Best"
+        },
+        {
+          "run": 0,
+          "ply": 11,
+          "san": "b5",
+          "startupMs": 0,
+          "searchAndValidationMs": 365.9,
+          "totalMs": 365.9,
+          "depth": 11,
+          "grade": "Best"
+        }
+      ]
+    }
+  ]
+}
