@@ -2,9 +2,9 @@
 
 import { useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import type { Chess, Color, Move, PieceSymbol, Square } from "chess.js";
-import { GRADE_SYMBOLS } from "../lib/chess-grades";
 import type { MoveGrade } from "../lib/chess-review";
 import ChessPiece from "./ChessPiece";
+import ChessGradeIcon from "./ChessGradeIcon";
 
 type Props = {
   game: Chess; player: Color; flipped: boolean; disabled: boolean; lastMove?: Move; motion?: Move;
@@ -115,10 +115,13 @@ export default function ChessBoard({ game, player, flipped, disabled, lastMove, 
         const dark = (square.charCodeAt(0) + Number(square[1])) % 2 === 0;
         const check = piece?.type === "k" && piece.color === game.turn() && game.isCheck();
         const grade = badge?.square === square ? badge : undefined;
+        const last = lastMove?.from === square || lastMove?.to === square;
+        // Like a reviewed game, the graded move's squares take on the grade's colour.
+        const tint = last && badge && badge.square === lastMove?.to && badge.grade !== "Book" && badge.grade !== "Forced" ? badge.grade.toLowerCase() : undefined;
         const label = `${square}, ${piece ? `${piece.color === "w" ? "white" : "black"} ${NAMES[piece.type]}` : "empty"}${target ? ", legal move" : ""}`;
         const classes = ["chess-square", dark ? "chess-dark" : "chess-light", selected === square && "chess-selected",
-          (lastMove?.from === square || lastMove?.to === square) && "chess-last", check && "chess-check"];
-        return <button key={square} type="button" data-square={square} className={classes.filter(Boolean).join(" ")}
+          last && "chess-last", check && "chess-check"];
+        return <button key={square} type="button" data-square={square} data-tint={tint} style={tint ? { "--tint": `var(--g-${tint})` } as CSSProperties : undefined} className={classes.filter(Boolean).join(" ")}
           aria-label={label} aria-description={grade?.grade} aria-pressed={selected === square} aria-disabled={!canPlay}
           tabIndex={square === focused ? 0 : -1} onFocus={() => setFocused(square)}
           onKeyDown={event => boardKey(event, square)} onClick={() => choose(square)}>
@@ -127,7 +130,7 @@ export default function ChessBoard({ game, player, flipped, disabled, lastMove, 
           {piece && !moving.some(item => item.to === square) && <ChessPiece type={piece.type} color={piece.color} />}
           {target && <span className={target.captured ? "chess-capture-ring" : "chess-legal-dot"} />}
           {grade && <span key={grade.key} className="chess-move-badge" data-grade={grade.grade.toLowerCase()}
-            title={grade.grade} aria-hidden="true">{GRADE_SYMBOLS[grade.grade]}</span>}
+            title={grade.grade} aria-hidden="true"><ChessGradeIcon grade={grade.grade} /></span>}
         </button>;
       })}
       {motion && victim && motion.captured && <span key={`victim-${motion.after}`} className="chess-captured-piece"

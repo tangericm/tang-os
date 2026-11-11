@@ -19,8 +19,8 @@ test("a move outside MultiPV is searched separately from the same mover perspect
   expect(review.bestSan).toBe("e5");
   expect(review.loss).toBeCloseTo(.28);
   const summary = summarizeReviews([review], [move]);
-  expect(summary.b.precision).toBe(72);
-  expect(summary.w.precision).toBeNull();
+  expect(summary.b.accuracy).toBe(27.3);
+  expect(summary.w.accuracy).toBeNull();
   expect(summary.b.counts.Blunder).toBe(1);
 });
 
@@ -40,9 +40,9 @@ test("repetition is scored as a draw, and checkmating moves as a win", async () 
 });
 
 test("critical only move requires evidence; a quiet best move earns no sacrifice label", async () => {
-  const move = new Chess().move("e4");
-  expect((await reviewMove(source([line("e2e4", .58),line("d2d4", .25)]), move, [], "review")).grade).toBe("Great");
-  expect((await reviewMove(source([line("e2e4", .58, 3),line("d2d4", .25, 3)]), move, [], "review")).grade).toBe("Best");
+  const move = new Chess().move("a3");
+  expect((await reviewMove(source([line("a2a3", .58),line("d2d4", .25)]), move, [], "review")).grade).toBe("Great");
+  expect((await reviewMove(source([line("a2a3", .58, 3),line("d2d4", .25, 3)]), move, [], "review")).grade).toBe("Best");
 });
 
 test("Brilliant requires an accepted sound sacrifice; a shallow or declined line falls back", async () => {
@@ -72,25 +72,25 @@ test("Miss requires a new winning chance created by the immediately preceding mo
   expect((await grade({...previous,bestPoints:.24,playedPoints:.10,loss:.14})).grade).toBe("Blunder");
 });
 
-test("Forced moves count toward the distribution but carry no precision weight", async () => {
+test("Forced moves count toward the distribution but carry no accuracy weight", async () => {
   const move = new Chess("7k/7R/6K1/8/8/8/8/8 b - - 0 1").move("Kg8");
   const review = await reviewMove(source([line("h8g8", 0)]), move, [], "review");
   expect(review.grade).toBe("Forced");
-  expect(summarizeReviews([review], [move]).b).toEqual({precision:null, counts:{Forced:1}});
+  expect(summarizeReviews([review], [move]).b).toEqual({accuracy:null, counts:{Forced:1}});
 });
 
 test("grade bands include their lower bound and keep ties distinct from the first choice", async () => {
-  const move = new Chess().move("e4");
+  const move = new Chess().move("a3");
   for (const [loss, grade] of [[0,"Excellent"], [.02,"Good"], [.05,"Inaccuracy"], [.1,"Mistake"], [.2,"Blunder"]] as const) {
-    const result = await reviewMove(source([line("d2d4", .6), line("e2e4", .6-loss)]), move, [], "review");
+    const result = await reviewMove(source([line("d2d4", .6), line("a2a3", .6-loss)]), move, [], "review");
     expect(result.grade).toBe(grade);
   }
 });
 
 test("unranked play and alternatives are rescored together, even if a singleton search would disagree", async () => {
-  const move = new Chess().move("e4");
+  const move = new Chess().move("a3");
   const shortlist = [line("d2d4", .55, 8), line("g1f3", .53, 8)];
-  const root = source(shortlist, [line("e2e4", .70, 13)]);
+  const root = source(shortlist, [line("a2a3", .70, 13)]);
   const requests: string[][] = [];
   const engine = {
     analyze: async (fen: string, legal: readonly string[], history: readonly string[] | undefined,
@@ -98,14 +98,14 @@ test("unranked play and alternatives are rescored together, even if a singleton 
       if (options.searchMoves) {
         requests.push([...options.searchMoves]);
         expect(options.multiPV).toBe(3);
-        return [line("e2e4", .62, 10), line("g1f3", .60, 10), line("d2d4", .55, 10)];
+        return [line("a2a3", .62, 10), line("g1f3", .60, 10), line("d2d4", .55, 10)];
       }
       return root.analyze();
     },
   };
   const result = await reviewMove(engine, move, [], "live");
-  expect(requests).toEqual([["d2d4","g1f3","e2e4"]]);
-  expect(result).toMatchObject({grade:"Best",bestSan:"e4",depth:10,bestPoints:.62,playedPoints:.62,loss:0});
+  expect(requests).toEqual([["d2d4","g1f3","a2a3"]]);
+  expect(result).toMatchObject({grade:"Best",bestSan:"a3",depth:10,bestPoints:.62,playedPoints:.62,loss:0});
 });
 
 test("the shared iteration can promote the original runner-up over the original top candidate", async () => {
@@ -118,7 +118,26 @@ test("the shared iteration can promote the original runner-up over the original 
 });
 
 test("the suggested move owns the reported best expected score", async () => {
-  const move = new Chess().move("e4");
-  const result = await reviewMove(source([line("d2d4", .55), line("e2e4", .57)]), move, [], "review");
-  expect(result).toMatchObject({grade:"Best",bestSan:"e4",playedPoints:.57,bestPoints:.57,loss:0});
+  const move = new Chess().move("a3");
+  const result = await reviewMove(source([line("d2d4", .55), line("a2a3", .57)]), move, [], "review");
+  expect(result).toMatchObject({grade:"Best",bestSan:"a3",playedPoints:.57,bestPoints:.57,loss:0});
+});
+
+test("known opening moves are Book unless they give something away", async () => {
+  const game = new Chess();
+  game.move("e4"); game.move("e5"); game.move("Nf3"); game.move("Nc6");
+  const move = game.move("Bb5");
+  const history = ["e2e4", "e7e5", "g1f3", "b8c6"];
+  const book = await reviewMove(source([line("f1b5", .56), line("f1c4", .55)]), move, history, "review");
+  expect(book.grade).toBe("Book");
+  expect(book.explanation).toContain("Ruy Lopez");
+  const costly = await reviewMove(source([line("f1c4", .62), line("f1b5", .55)]), move, history, "review");
+  expect(costly.grade).toBe("Inaccuracy");
+});
+
+test("accuracy follows the expected-score curve and blends in the harmonic mean", async () => {
+  const { moveAccuracy } = await import("../app/lib/chess-review");
+  expect(moveAccuracy({ bestPoints: .6, playedPoints: .6 })).toBeCloseTo(100, 0);
+  expect(moveAccuracy({ bestPoints: .6, playedPoints: .5 })).toBeCloseTo(63.9, 0);
+  expect(moveAccuracy({ bestPoints: .9, playedPoints: .1 })).toBeCloseTo(0, 1);
 });

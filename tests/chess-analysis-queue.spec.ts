@@ -61,7 +61,7 @@ test("a slow live review finishes the original ply while subsequent moves append
   await play(page,"e2","e4");
   await expect(chess.locator(".chess-history li").first()).toContainText("e5");
   await play(page,"g1","f3");
-  await expect(chess.getByRole("button",{name:"1.e4 · Best",exact:true})).toBeVisible({timeout:10000});
+  await expect(chess.getByRole("button",{name:"1.e4 · Book",exact:true})).toBeVisible({timeout:10000});
   expect(await rootSearches(page)).toBe(1);
 });
 
@@ -71,6 +71,6 @@ test("undoing an in-flight ply starts fresh analysis for its replacement", async
   await expect.poll(() => rootSearches(page)).toBe(1);
   await chess.getByRole("button", {name:"Undo turn", exact:true}).click();
   await play(page,"d2","d4");
-  await expect(chess.getByRole("button",{name:"1.d4 · Excellent",exact:true})).toBeVisible({timeout:10000});
+  await expect(chess.getByRole("button",{name:"1.d4 · Book",exact:true})).toBeVisible({timeout:10000});
   expect(await rootSearches(page)).toBe(2);
 });

@@ -10,11 +10,20 @@ import ChessLesson, { type Lesson, type ChessMotion } from "./ChessLesson";
 import { useChessReview } from "./useChessReview";
 import { CHESS_LEVELS, gameStatus, undoTurn, type ChessLevel } from "../lib/chess-game";
 import { ChessEngine } from "../lib/chess-engine";
-import { GRADE_SYMBOLS } from "../lib/chess-grades";
+import { gradeSentence, scoreLabel } from "../lib/chess-grades";
+import { openingName } from "../lib/chess-openings";
+import ChessGradeIcon from "./ChessGradeIcon";
+import ChessBestMove from "./ChessBestMove";
+import { ChessEvalBar, whiteCurve } from "./ChessEvaluation";
 import "./chess.css";
 
 type Props = Omit<ComponentProps<typeof Window>, "title" | "children" | "frameClassName"> & { active?: boolean };
 type Dialog = "new" | "difficulty" | "display" | "resign" | "help" | null;
+type BoardTheme = "walnut" | "green" | "slate";
+const BOARD_THEMES: readonly { id: BoardTheme; label: string }[] = [
+  { id: "walnut", label: "Walnut" }, { id: "green", label: "Green" }, { id: "slate", label: "Slate" },
+];
+const VALUES = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 } as const;
 const paths = {
   plus: "M12 5v14M5 12h14", undo: "m8 4-5 5 5 5M4 9h9a7 7 0 0 1 0 14",
   flip: "M4 7h15m-4-4 4 4-4 4M20 17H5m4-4-4 4 4 4", more: "M5 12h.01M12 12h.01M19 12h.01",
@@ -52,6 +61,7 @@ export default function GameWindow({ active = true, ...props }: Props) {
   const [showBest, setShowBest] = useState(false);
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [motionStyle, setMotionStyle] = useState<ChessMotion>("normal");
+  const [boardTheme, setBoardTheme] = useState<BoardTheme>("walnut");
   const [motion, setMotion] = useState<Move>();
   const [engineState, setEngineState] = useState("ready");
   const [engineError, setEngineError] = useState("");
@@ -156,10 +166,18 @@ export default function GameWindow({ active = true, ...props }: Props) {
     if (next === "new" || next === "difficulty") { setDraftLevel(level); setDraftSide(player); }
     setDialog(next);
   }
-  function startGame() {
-    game.reset(); setPlayer(draftSide); setLevel(draftLevel); setFlipped(draftSide === "b");
+  function startGame(side: Color = draftSide, nextLevel: ChessLevel = draftLevel) {
+    game.reset(); setPlayer(side); setLevel(nextLevel); setFlipped(side === "b");
     setMotion(undefined); setResigned(false); setDialog(null); live();
     setEpoch(n => n + 1); setRevision(n => n + 1);
+  }
+  /** Switch sides at once when nothing would be lost; otherwise confirm through New game. */
+  function chooseSide(side: Color) {
+    if (side === player && !over) return;
+    if (history.some(m => m.color === player) && !over) {
+      openDialog("new");
+      setDraftSide(side);
+    } else startGame(side, level);
   }
   function undo() {
     if (!undoTurn(game, player)) return;
@@ -180,7 +198,7 @@ export default function GameWindow({ active = true, ...props }: Props) {
     if (!move) return "…";
     return <button type="button" aria-label={`${notation(move)}${result ? ` · ${result.grade}` : ""}`}
       aria-pressed={browsing && index === ply} onClick={() => selectHistory(index)}>
-      {move.san}{result && <b data-grade={result.grade.toLowerCase()} aria-hidden="true">{GRADE_SYMBOLS[result.grade]}</b>}
+      {result && <ChessGradeIcon grade={result.grade} />}{move.san}
     </button>;
   }
   const status = resigned ? "You resigned — Stockfish wins" : gameStatus(game, player);
@@ -190,11 +208,22 @@ export default function GameWindow({ active = true, ...props }: Props) {
   const opponent = player === "w" ? "b" : "w";
   const visibleHistory = browsing ? history.slice(0, Math.max(0, ply + (alternative ? 0 : 1))) : history;
   const captured = visibleHistory.filter(m => m.color === player && m.captured);
+  const lost = visibleHistory.filter(m => m.color === opponent && m.captured);
+  let material = 0;
+  for (const row of boardGame.board()) for (const piece of row) if (piece) material += VALUES[piece.type] * (piece.color === player ? 1 : -1);
+  const opening = useMemo(() => openingName(history.map(move => move.after)), [history]);
+  const curve = review ? whiteCurve(history, analysis.reviews) : [];
+  const evalMove = history[selected], evalReview = analysis.reviews[selected];
+  const evalPoint = selected < 0 ? .5 : curve[selected]?.point ?? .5;
+  const evalLabel = evalMove && evalReview ? scoreLabel(evalReview.score, evalMove.color) : selected < 0 ? "0.0" : undefined;
+  const pieceRow = (moves: readonly Move[], color: Color) => [...moves]
+    .sort((a, b) => VALUES[a.captured!] - VALUES[b.captured!])
+    .map((m, i) => <ChessPiece key={i} type={m.captured!} color={color} />);
   const coachOwner = current?.color === player ? "Your" : "Stockfish’s";
   const dialogName = dialog === "new" ? "New game" : dialog === "difficulty" ? "Opponent level" : dialog === "display" ? "Board settings" : dialog === "resign" ? "Resign game?" : "Help & engine";
 
   return <Window title="Chess" frameClassName="window-game" {...props}>
-    <div className="chess" data-reviewing={review} data-lesson={Boolean(lesson)} data-motion={motionStyle} onKeyDownCapture={event => {
+    <div className="chess" data-board={boardTheme} data-reviewing={review} data-lesson={Boolean(lesson)} data-motion={motionStyle} onKeyDownCapture={event => {
       if (!review || dialog || lesson || event.nativeEvent.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
       if (event.target instanceof HTMLElement && event.target.closest("input, select, textarea")) return;
       if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
@@ -203,7 +232,14 @@ export default function GameWindow({ active = true, ...props }: Props) {
     }}>
       <div className="chess-toolbar">
         {browsing ? <button type="button" className="chess-back" onClick={() => { live(); menuButton.current?.focus(); }}><Icon name="prev"/>Back to game</button>
-          : <button type="button" className="chess-new" onClick={() => openDialog("new")}><Icon name="plus" /> New game</button>}
+          : <div className="chess-start">
+            <button type="button" className="chess-new" onClick={() => openDialog("new")}><Icon name="plus" /> New game</button>
+            <div className="chess-side-switch" role="group" aria-label="Play as">
+              {(["w", "b"] as const).map(color => <button key={color} type="button" aria-pressed={player === color}
+                aria-label={`Play as ${color === "w" ? "White" : "Black"}`} title={`Play as ${color === "w" ? "White" : "Black"}`}
+                onClick={() => chooseSide(color)}><ChessPiece type="k" color={color} /></button>)}
+            </div>
+          </div>}
         <div className="chess-tools">
           <button type="button" className="chess-icon-button" aria-label="Undo turn" title="Undo turn"
             disabled={!history.some(m => m.color === player) || review || Boolean(lesson)} onClick={undo}><Icon name="undo" /></button>
@@ -226,6 +262,9 @@ export default function GameWindow({ active = true, ...props }: Props) {
           <div className="chess-player">
             <span className="chess-avatar"><ChessPiece type="n" color={opponent} /></span>
             <div><strong>Stockfish</strong><small>{level.label} · ≈{level.elo} Elo</small></div>
+            {!lesson && <div className="chess-captured" aria-label={`Stockfish captured ${lost.length} pieces`}>
+              {pieceRow(lost, player)}{material < 0 && <span className="chess-material">+{-material}</span>}
+            </div>}
             <span className="chess-engine-state" data-state={engineState}>
               {engineState === "thinking" ? <>Thinking<span className="chess-thinking" aria-hidden="true"><i /><i /><i /></span></> :
                 engineState === "loading" ? "Loading…" : engineState === "error" ? "Offline" : ""}
@@ -233,14 +272,17 @@ export default function GameWindow({ active = true, ...props }: Props) {
           </div>
           {lesson ? <ChessLesson key={`${epoch}-${ply}-${lesson.kind}`} lesson={lesson} flipped={flipped} active={active && !dialog}
             motionStyle={motionStyle} onClose={() => { setLesson(null); menuButton.current?.focus({ preventScroll: true }); }} /> :
+          <div className="chess-board-row" data-eval={review || undefined}>
+          {review && <ChessEvalBar point={evalPoint} label={evalLabel} flipped={flipped} />}
           <ChessBoard key={epoch} game={boardGame} player={player} flipped={flipped} lastMove={alternative ? undefined : browsing ? current : history.at(-1)}
             disabled={paused || over || engineState === "error"} motion={browsing ? undefined : motion} badge={badge} arrow={arrow}
-            onMove={(from, to, promotion) => { if (!paused && !over && !motion && game.turn() === player) record(game.move({ from, to, promotion })); }} />}
+            onMove={(from, to, promotion) => { if (!paused && !over && !motion && game.turn() === player) record(game.move({ from, to, promotion })); }} />
+          </div>}
           {!lesson && <div className="chess-player chess-you">
             <span className="chess-avatar"><ChessPiece type="k" color={player} /></span>
             <strong>You</strong>
             <div className="chess-captured" aria-label={`You captured ${captured.length} pieces`}>
-              {captured.map((m, i) => <ChessPiece key={i} type={m.captured!} color={opponent} />)}
+              {pieceRow(captured, opponent)}{material > 0 && <span className="chess-material">+{material}</span>}
             </div>
             {!browsing && <div className="chess-status" role="status">
               {engineError ? "Engine unavailable — retry to continue" : engineState === "thinking" || engineState === "loading" ? "Stockfish is thinking…" : status}
@@ -262,29 +304,31 @@ export default function GameWindow({ active = true, ...props }: Props) {
           {review ? <ChessReviewPanel moves={history} reviews={analysis.reviews} selected={selected} onSelect={navigate}
             running={analysis.running} completed={analysis.completed} quality={analysis.qualities[selected]} error={analysis.error} onStop={analysis.stop}
             onRestart={analysis.restart} showBest={alternative} onToggleBest={() => { setLesson(null); setShowBest(value => !value); }}
-            onLesson={openLesson} lessonOpen={Boolean(lesson)} /> : <>
+            onLesson={openLesson} lessonOpen={Boolean(lesson)} player={player} opening={opening} /> : <>
             {over && <div className="chess-result"><strong>{status}</strong><p>{history.length} {history.length === 1 ? "move" : "moves"} played</p>
-              <button type="button" onClick={openReview}>Review game</button></div>}
+              <button type="button" onClick={openReview}>Review game</button>
+              <button type="button" className="chess-rematch" onClick={() => startGame(opponent, level)}>Play again as {opponent === "w" ? "White" : "Black"}</button></div>}
             <section className="chess-coach" aria-label="Coach" aria-live="polite" aria-atomic="true">
               <div className="chess-coach-title"><Icon name="spark" /><h3>Coach</h3><small>Live</small></div>
               {current && grade ? <div key={`${epoch}-${ply}-${current.lan}`} className="chess-coach-feedback">
                 <div className="chess-coach-grade" data-grade={grade.grade.toLowerCase()}>
-                  <b className="chess-grade-symbol">{GRADE_SYMBOLS[grade.grade]}</b><strong>{grade.grade}</strong>
-                  <small>{coachOwner} {notation(current)}</small>
+                  <ChessGradeIcon grade={grade.grade} className="chess-grade-symbol" /><strong>{gradeSentence(current.san, grade.grade)}</strong>
+                  <small>{coachOwner} {notation(current)}{scoreLabel(grade.score, current.color) ? ` · ${scoreLabel(grade.score, current.color)}` : ""}</small>
                 </div>
                 <p>{grade.explanation}</p>
-                {grade.bestLan !== current.lan && !alternative && <button type="button" className="chess-text-button"
-                  disabled={Boolean(lesson)} onClick={() => setShowBest(true)}>Try {grade.bestSan}</button>}
+                <ChessBestMove move={current} review={grade} showing={alternative} disabled={Boolean(lesson)}
+                  onToggle={() => setShowBest(value => !value)} />
                 <div className="chess-coach-actions"><button type="button" className="chess-text-button" disabled={Boolean(lesson)} onClick={() => openLesson("best")}>Show line</button>
                   <button type="button" className="chess-text-button" disabled={Boolean(lesson)} onClick={() => openLesson("practice")}>Try again</button></div>
               </div> : <p className="chess-coach-placeholder">{current ? (analysis.error ? "Move grade unavailable." : "Looking at your move…") :
                 "Play a move to see your coach’s feedback."}</p>}
               {analysis.error && <button type="button" className="chess-text-button" title={analysis.error} onClick={analysis.restart}>Retry analysis</button>}
               <details className="chess-grade-info"><summary>About grades</summary>
-                <p>Full-strength Stockfish estimates, independent of opponent difficulty. Grades can change with search depth. Brilliant and Great use conservative checks. These are TangOS grades, not Chess.com’s classifications.</p></details>
+                <p>Full-strength Stockfish estimates, independent of opponent difficulty, using the familiar expected-points bands. Grades can change with search depth. Brilliant and Great use conservative checks; Book comes from a built-in list of common openings. These are TangOS grades, not Chess.com’s own classifications.</p></details>
             </section>
           </>}
           <div className="chess-history-heading"><h3>Moves</h3><span>{Math.ceil(history.length / 2)} played</span></div>
+          {opening && !review && <p className="chess-opening" title={opening}>{opening}</p>}
           <ol className="chess-history" aria-label="Move history" ref={historyRef}>
             {history.filter((_, i) => i % 2 === 0).map((_, i) => <li key={i}><span>{i + 1}.</span>
               <span>{moveButton(i * 2)}</span><span>{moveButton(i * 2 + 1)}</span></li>)}
@@ -313,6 +357,9 @@ export default function GameWindow({ active = true, ...props }: Props) {
           <fieldset className="chess-motion-options"><legend>Piece animation</legend>{(["normal", "fast", "off"] as const).map(style => <label key={style}>
             <input type="radio" name="chess-motion" checked={motionStyle === style} onChange={() => setMotionStyle(style)} />{style === "normal" ? "Normal" : style === "fast" ? "Fast" : "Off"}</label>)}</fieldset>
           <p>Reduced-motion preferences are respected in every mode.</p>
+          <fieldset className="chess-motion-options"><legend>Board colours</legend>{BOARD_THEMES.map(theme => <label key={theme.id}>
+            <input type="radio" name="chess-board-theme" checked={boardTheme === theme.id} onChange={() => setBoardTheme(theme.id)} />
+            <span className="chess-theme-swatch" data-board-swatch={theme.id} aria-hidden="true" />{theme.label}</label>)}</fieldset>
           <div className="chess-dialog-actions"><button type="button" onClick={() => setDialog(null)}>Close</button></div>
         </> : dialog === "resign" ? <>
           <h2>Resign game?</h2><p>Stockfish wins. You can still review every move.</p>

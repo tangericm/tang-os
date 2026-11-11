@@ -1,8 +1,9 @@
 import { Chess, DEFAULT_POSITION, type Color, type Move, type PieceSymbol } from "chess.js";
 import type { ChessEngine } from "./chess-engine";
-import { explainMove } from "./chess-coach";
+import { describeMove, explainMove } from "./chess-coach";
+import { isBookPosition, openingAt } from "./chess-openings";
 
-export type MoveGrade = "Brilliant" | "Great" | "Best" | "Excellent" | "Good" | "Inaccuracy" | "Mistake" | "Miss" | "Blunder" | "Forced";
+export type MoveGrade = "Brilliant" | "Great" | "Best" | "Excellent" | "Good" | "Book" | "Inaccuracy" | "Mistake" | "Miss" | "Blunder" | "Forced";
 export type ReviewMode = "live" | "review";
 export interface MoveReview {
   grade: MoveGrade;
@@ -16,10 +17,12 @@ export interface MoveReview {
   bestPoints: number;
   playedPoints: number;
   depth: number;
+  /** Engine score of the played move, from the mover's perspective. Mate 0 means the move mated. */
+  score?: { type: "cp" | "mate"; value: number };
   sacrifice?: { piece: PieceSymbol; acceptedBy: string };
 }
 type ReviewEngine = Pick<ChessEngine, "analyze">;
-type SideSummary = { precision: number | null; counts: Partial<Record<MoveGrade, number>> };
+type SideSummary = { accuracy: number | null; counts: Partial<Record<MoveGrade, number>> };
 
 function play(game: Chess, lan: string) {
   return game.move({ from: lan.slice(0, 2), to: lan.slice(2, 4), promotion: lan[4] });
@@ -57,9 +60,10 @@ const explanations: Record<MoveGrade, string> = {
   Best: "The engine’s top choice. This makes the most of the position.",
   Excellent: "Nearly as strong as the best move. The position stays on track.",
   Good: "A solid move, with a slightly stronger option available.",
+  Book: "An established opening move.",
   Inaccuracy: "A small opportunity slipped by. There was a stronger move here.",
   Mistake: "This weakens the position. Take a look at the stronger alternative.",
-  Miss: "The opponent offered a winning chance. This move let it slip.",
+  Miss: "Your opponent slipped up, and this move didn’t punish it.",
   Blunder: "This weakens the position considerably. Try the stronger alternative.",
 };
 
@@ -112,16 +116,20 @@ export async function reviewMove(engine: ReviewEngine, move: Move, historyBefore
   const depth = first.depth;
   let grade = ordinaryGrade(loss);
   let sacrifice: MoveReview["sacrifice"];
+  const opponentErred = Boolean(previous && previous.depth >= 8 && previous.loss >= .10);
   if (legal.length === 1) grade = "Forced";
   else if (preferred === move.lan && loss === 0) {
     grade = "Best";
     if (!rescore && terminal === undefined && runner && depth >= 8 && playedPoints >= .48) {
       if (runner.points < .8 && played) sacrifice = acceptedSacrifice(move, played.pv);
       if (sacrifice) grade = "Brilliant";
-      else if (playedPoints - runner.points >= .18) grade = "Great";
+      // A critical find: the only good move, or the move that punishes an opponent's error.
+      else if (playedPoints - runner.points >= (opponentErred ? .12 : .18)) grade = "Great";
     }
-  } else if (depth >= 8 && previous && previous.depth >= 8 && previous.bestPoints >= .40 && previous.loss >= .10 && previous.playedPoints <= .25 &&
-    bestPoints >= .75 && playedPoints <= .55) grade = "Miss";
+  } else if (depth >= 8 && opponentErred && previous!.bestPoints >= .40 && previous!.playedPoints <= .30 &&
+    bestPoints >= .70 && loss >= .10) grade = "Miss";
+  // Established theory outranks engine nuance, as long as the move does not throw anything away.
+  if (grade !== "Forced" && loss < .05 && isBookPosition(after.fen())) grade = "Book";
 
   let explanation = rescore && grade === "Best"
     ? "Your move scored highest when compared directly with the two leading candidates."
@@ -131,33 +139,49 @@ export async function reviewMove(engine: ReviewEngine, move: Move, historyBefore
   }
   const bestLine = (ranked.find(line => line.pv[0] === preferred)?.pv ?? [preferred]).slice(0, 8);
   const playedLine = (played?.pv ?? [move.lan]).slice(0, 8);
-  if (terminal === undefined) {
+  if (grade === "Book") {
+    const name = openingAt(after.fen());
+    explanation = `${name ? `A known opening move in the ${name}.` : explanations.Book} ${describeMove(move)}`;
+  } else if (terminal === undefined) {
     explanation = sacrifice ? `${move.san} offers the ${sacrifice.piece === "n" ? "knight" : sacrifice.piece === "b" ? "bishop" : sacrifice.piece === "r" ? "rook" : "queen"} on ${move.to}. ${explanations.Brilliant}`
       : explainMove(move, playedLine, bestLine, loss, explanation);
     if (grade === "Forced" || grade === "Great") explanation = `${explanations[grade]} ${explanation}`;
   }
   return {
     grade, playedSan: move.san, bestSan: legal.find(candidate => candidate.lan === preferred)!.san,
-    bestLan: preferred, bestLine, playedLine, explanation, loss, bestPoints, playedPoints, depth, ...(sacrifice && { sacrifice }),
+    bestLan: preferred, bestLine, playedLine, explanation, loss, bestPoints, playedPoints, depth,
+    score: terminal === 1 ? { type: "mate", value: 0 } : terminal === .5 ? { type: "cp", value: 0 } : played?.score,
+    ...(sacrifice && { sacrifice }),
   };
 }
 
-/** Mean retained expected points, expressed as a percentage for each side. */
+/** Per-move accuracy from the drop in expected score (in percent), using the published
+ * Lichess curve. Not Chess.com's CAPS2 model, whose calibration is unpublished. */
+export function moveAccuracy(review: Pick<MoveReview, "bestPoints" | "playedPoints">): number {
+  const drop = Math.max(0, review.bestPoints - review.playedPoints) * 100;
+  return Math.max(0, Math.min(100, 103.1668 * Math.exp(-0.04354 * drop) - 3.1669));
+}
+
+/** Game accuracy blends the arithmetic and harmonic means, so single blunders weigh in
+ * without letting one move erase the rest of the game. Forced moves carry no weight. */
 export function summarizeReviews(reviews: readonly MoveReview[], moves: readonly Move[]): Record<Color, SideSummary> {
   const summary: Record<Color, SideSummary> = {
-    w: { precision: null, counts: {} }, b: { precision: null, counts: {} },
+    w: { accuracy: null, counts: {} }, b: { accuracy: null, counts: {} },
   };
-  const losses = { w: [] as number[], b: [] as number[] };
+  const scores = { w: [] as number[], b: [] as number[] };
   reviews.forEach((review, index) => {
     const color = moves[index]?.color;
     if (!color) return;
     const counts = summary[color].counts;
     counts[review.grade] = (counts[review.grade] ?? 0) + 1;
-    if (review.grade !== "Forced") losses[color].push(review.loss);
+    if (review.grade !== "Forced") scores[color].push(moveAccuracy(review));
   });
   for (const color of ["w", "b"] as const) {
-    const sample = losses[color];
-    if (sample.length) summary[color].precision = Math.round(100 * (1 - sample.reduce((sum, loss) => sum + loss, 0) / sample.length));
+    const sample = scores[color];
+    if (!sample.length) continue;
+    const mean = sample.reduce((sum, value) => sum + value, 0) / sample.length;
+    const harmonic = sample.length / sample.reduce((sum, value) => sum + 1 / Math.max(value, 1), 0);
+    summary[color].accuracy = Math.round((mean + harmonic) * 5) / 10;
   }
   return summary;
 }

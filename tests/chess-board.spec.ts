@@ -34,6 +34,7 @@ async function mount(page: Page) {
     ${moduleScript("chess.js", require.resolve("chess.js"))}
     ${moduleScript("./ChessPiece", "app/components/ChessPiece.tsx", true)}
     ${moduleScript("../lib/chess-grades", "app/lib/chess-grades.ts", true)}
+    ${moduleScript("./ChessGradeIcon", "app/components/ChessGradeIcon.tsx", true)}
     ${moduleScript("Board", "app/components/ChessBoard.tsx", true)}
     const root=require("react-dom/client").createRoot(document.querySelector("#test-board"));
     window.drawBoard=(opts)=>{

@@ -20,6 +20,7 @@ async function mount(page: Page, baseline: boolean, baselineSource: string) {
     ${reactBrowserRuntime()}
     ${browserModule("../lib/chess-engine", "app/lib/chess-engine.ts")}
     ${browserModule("./chess-coach", "app/lib/chess-coach.ts")}
+    ${browserModule("./chess-openings", "app/lib/chess-openings.ts")}
     ${browserModule("../lib/chess-review", "app/lib/chess-review.ts")}
     ${hook}
     const stats=window.chessMeasure={workers:0,initialization:[],latency:[],depths:[],grades:[]};

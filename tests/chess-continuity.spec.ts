@@ -69,7 +69,7 @@ async function play(page: Page, from: string, to: string) {
 }
 async function firstTurn(page: Page) {
   await play(page, "e2", "e4");
-  await expect(chess(page).getByRole("button", { name: "1…e5 · Best", exact: true })).toBeVisible();
+  await expect(chess(page).getByRole("button", { name: "1…e5 · Book", exact: true })).toBeVisible();
 }
 async function openReview(page: Page) {
   await chess(page).getByRole("button", { name: "More options", exact: true }).click();
@@ -80,24 +80,24 @@ test("one analysis worker survives drained queues and compatible live/review job
   await firstTurn(page);
   expect(await page.evaluate(() => window.continuityStats.analysisWorkers.length)).toBe(1);
   await play(page, "g1", "f3");
-  await expect(chess(page).getByRole("button", { name: "2…Nc6 · Best", exact: true })).toBeVisible();
+  await expect(chess(page).getByRole("button", { name: "2…Nc6 · Book", exact: true })).toBeVisible();
   await openReview(page);
   await expect(chess(page).getByText("4 / 4 refined", { exact: true })).toBeVisible({ timeout: 15000 });
   expect(await page.evaluate(() => window.continuityStats.analysisWorkers.length)).toBe(1);
 });
 
-test("review preserves quick grades and precision while upgrades stop and resume", async ({ page }) => {
+test("review preserves quick grades and accuracy while upgrades stop and resume", async ({ page }) => {
   await firstTurn(page);
   await openReview(page);
   const selected = chess(page).getByLabel("Selected move", { exact: true });
-  await expect(selected.locator("[data-grade]")).toHaveText("Best");
+  await expect(selected.locator("[data-grade]")).toHaveText(/is a book move$/);
   await expect(selected).toContainText("Quick estimate");
   await expect(chess(page).locator(".chess-review-summary")).not.toContainText("—");
   await chess(page).getByRole("button", { name: "Stop", exact: true }).click();
-  await expect(selected.locator("[data-grade]")).toHaveText("Best");
+  await expect(selected.locator("[data-grade]")).toHaveText(/is a book move$/);
   await chess(page).getByRole("button", { name: "First position", exact: true }).click();
   await chess(page).getByRole("button", { name: "Next move", exact: true }).click();
-  await expect(selected.locator("[data-grade]")).toHaveText("Best");
+  await expect(selected.locator("[data-grade]")).toHaveText(/is a book move$/);
   await chess(page).getByRole("button", { name: "Resume", exact: true }).click();
   await expect(chess(page).getByText("2 / 2 refined", { exact: true })).toBeVisible({ timeout: 10000 });
   await expect(selected).not.toContainText("Quick estimate");
@@ -110,7 +110,7 @@ test("disabling analysis disposes its ready worker and reopening cannot reuse a 
   expect(await page.evaluate(id => window.continuityStats.terminated.includes(id), before)).toBe(true);
   await page.getByRole("dialog", { name: "New game", exact: true }).getByRole("button", { name: "Cancel", exact: true }).click();
   await play(page, "g1", "f3");
-  await expect(chess(page).getByRole("button", { name: "2…Nc6 · Best", exact: true })).toBeVisible();
+  await expect(chess(page).getByRole("button", { name: "2…Nc6 · Book", exact: true })).toBeVisible();
   expect(await page.evaluate(() => window.continuityStats.analysisWorkers.length)).toBe(2);
 });
 
@@ -153,7 +153,7 @@ test("selecting a recorded move cancels autoplay and keeps its final position", 
   await firstTurn(page);
   await chess(page).getByRole("button", { name: "Show line", exact: true }).click();
   await chess(page).getByRole("button", { name: "Play continuation", exact: true }).click();
-  await chess(page).getByRole("button", { name: "1…e5 · Best", exact: true }).click();
+  await chess(page).getByRole("button", { name: "1…e5 · Book", exact: true }).click();
   await expect(chess(page).getByRole("region", { name: "Continuation", exact: true })).toHaveCount(0);
   await page.waitForTimeout(1100);
   await expect(chess(page).locator('[data-square="e5"]')).toHaveAttribute("aria-label", "e5, black pawn");
@@ -204,7 +204,7 @@ test("animation Off applies to both play and manual teaching steps", async ({ pa
   await settings.getByRole("button", { name: "Close", exact: true }).click();
   await play(page, "g1", "f3");
   await expect(chess(page).locator(".chess-moving-piece")).toHaveCount(0);
-  await expect(chess(page).getByRole("button", { name: "2…Nc6 · Best", exact: true })).toBeVisible();
+  await expect(chess(page).getByRole("button", { name: "2…Nc6 · Book", exact: true })).toBeVisible();
   await chess(page).getByRole("button", { name: "Show line", exact: true }).click();
   await chess(page).getByRole("button", { name: "Next continuation move", exact: true }).click();
   await expect(chess(page).locator(".chess-moving-piece")).toHaveCount(0);
@@ -225,3 +225,17 @@ for (const viewport of [{ width: 1280, height: 720 }, { width: 390, height: 844 
     await testInfo.attach("chess-continuation", { path: shot, contentType: "image/png" });
   });
 }
+
+test("one click switches to Black and Stockfish opens as White", async ({ page }) => {
+  await chess(page).getByRole("button", { name: "Play as Black", exact: true }).click();
+  await expect(chess(page).getByRole("button", { name: "Play as Black", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(chess(page).locator(".chess-history li").first().locator("button").first()).toBeVisible();
+  await expect(chess(page).locator('[data-square="h1"]')).toHaveAttribute("aria-label", "h1, white rook");
+  await expect(chess(page).locator(".chess-board > button").first()).toHaveAttribute("data-square", "h1");
+  await play(page, "e7", "e5");
+  await chess(page).getByRole("button", { name: "Play as White", exact: true }).click();
+  const setup = page.getByRole("dialog", { name: "New game", exact: true });
+  await expect(setup.getByRole("radio", { name: "White" })).toBeChecked();
+  await setup.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(chess(page).getByRole("button", { name: "Play as Black", exact: true })).toHaveAttribute("aria-pressed", "true");
+});

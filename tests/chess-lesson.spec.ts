@@ -12,6 +12,7 @@ test.beforeEach(async ({ page }) => {
     "./ChessPiece": "app/components/ChessPiece.tsx", "./ChessBoard": "app/components/ChessBoard.tsx",
     "../lib/chess-grades": "app/lib/chess-grades.ts", "../lib/chess-engine": "app/lib/chess-engine.ts",
     "../lib/chess-coach": "app/lib/chess-coach.ts", "../lib/chess-review": "app/lib/chess-review.ts",
+    "./ChessGradeIcon": "app/components/ChessGradeIcon.tsx", "./chess-openings": "app/lib/chess-openings.ts",
     Lesson: "app/components/ChessLesson.tsx",
   };
   await page.addScriptTag({ content: `(()=>{
